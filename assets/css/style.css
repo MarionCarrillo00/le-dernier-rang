@@ -1023,4 +1023,15 @@ footer {
   display: none !important;
 }
 
+.favorite {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.like-count {
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+}
+
 }
