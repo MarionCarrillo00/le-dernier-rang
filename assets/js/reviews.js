@@ -294,7 +294,7 @@ async function getMyReviews(userId) {
     return [];
   }
 
-  return reviews;
+return enrichReviewsWithLikes(reviews);
 }
 
 async function publishReview(payload) {
