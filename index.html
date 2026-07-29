@@ -127,6 +127,46 @@
       </div>
 
       <form id="reviewForm">
+        
+        <div class="tmdb-search-section">
+          <label for="tmdbSearchInput">
+            Rechercher un film dans TMDB
+          </label>
+
+          <div class="tmdb-search-row">
+            <input
+              id="tmdbSearchInput"
+              type="search"
+              autocomplete="off"
+              placeholder="Ex. Le Fabuleux Destin d’Amélie Poulain"
+            />
+
+            <button
+              class="button-secondary"
+              type="button"
+              id="tmdbSearchButton"
+            >
+              Rechercher
+            </button>
+          </div>
+
+          <p class="form-note">
+            Sélectionne un résultat pour préremplir le titre et l’année.
+          </p>
+
+          <div
+            id="tmdbSearchMessage"
+            class="status-message"
+            aria-live="polite"
+          ></div>
+
+          <div
+            id="tmdbResults"
+            class="tmdb-results"
+            aria-live="polite"
+          ></div>
+        </div>
+
         <div class="form-grid">
           <div class="field">
             <label for="title">Titre du film *</label>
