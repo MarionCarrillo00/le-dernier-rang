@@ -4,7 +4,8 @@ const defaultMovies = [
     id: "demo-1",
     author: "Le dernier rang",
     rating: 4.5,
-    content: "Une solitude à deux, douce et immense, dans une ville qui ne dort jamais.",
+    content:
+      "Une solitude à deux, douce et immense, dans une ville qui ne dort jamais.",
     movies: {
       title: "Lost in Translation",
       release_year: 2003,
@@ -16,7 +17,8 @@ const defaultMovies = [
     id: "demo-2",
     author: "Le dernier rang",
     rating: 4,
-    content: "Quand l’infiniment grand devient une très belle histoire d’amour.",
+    content:
+      "Quand l’infiniment grand devient une très belle histoire d’amour.",
     movies: {
       title: "Interstellar",
       release_year: 2014,
@@ -28,7 +30,8 @@ const defaultMovies = [
     id: "demo-3",
     author: "Le dernier rang",
     rating: 4,
-    content: "Un Paris rêvé, tendre et légèrement trop joli — mais c’est précisément ce qui le rend précieux.",
+    content:
+      "Un Paris rêvé, tendre et légèrement trop joli — mais c’est précisément ce qui le rend précieux.",
     movies: {
       title: "Le Fabuleux Destin d’Amélie Poulain",
       release_year: 2001,
@@ -40,7 +43,8 @@ const defaultMovies = [
     id: "demo-4",
     author: "Le dernier rang",
     rating: 5,
-    content: "Un rêve immense où chaque porte ouverte nous rend un peu plus courageux.",
+    content:
+      "Un rêve immense où chaque porte ouverte nous rend un peu plus courageux.",
     movies: {
       title: "Le Voyage de Chihiro",
       release_year: 2001,
@@ -52,7 +56,8 @@ const defaultMovies = [
     id: "demo-5",
     author: "Le dernier rang",
     rating: 4,
-    content: "La beauté trouble de ce que l’on ne comprend jamais tout à fait.",
+    content:
+      "La beauté trouble de ce que l’on ne comprend jamais tout à fait.",
     movies: {
       title: "The Virgin Suicides",
       release_year: 1999,
@@ -76,6 +81,7 @@ const defaultMovies = [
 
 let publicReviews = [];
 let selectedGenre = "Tous";
+let selectedTmdbMovie = null;
 
 const grid = document.getElementById("moviesGrid");
 const searchInput = document.getElementById("searchInput");
@@ -92,8 +98,9 @@ const tmdbSearchButton = document.getElementById("tmdbSearchButton");
 const tmdbSearchMessage = document.getElementById("tmdbSearchMessage");
 const tmdbResults = document.getElementById("tmdbResults");
 
-let selectedTmdbMovie = null;
-
+/* ---------------------------------
+   Recherche TMDB
+--------------------------------- */
 
 function clearTmdbSearchMessage() {
   tmdbSearchMessage.textContent = "";
@@ -149,7 +156,9 @@ function displayTmdbResults(results) {
       <span></span>
     `;
 
-    resultButton.querySelector("strong").textContent = `${title} (${year})`;
+    resultButton.querySelector("strong").textContent =
+      `${title} (${year})`;
+
     resultButton.querySelector("span").textContent = overview;
 
     resultButton.addEventListener("click", () => {
@@ -202,6 +211,10 @@ async function searchTmdbMovies() {
   }
 }
 
+/* ---------------------------------
+   Accueil et affichage des critiques
+--------------------------------- */
+
 function allHomeReviews() {
   return [...publicReviews, ...defaultMovies];
 }
@@ -235,7 +248,9 @@ function renderHomeReviews() {
   });
 
   movieCount.textContent =
-    `· ${filteredReviews.length} critique${filteredReviews.length > 1 ? "s" : ""}`;
+    `· ${filteredReviews.length} critique${
+      filteredReviews.length > 1 ? "s" : ""
+    }`;
 
   if (filteredReviews.length === 0) {
     grid.innerHTML = `
@@ -268,6 +283,10 @@ async function refreshHomeReviews() {
   renderHomeReviews();
 }
 
+/* ---------------------------------
+   Modale de publication
+--------------------------------- */
+
 function openReviewModal() {
   if (!currentUser) {
     setAuthMode("login");
@@ -288,8 +307,11 @@ function closeReviewModal() {
   reviewModal.classList.remove("visible");
 }
 
+/* ---------------------------------
+   Événements et publication
+--------------------------------- */
+
 function setupHome() {
-  
   tmdbSearchButton.addEventListener("click", searchTmdbMovies);
 
   tmdbSearchInput.addEventListener("keydown", (event) => {
@@ -299,6 +321,8 @@ function setupHome() {
     }
   });
 
+  // Si le titre est modifié à la main après une sélection TMDB,
+  // le film TMDB sélectionné n'est plus retenu.
   document.getElementById("title").addEventListener("input", () => {
     selectedTmdbMovie = null;
   });
@@ -337,8 +361,9 @@ function setupHome() {
       return;
     }
 
-    const submitButton =
-      reviewForm.querySelector('button[type="submit"]');
+    const submitButton = reviewForm.querySelector(
+      'button[type="submit"]'
+    );
 
     submitButton.disabled = true;
     submitButton.textContent = "Publication…";
@@ -346,13 +371,22 @@ function setupHome() {
     try {
       const payload = {
         title: document.getElementById("title").value.trim(),
+
+        // Contient les données TMDB si un résultat a été sélectionné.
+        tmdbMovie: selectedTmdbMovie,
+
         year: document.getElementById("year").value,
+
         director:
           document.getElementById("director").value.trim() ||
           "Réalisateur·rice non précisé·e",
+
         genre: document.getElementById("genre").value,
+
         rating: document.getElementById("rating").value,
+
         content: document.getElementById("review").value.trim(),
+
         tags: document
           .getElementById("tags")
           .value
@@ -364,6 +398,13 @@ function setupHome() {
       await publishReview(payload);
 
       reviewForm.reset();
+
+      // Remise à zéro de la recherche TMDB après publication.
+      selectedTmdbMovie = null;
+      tmdbSearchInput.value = "";
+      clearTmdbResults();
+      clearTmdbSearchMessage();
+
       closeReviewModal();
 
       selectedGenre = "Tous";
