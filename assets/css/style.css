@@ -795,4 +795,22 @@ footer {
     flex-direction: column;
     padding: 30px;
   }
+
+  
+.delete-review {
+  padding: 7px 10px;
+  color: var(--deep-red);
+  background: transparent;
+  border: 1px solid #d9aaa5;
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+}
+
+.delete-review:hover {
+  color: white;
+  background: var(--red);
+  border-color: var(--red);
+}
+
 }
