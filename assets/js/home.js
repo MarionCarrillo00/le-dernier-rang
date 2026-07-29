@@ -327,9 +327,13 @@ async function searchTmdbMovies() {
    Accueil et affichage des critiques
 --------------------------------- */
 
+
 function allHomeReviews() {
-  return [...publicReviews, ...defaultMovies];
+  // Pour le moment, l'accueil affiche uniquement
+  // les critiques réellement publiées dans Supabase.
+  return publicReviews;
 }
+
 
 function getPrimaryGenre(review) {
   return review.movies?.genres?.[0] || "Cinéma";
