@@ -85,13 +85,22 @@
       </div>
 
       <div class="controls">
-        <div class="search-box">
-          <input
-            id="searchInput"
-            type="search"
-            placeholder="Chercher un film, un réalisateur, une émotion…"
-          />
-        </div>
+
+<div class="search-box">
+  <input
+    id="searchInput"
+    type="search"
+    autocomplete="off"
+    placeholder="Chercher un film, un réalisateur, une émotion…"
+  />
+
+  <div
+    class="home-tmdb-results"
+    id="homeTmdbResults"
+    aria-live="polite"
+  ></div>
+</div>
+
 
         <div class="filters" id="filters">
           <button class="filter active" data-genre="Tous">
