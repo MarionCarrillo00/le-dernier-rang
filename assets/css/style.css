@@ -42,7 +42,9 @@ button:disabled {
   opacity: 0.65;
 }
 
-/* Navigation */
+/* =====================================================
+   NAVIGATION
+   ===================================================== */
 
 .navbar {
   position: sticky;
@@ -101,6 +103,21 @@ button:disabled {
   transform: translateY(-1px);
 }
 
+.button-secondary {
+  padding: 11px 15px;
+  color: var(--deep-red);
+  background: transparent;
+  border: 1px solid var(--red);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  transition: 0.2s ease;
+}
+
+.button-secondary:hover {
+  color: white;
+  background: var(--red);
+}
+
 .login-button {
   padding: 10px 15px;
   color: var(--deep-red);
@@ -152,13 +169,15 @@ button:disabled {
   border-color: var(--red);
 }
 
-/* Hero */
+/* =====================================================
+   HERO
+   ===================================================== */
 
 .hero {
   position: relative;
-  overflow: hidden;
   min-height: 430px;
   padding: 95px 7% 75px;
+  overflow: hidden;
   color: white;
   background:
     linear-gradient(120deg, rgba(31, 19, 18, 0.92), rgba(113, 35, 36, 0.72)),
@@ -206,6 +225,10 @@ h1 {
   letter-spacing: -3px;
 }
 
+.hero em {
+  color: #f5dbaa;
+}
+
 .hero p {
   max-width: 540px;
   margin: 24px 0 30px;
@@ -214,11 +237,9 @@ h1 {
   line-height: 1.6;
 }
 
-.hero em {
-  color: #f5dbaa;
-}
-
-/* Structure */
+/* =====================================================
+   STRUCTURE
+   ===================================================== */
 
 main {
   width: min(1200px, 86%);
@@ -266,7 +287,9 @@ h2 {
   line-height: 1.7;
 }
 
-/* Recherche et filtres */
+/* =====================================================
+   RECHERCHE ET FILTRES
+   ===================================================== */
 
 .controls {
   display: grid;
@@ -330,15 +353,21 @@ textarea:focus {
   border-color: var(--ink);
 }
 
-/* Cartes */
+/* =====================================================
+   CARTES DE MICROCRITIQUES
+   Affiche compacte à gauche, texte à droite
+   ===================================================== */
 
 .movies-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
 }
 
 .movie-card {
+  display: flex;
+  flex-direction: row;
+  min-height: 220px;
   overflow: hidden;
   background: var(--cream);
   border: 1px solid var(--line);
@@ -349,33 +378,37 @@ textarea:focus {
 
 .movie-card:hover {
   box-shadow: var(--shadow);
-  transform: translateY(-5px);
+  transform: translateY(-4px);
 }
 
-.poster {
+/* Vignette / affiche à gauche */
+.movie-card .poster {
   position: relative;
   display: flex;
   align-items: end;
-  min-height: 285px;
-  padding: 22px;
+  width: 135px;
+  min-width: 135px;
+  height: 220px;
+  padding: 14px;
   overflow: hidden;
   color: white;
   background: #252121;
 }
 
-.poster::before {
+/* Overlay : uniquement pour les anciennes cartes sans affiche TMDB */
+.movie-card .poster:not(.poster-image)::before {
   position: absolute;
   inset: 0;
   content: "";
   background: linear-gradient(180deg, transparent 15%, rgba(22, 17, 16, 0.86));
 }
 
-.poster::after {
+.movie-card .poster:not(.poster-image)::after {
   position: absolute;
   top: -35px;
   right: -25px;
-  width: 170px;
-  height: 170px;
+  width: 130px;
+  height: 130px;
   content: "";
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 50%;
@@ -390,18 +423,38 @@ textarea:focus {
   display: block;
   margin-bottom: 5px;
   font-family: Arial, sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   letter-spacing: 1px;
-  opacity: 0.78;
+  opacity: 0.8;
 }
 
 .poster .movie-title {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.35rem;
   font-weight: normal;
   line-height: 0.95;
 }
 
+/* Affiche réelle TMDB */
+.movie-card .poster.poster-image {
+  padding: 0;
+  background: #e7ddd6;
+}
+
+.movie-card .poster.poster-image::before,
+.movie-card .poster.poster-image::after {
+  display: none;
+}
+
+.movie-card .poster.poster-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Fonds de secours pour les anciennes critiques */
 .poster-1 {
   background:
     linear-gradient(145deg, rgba(111, 46, 35, 0.25), rgba(23, 18, 19, 0.9)),
@@ -444,41 +497,49 @@ textarea:focus {
     center / cover;
 }
 
-.movie-content {
-  padding: 20px;
+/* Partie texte à droite */
+.movie-card .movie-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: 17px 18px;
 }
 
 .movie-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 13px;
+  gap: 10px;
+  margin-bottom: 10px;
   color: var(--grey);
   font-family: Arial, sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
 }
 
 .rating {
   color: var(--gold);
-  font-size: 1rem;
+  font-size: 0.95rem;
   letter-spacing: 1px;
   white-space: nowrap;
 }
 
 .review {
-  min-height: 68px;
+  display: -webkit-box;
   margin: 0;
-  font-size: 1.05rem;
+  overflow: hidden;
+  font-size: 1rem;
   font-style: italic;
   line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 18px;
+  gap: 6px;
+  margin-top: 14px;
 }
 
 .tag {
@@ -487,22 +548,22 @@ textarea:focus {
   background: #f4e4df;
   border-radius: 4px;
   font-family: Arial, sans-serif;
-  font-size: 0.7rem;
+  font-size: 0.67rem;
 }
 
 .card-bottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 19px;
-  padding-top: 15px;
+  margin-top: auto;
+  padding-top: 12px;
   border-top: 1px solid var(--line);
 }
 
 .author {
   color: var(--grey);
   font-family: Arial, sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 
 .favorite {
@@ -510,7 +571,7 @@ textarea:focus {
   color: var(--grey);
   background: none;
   border: none;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   transition: 0.2s ease;
 }
 
@@ -518,6 +579,22 @@ textarea:focus {
 .favorite.liked {
   color: var(--red);
   transform: scale(1.15);
+}
+
+.delete-review {
+  padding: 7px 10px;
+  color: var(--deep-red);
+  background: transparent;
+  border: 1px solid #d9aaa5;
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+}
+
+.delete-review:hover {
+  color: white;
+  background: var(--red);
+  border-color: var(--red);
 }
 
 .empty-state {
@@ -530,7 +607,9 @@ textarea:focus {
   border-radius: 12px;
 }
 
-/* Modales et formulaires */
+/* =====================================================
+   MODALES ET FORMULAIRES
+   ===================================================== */
 
 .modal {
   position: fixed;
@@ -654,6 +733,10 @@ textarea {
   line-height: 1.45;
 }
 
+.status-message:not(:empty) {
+  display: block;
+}
+
 .status-message.visible {
   display: block;
 }
@@ -668,7 +751,103 @@ textarea {
   background: #fae5e2;
 }
 
-/* Espace personnel */
+/* =====================================================
+   RECHERCHE TMDB ET FILM SÉLECTIONNÉ
+   ===================================================== */
+
+.tmdb-search-row {
+  display: flex;
+  gap: 10px;
+}
+
+.tmdb-search-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.tmdb-results {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0.85rem 0 1rem;
+}
+
+.tmdb-result {
+  width: 100%;
+  padding: 0.8rem;
+  color: #211816;
+  text-align: left;
+  background: #fffaf5;
+  border: 1px solid #d8c8bd;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.tmdb-result:hover {
+  background: #fff2eb;
+  border-color: #bd4c49;
+}
+
+.tmdb-result strong {
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.tmdb-result span {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #6f625d;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.selected-movie-card {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0 1.25rem;
+  padding: 1rem;
+  background: #fffaf5;
+  border: 1px solid #d8c8bd;
+  border-radius: 14px;
+}
+
+.selected-movie-content {
+  min-width: 0;
+}
+
+.selected-movie-poster {
+  width: 82px;
+  height: 122px;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.selected-movie-card strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 1rem;
+}
+
+.selected-movie-card p {
+  margin: 0.35rem 0;
+}
+
+#selectedMovieMeta {
+  color: #a74743;
+  font-size: 0.88rem;
+}
+
+#selectedMovieOverview {
+  color: #6f625d;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+/* =====================================================
+   ESPACE PERSONNEL
+   ===================================================== */
 
 .profile-page {
   min-height: 75vh;
@@ -681,12 +860,12 @@ textarea {
   gap: 30px;
   margin-bottom: 70px;
   padding: 45px;
+  color: white;
   background:
     linear-gradient(120deg, rgba(31, 19, 18, 0.88), rgba(113, 35, 36, 0.7)),
     url("https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1600&q=80")
     center / cover;
   border-radius: 18px;
-  color: white;
 }
 
 .profile-header h1 {
@@ -722,22 +901,26 @@ textarea {
   font-family: Arial, sans-serif;
 }
 
-/* Footer */
+/* =====================================================
+   FOOTER
+   ===================================================== */
 
 footer {
   padding: 35px 7%;
   color: #d9c9bb;
+  text-align: center;
   background: #241d1d;
   font-family: Arial, sans-serif;
   font-size: 0.8rem;
-  text-align: center;
 }
 
-/* Responsive */
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
 
 @media (max-width: 950px) {
   .movies-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .menu a:not(.profile-link):not(.button-primary) {
@@ -751,6 +934,11 @@ footer {
 
   .section-title p {
     text-align: left;
+  }
+
+  .profile-header {
+    align-items: start;
+    flex-direction: column;
   }
 }
 
@@ -766,10 +954,6 @@ footer {
   .hero {
     min-height: 390px;
     padding: 72px 7% 60px;
-  }
-
-  .movies-grid {
-    grid-template-columns: 1fr;
   }
 
   .controls {
@@ -790,145 +974,42 @@ footer {
     text-overflow: ellipsis;
   }
 
-  .profile-header {
-    align-items: start;
+  .movie-card {
     flex-direction: column;
+  }
+
+  .movie-card .poster {
+    width: 100%;
+    min-width: 0;
+    height: 250px;
+    padding: 18px;
+  }
+
+  .movie-card .poster.poster-image {
+    padding: 0;
+  }
+
+  .poster .movie-title {
+    font-size: 1.7rem;
+  }
+
+  .movie-card .movie-content {
+    padding: 17px;
+  }
+
+  .review {
+    -webkit-line-clamp: 5;
+  }
+
+  .tmdb-search-row {
+    flex-direction: column;
+  }
+
+  .selected-movie-card {
+    align-items: flex-start;
+  }
+
+  .profile-header {
     padding: 30px;
   }
-
-  
-.delete-review {
-  padding: 7px 10px;
-  color: var(--deep-red);
-  background: transparent;
-  border: 1px solid #d9aaa5;
-  border-radius: 999px;
-  font-family: Arial, sans-serif;
-  font-size: 0.72rem;
-}
-
-.delete-review:hover {
-  color: white;
-  background: var(--red);
-  border-color: var(--red);
-}
-
-  
-/* Recherche TMDB et fiche de film sélectionnée */
-
-.tmdb-results {
-  display: grid;
-  gap: 0.65rem;
-  margin: 0.85rem 0 1rem;
-}
-
-.tmdb-result {
-  width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #d8c8bd;
-  border-radius: 10px;
-  background: #fffaf5;
-  color: #211816;
-  text-align: left;
-  cursor: pointer;
-  font: inherit;
-}
-
-.tmdb-result:hover {
-  border-color: #bd4c49;
-  background: #fff2eb;
-}
-
-.tmdb-result strong {
-  display: block;
-  margin-bottom: 0.3rem;
-}
-
-.tmdb-result span {
-  display: -webkit-box;
-  overflow: hidden;
-  color: #6f625d;
-  font-size: 0.88rem;
-  line-height: 1.4;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
-.selected-movie-card {
-  display: flex;
-  gap: 1rem;
-  margin: 1rem 0 1.25rem;
-  padding: 1rem;
-  border: 1px solid #d8c8bd;
-  border-radius: 14px;
-  background: #fffaf5;
-}
-
-.selected-movie-poster {
-  width: 82px;
-  height: 122px;
-  flex: 0 0 auto;
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-.selected-movie-card strong {
-  display: block;
-  margin-bottom: 0.35rem;
-  font-size: 1rem;
-}
-
-.selected-movie-card p {
-  margin: 0.35rem 0;
-}
-
-#selectedMovieMeta {
-  color: #a74743;
-  font-size: 0.88rem;
-}
-
-#selectedMovieOverview {
-  color: #6f625d;
-  font-size: 0.9rem;
-  line-height: 1.45;
-}
-
-/* Affiches TMDB dans les cartes de la page d'accueil */
-
-.poster.poster-image {
-  overflow: hidden;
-  background: #e7ddd6;
-}
-
-.poster.poster-image img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Affiches TMDB : format plus élégant et plus compact */
-
-.poster.poster-image {
-  height: 360px;
-  min-height: 0;
-  overflow: hidden;
-  background: #e7ddd6;
-}
-
-.poster.poster-image img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-/* Sur téléphone, on réduit encore légèrement la place de l'affiche */
-@media (max-width: 700px) {
-  .poster.poster-image {
-    height: 300px;
-  }
-}
-
 }
