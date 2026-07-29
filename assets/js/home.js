@@ -1,627 +1,159 @@
 
-const filmPageContent = document.getElementById("filmPageContent");
+let publicReviews = [];
+let selectedGenre = "Tous";
+let selectedTmdbMovie = null;
+let isLoadingWriteTmdb = false;
 
-let currentFilmMovie = null;
-let currentTmdbMovieId = null;
-let listPanelOpen = false;
+const grid = document.getElementById("moviesGrid");
+const searchInput = document.getElementById("searchInput");
+const filters = document.getElementById("filters");
+const movieCount = document.getElementById("movieCount");
 
-function getMovieIdFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("id");
-}
+const reviewModal = document.getElementById("reviewModal");
+const openModal = document.getElementById("openModal");
+const closeModal = document.getElementById("closeModal");
+const reviewForm = document.getElementById("reviewForm");
 
-function getTmdbIdFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const tmdbId = Number(params.get("tmdb"));
+const tmdbSearchInput = document.getElementById("tmdbSearchInput");
+const tmdbSearchButton = document.getElementById("tmdbSearchButton");
+const tmdbSearchMessage = document.getElementById("tmdbSearchMessage");
+const tmdbResults = document.getElementById("tmdbResults");
 
-  return Number.isInteger(tmdbId) && tmdbId > 0
-    ? tmdbId
-    : null;
-}
+const selectedMovieCard = document.getElementById("selectedMovieCard");
+const selectedMoviePoster = document.getElementById("selectedMoviePoster");
+const selectedMovieTitle = document.getElementById("selectedMovieTitle");
+const selectedMovieMeta = document.getElementById("selectedMovieMeta");
+const selectedMovieOverview = document.getElementById(
+  "selectedMovieOverview"
+);
 
-function formatAverageRating(reviews) {
-  if (!reviews.length) {
-    return "—";
+const reviewInput = document.getElementById("review");
+const reviewCharacterCounter = document.getElementById(
+  "reviewCharacterCounter"
+);
+
+/* ---------------------------------
+   Compteur de caractères
+--------------------------------- */
+
+function updateReviewCharacterCounter() {
+  if (!reviewInput || !reviewCharacterCounter) {
+    return;
   }
 
-  const total = reviews.reduce(
-    (sum, review) => sum + Number(review.rating || 0),
-    0
+  const maximum = Number(reviewInput.maxLength) || 140;
+  const length = reviewInput.value.length;
+
+  reviewCharacterCounter.textContent = `${length} / ${maximum}`;
+
+  reviewCharacterCounter.classList.toggle(
+    "limit-reached",
+    length >= maximum
   );
-
-  return (total / reviews.length).toFixed(1).replace(".", ",");
 }
 
-function renderFilmError(message) {
-  filmPageContent.innerHTML = `
-    <div class="film-error">
-      <h1>Cette séance est introuvable.</h1>
+/* ---------------------------------
+   Recherche et sélection TMDB
+--------------------------------- */
 
-      <p>${escapeHTML(message)}</p>
-
-      <a class="button-primary" href="index.html#critiques">
-        Retour aux microcritiques
-      </a>
-    </div>
-  `;
+function clearTmdbSearchMessage() {
+  tmdbSearchMessage.textContent = "";
 }
 
-function renderCast(cast) {
-  if (!cast || cast.length === 0) {
-    return `
-      <p class="film-muted">
-        Casting non disponible pour le moment.
-      </p>
-    `;
-  }
-
-  return `
-    <div class="cast-grid">
-      ${cast
-        .map(
-          (person) => `
-            <article class="cast-member">
-              ${
-                person.profile_url
-                  ? `
-                    <img
-                      src="${escapeHTML(person.profile_url)}"
-                      alt="${escapeHTML(person.name)}"
-                      loading="lazy"
-                    />
-                  `
-                  : `
-                    <div class="cast-placeholder">
-                      ${escapeHTML(person.name.charAt(0) || "?")}
-                    </div>
-                  `
-              }
-
-              <div>
-                <strong>${escapeHTML(person.name)}</strong>
-
-                ${
-                  person.character
-                    ? `<span>${escapeHTML(person.character)}</span>`
-                    : ""
-                }
-              </div>
-            </article>
-          `
-        )
-        .join("")}
-    </div>
-  `;
+function showTmdbSearchMessage(message) {
+  tmdbSearchMessage.textContent = message;
 }
 
-async function getMyListsForMovie(movieId) {
-  if (!currentUser || !movieId) {
-    return [];
-  }
-
-  const { data: lists, error: listsError } = await supabaseClient
-    .from("movie_lists")
-    .select(`
-      id,
-      title,
-      description,
-      is_public,
-      created_at
-    `)
-    .eq("user_id", currentUser.id)
-    .order("created_at", { ascending: false });
-
-  if (listsError) {
-    throw listsError;
-  }
-
-  if (!lists || lists.length === 0) {
-    return [];
-  }
-
-  const listIds = lists.map((list) => list.id);
-
-  const { data: items, error: itemsError } = await supabaseClient
-    .from("movie_list_items")
-    .select("list_id, movie_id")
-    .in("list_id", listIds)
-    .eq("movie_id", movieId);
-
-  if (itemsError) {
-    throw itemsError;
-  }
-
-  const movieListIds = new Set(
-    (items || []).map((item) => item.list_id)
-  );
-
-  return lists.map((list) => ({
-    ...list,
-    contains_movie: movieListIds.has(list.id)
-  }));
+function clearTmdbResults() {
+  tmdbResults.replaceChildren();
 }
 
-function renderListPanel(lists) {
-  if (!listPanelOpen) {
-    return "";
+function getPrimarySiteGenre(tmdbGenres) {
+  const genres = tmdbGenres || [];
+
+  if (genres.includes("Drame")) return "Drame";
+  if (genres.includes("Romance")) return "Romance";
+  if (genres.includes("Horreur")) return "Horreur";
+  if (genres.includes("Animation")) return "Animation";
+
+  if (
+    genres.includes("Science-Fiction") ||
+    genres.includes("Science fiction") ||
+    genres.includes("Science-Fiction & Fantastique")
+  ) {
+    return "Science-fiction";
   }
 
-  if (!currentUser) {
-    return `
-      <div class="film-list-panel">
-        <p>
-          Connecte-toi pour ajouter ce film à l’une de tes listes.
-        </p>
+  if (genres.includes("Comédie")) return "Comédie";
+  if (genres.includes("Documentaire")) return "Documentaire";
+  if (genres.includes("Thriller")) return "Thriller";
 
-        <button
-          class="button-secondary"
-          type="button"
-          id="openLoginForListsButton"
-        >
-          Se connecter
-        </button>
-      </div>
-    `;
-  }
-
-  if (!currentFilmMovie?.id) {
-    return `
-      <div class="film-list-panel">
-        <p>
-          Publie une première microcritique pour ajouter ce film à tes listes.
-        </p>
-      </div>
-    `;
-  }
-
-  if (lists.length === 0) {
-    return `
-      <div class="film-list-panel">
-        <p>
-          Tu n’as pas encore créé de liste.
-        </p>
-
-        <a class="button-secondary" href="profil.html">
-          Créer ma première liste
-        </a>
-      </div>
-    `;
-  }
-
-  return `
-    <div class="film-list-panel">
-      <p class="film-list-panel-intro">
-        Choisis une collection pour y ranger ce film.
-      </p>
-
-      <div class="film-list-items">
-        ${lists
-          .map(
-            (list) => `
-              <div class="film-list-item">
-                <div>
-                  <strong>${escapeHTML(list.title)}</strong>
-
-                  <span>
-                    ${
-                      list.is_public
-                        ? "Liste publique"
-                        : "Liste privée"
-                    }
-                  </span>
-                </div>
-
-                <button
-                  class="${
-                    list.contains_movie
-                      ? "button-list-added"
-                      : "button-list-add"
-                  }"
-                  type="button"
-                  data-list-id="${list.id}"
-                  data-action="${
-                    list.contains_movie ? "remove" : "add"
-                  }"
-                >
-                  ${
-                    list.contains_movie
-                      ? "Retirer"
-                      : "Ajouter"
-                  }
-                </button>
-              </div>
-            `
-          )
-          .join("")}
-      </div>
-    </div>
-  `;
+  return genres[0] || "Cinéma";
 }
 
-function buildWriteReviewLink(tmdbId) {
-  if (!tmdbId) {
-    return "index.html";
+function resetSelectedTmdbMovie() {
+  selectedTmdbMovie = null;
+
+  selectedMovieCard.hidden = true;
+
+  selectedMoviePoster.hidden = true;
+  selectedMoviePoster.removeAttribute("src");
+  selectedMoviePoster.alt = "";
+
+  selectedMovieTitle.textContent = "";
+  selectedMovieMeta.textContent = "";
+  selectedMovieOverview.textContent = "";
+
+  document.getElementById("title").value = "";
+  document.getElementById("year").value = "";
+  document.getElementById("director").value = "";
+  document.getElementById("genre").value = "";
+}
+
+function displaySelectedTmdbMovie(movie) {
+  const genres = movie.genres || [];
+  const primaryGenre = getPrimarySiteGenre(genres);
+
+  document.getElementById("title").value = movie.title || "";
+  document.getElementById("year").value = movie.release_year || "";
+  document.getElementById("director").value =
+    movie.director || "Réalisateur·rice non précisé·e";
+  document.getElementById("genre").value = primaryGenre;
+
+  selectedMovieTitle.textContent =
+    `${movie.title || "Film sans titre"}${
+      movie.release_year ? ` (${movie.release_year})` : ""
+    }`;
+
+  selectedMovieMeta.textContent = [
+    movie.director || "Réalisateur·rice non précisé·e",
+    genres.join(" · ")
+  ]
+    .filter(Boolean)
+    .join(" — ");
+
+  selectedMovieOverview.textContent =
+    movie.overview || "Synopsis non disponible.";
+
+  if (movie.poster_url) {
+    selectedMoviePoster.src = movie.poster_url;
+    selectedMoviePoster.alt = `Affiche de ${movie.title || "ce film"}`;
+    selectedMoviePoster.hidden = false;
+  } else {
+    selectedMoviePoster.hidden = true;
+    selectedMoviePoster.removeAttribute("src");
   }
 
-  return `index.html?writeTmdb=${encodeURIComponent(tmdbId)}`;
+  selectedMovieCard.hidden = false;
 }
 
-function renderFilmPage(movie, tmdbDetails, reviews, lists = []) {
-  const title = tmdbDetails?.title || movie.title || "Film sans titre";
-
-  const releaseYear =
-    tmdbDetails?.release_year || movie.release_year || "—";
-
-  const director =
-    tmdbDetails?.director ||
-    movie.director ||
-    "Réalisateur·rice non précisé·e";
-
-  const overview =
-    tmdbDetails?.overview ||
-    movie.overview ||
-    "Synopsis non disponible.";
-
-  const posterUrl = tmdbDetails?.poster_url || movie.poster_url || "";
-
-  const originalTitle =
-    tmdbDetails?.original_title || movie.original_title || "";
-
-  const genres = tmdbDetails?.genres?.length
-    ? tmdbDetails.genres
-    : movie.genres || [];
-
-  const tmdbId = tmdbDetails?.tmdb_id || movie.tmdb_id || null;
-  const averageRating = formatAverageRating(reviews);
-  const filmExistsInCatalog = Boolean(movie.id);
-
-  document.title = `${title} — Le dernier rang`;
-
-  filmPageContent.innerHTML = `
-    <section class="film-hero-card">
-      <div class="film-poster-large">
-        ${
-          posterUrl
-            ? `
-              <img
-                src="${escapeHTML(posterUrl)}"
-                alt="Affiche de ${escapeHTML(title)}"
-              />
-            `
-            : `
-              <div class="film-poster-placeholder">
-                ${escapeHTML(title)}
-              </div>
-            `
-        }
-      </div>
-
-      <div class="film-main-info">
-        <div class="eyebrow red-eyebrow">Fiche film</div>
-
-        <h1>${escapeHTML(title)}</h1>
-
-        ${
-          originalTitle && originalTitle !== title
-            ? `
-              <p class="original-title">
-                ${escapeHTML(originalTitle)}
-              </p>
-            `
-            : ""
-        }
-
-        <p class="film-subtitle">
-          ${escapeHTML(String(releaseYear))} ·
-          ${escapeHTML(director)}
-        </p>
-
-        <div class="tags film-tags">
-          ${
-            genres.length
-              ? genres
-                  .map(
-                    (genre) =>
-                      `<span class="tag">${escapeHTML(genre)}</span>`
-                  )
-                  .join("")
-              : `<span class="tag">Cinéma</span>`
-          }
-        </div>
-
-        <p class="film-overview">
-          ${escapeHTML(overview)}
-        </p>
-
-        <div class="film-statistics">
-          <div class="film-stat">
-            <strong>${averageRating}</strong>
-            <span>/ 5</span>
-            <small>note moyenne</small>
-          </div>
-
-          <div class="film-stat">
-            <strong>${reviews.length}</strong>
-            <small>
-              critique${reviews.length > 1 ? "s" : ""}
-            </small>
-          </div>
-        </div>
-
-        <div class="film-primary-actions">
-          ${
-            tmdbId
-              ? `
-                <a
-                  class="button-primary"
-                  href="${buildWriteReviewLink(tmdbId)}"
-                >
-                  Écrire une microcritique
-                </a>
-              `
-              : ""
-          }
-
-          ${
-            filmExistsInCatalog
-              ? `
-                <button
-                  class="button-secondary"
-                  type="button"
-                  id="toggleListPanelButton"
-                >
-                  ${
-                    listPanelOpen
-                      ? "Fermer mes listes"
-                      : "+ Ajouter à une liste"
-                  }
-                </button>
-              `
-              : `
-                <button
-                  class="button-secondary"
-                  type="button"
-                  id="toggleListPanelButton"
-                >
-                  + Ajouter à une liste
-                </button>
-              `
-          }
-        </div>
-
-        <div class="film-list-area">
-          ${renderListPanel(lists)}
-        </div>
-      </div>
-    </section>
-
-    <section class="film-section">
-      <div class="film-section-heading">
-        <div>
-          <div class="eyebrow red-eyebrow">Distribution</div>
-          <h2>À l’écran</h2>
-        </div>
-      </div>
-
-      ${renderCast(tmdbDetails?.cast || [])}
-    </section>
-
-    <section class="film-section">
-      <div class="film-section-heading">
-        <div>
-          <div class="eyebrow red-eyebrow">Microcritiques</div>
-          <h2>Ce que le film laisse derrière lui</h2>
-        </div>
-      </div>
-
-      <div class="movies-grid film-reviews-grid" id="filmReviewsGrid">
-        ${
-          reviews.length
-            ? reviews
-                .map((review, index) =>
-                  createMovieCard(review, index)
-                )
-                .join("")
-            : `
-              <div class="empty-state">
-                <strong>Pas encore de microcritique pour ce film.</strong>
-                <br /><br />
-                ${
-                  tmdbId
-                    ? `
-                      <a
-                        class="button-primary"
-                        href="${buildWriteReviewLink(tmdbId)}"
-                      >
-                        Écrire la première microcritique
-                      </a>
-                    `
-                    : "Sois la première personne à laisser quelques mots."
-                }
-              </div>
-            `
-        }
-      </div>
-    </section>
-  `;
-
-  setupFilmLikeButtons();
-  setupListButtons();
-}
-
-function setupFilmLikeButtons() {
-  document.querySelectorAll(".favorite").forEach((button) => {
-    button.addEventListener("click", async (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      if (!currentUser) {
-        setAuthMode("login");
-        openAuthModal();
-
-        showAuthMessage(
-          "Connecte-toi ou crée un compte pour aimer une microcritique.",
-          "error"
-        );
-
-        return;
-      }
-
-      button.disabled = true;
-
-      try {
-        await toggleReviewLike(button.dataset.reviewId);
-        await initialiseFilmPage();
-      } catch (error) {
-        console.error("Erreur de like :", error);
-
-        alert(`Impossible de modifier ton like : ${error.message}`);
-      } finally {
-        button.disabled = false;
-      }
-    });
-  });
-}
-
-function setupListButtons() {
-  const toggleListPanelButton = document.getElementById(
-    "toggleListPanelButton"
-  );
-
-  if (toggleListPanelButton) {
-    toggleListPanelButton.addEventListener("click", async () => {
-      if (!currentUser) {
-        setAuthMode("login");
-        openAuthModal();
-
-        showAuthMessage(
-          "Connecte-toi ou crée un compte pour gérer tes listes.",
-          "error"
-        );
-
-        return;
-      }
-
-      listPanelOpen = !listPanelOpen;
-      await initialiseFilmPage();
-    });
-  }
-
-  const openLoginForListsButton = document.getElementById(
-    "openLoginForListsButton"
-  );
-
-  if (openLoginForListsButton) {
-    openLoginForListsButton.addEventListener("click", () => {
-      setAuthMode("login");
-      openAuthModal();
-    });
-  }
-
-  document
-    .querySelectorAll(".film-list-item button")
-    .forEach((button) => {
-      button.addEventListener("click", async () => {
-        if (!currentUser || !currentFilmMovie?.id) {
-          return;
-        }
-
-        const listId = button.dataset.listId;
-        const action = button.dataset.action;
-
-        button.disabled = true;
-        button.textContent =
-          action === "add" ? "Ajout…" : "Retrait…";
-
-        try {
-          if (action === "add") {
-            const { error } = await supabaseClient
-              .from("movie_list_items")
-              .insert({
-                list_id: listId,
-                movie_id: currentFilmMovie.id
-              });
-
-            if (error && error.code !== "23505") {
-              throw error;
-            }
-          } else {
-            const { error } = await supabaseClient
-              .from("movie_list_items")
-              .delete()
-              .eq("list_id", listId)
-              .eq("movie_id", currentFilmMovie.id);
-
-            if (error) {
-              throw error;
-            }
-          }
-
-          await initialiseFilmPage();
-        } catch (error) {
-          console.error("Erreur de gestion de liste :", error);
-
-          alert(
-            `Impossible de modifier cette liste : ${error.message}`
-          );
-
-          button.disabled = false;
-          button.textContent =
-            action === "add" ? "Ajouter" : "Retirer";
-        }
-      });
-    });
-}
-
-async function getMovieFromCatalog(movieId) {
-  const { data, error } = await supabaseClient
-    .from("movies")
-    .select(`
-      id,
-      tmdb_id,
-      title,
-      original_title,
-      release_year,
-      director,
-      poster_url,
-      overview,
-      genres
-    `)
-    .eq("id", movieId)
-    .maybeSingle();
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
-}
-
-async function getMovieFromCatalogByTmdbId(tmdbId) {
-  const { data, error } = await supabaseClient
-    .from("movies")
-    .select(`
-      id,
-      tmdb_id,
-      title,
-      original_title,
-      release_year,
-      director,
-      poster_url,
-      overview,
-      genres
-    `)
-    .eq("tmdb_id", tmdbId)
-    .maybeSingle();
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
-}
-
-async function getTmdbDetails(tmdbId) {
+/*
+  Charge les détails complets TMDB à partir de son identifiant.
+  Cette fonction sert :
+  - à la sélection depuis les résultats de recherche ;
+  - à la fiche film qui renvoie vers la modale d’écriture.
+*/
+async function loadTmdbMovieDetails(tmdbId) {
   const { data, error } = await supabaseClient.functions.invoke(
     "tmdb-details",
     {
@@ -636,100 +168,463 @@ async function getTmdbDetails(tmdbId) {
   }
 
   if (!data?.result) {
-    throw new Error("Les détails TMDB du film sont introuvables.");
+    throw new Error("Détails du film introuvables.");
   }
 
   return data.result;
 }
 
-async function initialiseFilmPage() {
-  const movieId = getMovieIdFromUrl();
-  const tmdbIdFromUrl = getTmdbIdFromUrl();
-
-  if (!movieId && !tmdbIdFromUrl) {
-    renderFilmError("Aucun identifiant de film n’a été transmis.");
-    return;
-  }
+async function selectTmdbMovie(movie) {
+  clearTmdbResults();
+  showTmdbSearchMessage("Chargement des détails du film…");
 
   try {
-    let movie = null;
-    let tmdbDetails = null;
+    const tmdbMovie = await loadTmdbMovieDetails(movie.tmdb_id);
 
-    /*
-      Cas 1 : film déjà présent dans le catalogue Supabase.
-    */
-    if (movieId) {
-      movie = await getMovieFromCatalog(movieId);
+    selectedTmdbMovie = tmdbMovie;
 
-      if (!movie) {
-        renderFilmError(
-          "Ce film n’existe pas ou n’est plus disponible."
-        );
-        return;
-      }
+    displaySelectedTmdbMovie(selectedTmdbMovie);
 
-      currentTmdbMovieId = movie.tmdb_id || null;
-
-      if (movie.tmdb_id) {
-        tmdbDetails = await getTmdbDetails(movie.tmdb_id);
-      }
-    }
-
-    /*
-      Cas 2 : fiche ouverte directement depuis un résultat TMDB.
-      Le film peut ne pas encore exister dans Supabase.
-    */
-    if (!movie && tmdbIdFromUrl) {
-      currentTmdbMovieId = tmdbIdFromUrl;
-
-      movie = await getMovieFromCatalogByTmdbId(tmdbIdFromUrl);
-
-      tmdbDetails = await getTmdbDetails(tmdbIdFromUrl);
-
-      /*
-        Film virtuel : utilisé seulement pour afficher la fiche.
-        Il sera réellement créé dans Supabase au moment de la
-        première microcritique.
-      */
-      if (!movie) {
-        movie = {
-          id: null,
-          tmdb_id: tmdbDetails.tmdb_id,
-          title: tmdbDetails.title,
-          original_title: tmdbDetails.original_title,
-          release_year: tmdbDetails.release_year,
-          director: tmdbDetails.director,
-          poster_url: tmdbDetails.poster_url,
-          overview: tmdbDetails.overview,
-          genres: tmdbDetails.genres || []
-        };
-      }
-    }
-
-    currentFilmMovie = movie;
-
-    const [reviews, lists] = await Promise.all([
-      movie.id
-        ? getReviewsByMovieId(movie.id)
-        : Promise.resolve([]),
-
-      currentUser && movie.id
-        ? getMyListsForMovie(movie.id)
-        : Promise.resolve([])
-    ]);
-
-    renderFilmPage(movie, tmdbDetails, reviews, lists);
+    showTmdbSearchMessage(
+      "Film sélectionné. Tu peux maintenant attribuer ta note et écrire ta microcritique."
+    );
   } catch (error) {
-    console.error("Erreur de chargement de la fiche film :", error);
+    console.error("Erreur de récupération des détails TMDB :", error);
 
-    renderFilmError(
-      "Une erreur est survenue pendant le chargement de cette fiche."
+    resetSelectedTmdbMovie();
+
+    showTmdbSearchMessage(
+      "Impossible de charger les détails de ce film. Réessaie."
     );
   }
 }
 
-document.addEventListener("authChanged", () => {
-  initialiseFilmPage();
-});
+function displayTmdbResults(results) {
+  clearTmdbResults();
 
-initialiseFilmPage();
+  if (!results || results.length === 0) {
+    showTmdbSearchMessage(
+      "Aucun film trouvé. Essaie avec un autre titre."
+    );
+    return;
+  }
+
+  clearTmdbSearchMessage();
+
+  results.slice(0, 8).forEach((movie) => {
+    const resultButton = document.createElement("button");
+
+    resultButton.type = "button";
+    resultButton.className = "tmdb-result";
+
+    const title = movie.title || "Film sans titre";
+    const year = movie.release_year || "—";
+    const overview = movie.overview || "Synopsis non disponible.";
+
+    resultButton.innerHTML = `
+      <strong></strong>
+      <span></span>
+    `;
+
+    resultButton.querySelector("strong").textContent =
+      `${title} (${year})`;
+
+    resultButton.querySelector("span").textContent = overview;
+
+    resultButton.addEventListener("click", () => {
+      selectTmdbMovie(movie);
+    });
+
+    tmdbResults.appendChild(resultButton);
+  });
+}
+
+async function searchTmdbMovies() {
+  const query = tmdbSearchInput.value.trim();
+
+  resetSelectedTmdbMovie();
+  clearTmdbResults();
+  clearTmdbSearchMessage();
+
+  if (query.length < 2) {
+    showTmdbSearchMessage(
+      "Saisis au moins 2 caractères pour rechercher un film."
+    );
+    return;
+  }
+
+  tmdbSearchButton.disabled = true;
+  tmdbSearchButton.textContent = "Recherche…";
+
+  try {
+    const { data, error } = await supabaseClient.functions.invoke(
+      "tmdb-search",
+      {
+        body: { query }
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    displayTmdbResults(data?.results || []);
+  } catch (error) {
+    console.error("Erreur de recherche TMDB :", error);
+
+    showTmdbSearchMessage(
+      "Impossible de rechercher le film pour le moment. Réessaie dans quelques instants."
+    );
+  } finally {
+    tmdbSearchButton.disabled = false;
+    tmdbSearchButton.textContent = "Rechercher";
+  }
+}
+
+/* ---------------------------------
+   Écriture depuis une fiche film
+--------------------------------- */
+
+function getWriteTmdbIdFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const tmdbId = Number(params.get("writeTmdb"));
+
+  return Number.isInteger(tmdbId) && tmdbId > 0
+    ? tmdbId
+    : null;
+}
+
+function removeWriteTmdbFromUrl() {
+  const url = new URL(window.location.href);
+
+  url.searchParams.delete("writeTmdb");
+
+  const cleanUrl =
+    url.pathname +
+    (url.search || "") +
+    (url.hash || "");
+
+  window.history.replaceState({}, "", cleanUrl);
+}
+
+async function openReviewModalWithTmdbMovie(tmdbId) {
+  if (!currentUser || isLoadingWriteTmdb) {
+    return;
+  }
+
+  isLoadingWriteTmdb = true;
+
+  reviewModal.classList.add("visible");
+
+  resetSelectedTmdbMovie();
+  clearTmdbResults();
+  clearTmdbSearchMessage();
+
+  tmdbSearchButton.disabled = true;
+  tmdbSearchButton.textContent = "Chargement…";
+
+  showTmdbSearchMessage("Préparation du film…");
+
+  try {
+    const tmdbMovie = await loadTmdbMovieDetails(tmdbId);
+
+    selectedTmdbMovie = tmdbMovie;
+
+    displaySelectedTmdbMovie(selectedTmdbMovie);
+
+    tmdbSearchInput.value = tmdbMovie.title || "";
+
+    showTmdbSearchMessage(
+      "Film sélectionné. Tu peux maintenant attribuer ta note et écrire ta microcritique."
+    );
+
+    removeWriteTmdbFromUrl();
+
+    reviewInput.focus();
+  } catch (error) {
+    console.error(
+      "Erreur de préchargement du film depuis la fiche :",
+      error
+    );
+
+    showTmdbSearchMessage(
+      "Impossible de précharger ce film. Tu peux le rechercher manuellement."
+    );
+  } finally {
+    tmdbSearchButton.disabled = false;
+    tmdbSearchButton.textContent = "Rechercher";
+    isLoadingWriteTmdb = false;
+  }
+}
+
+async function handleWriteTmdbFromUrl() {
+  const tmdbId = getWriteTmdbIdFromUrl();
+
+  if (!tmdbId || !currentUser) {
+    return;
+  }
+
+  await openReviewModalWithTmdbMovie(tmdbId);
+}
+
+/* ---------------------------------
+   Accueil et affichage des critiques
+--------------------------------- */
+
+function allHomeReviews() {
+  return publicReviews;
+}
+
+function getPrimaryGenre(review) {
+  return review.movies?.genres?.[0] || "Cinéma";
+}
+
+function renderHomeReviews() {
+  const search = searchInput.value.toLowerCase().trim();
+
+  const filteredReviews = allHomeReviews().filter((review) => {
+    const movie = review.movies || {};
+    const genres = movie.genres || [];
+    const primaryGenre = getPrimaryGenre(review);
+
+    const matchesGenre =
+      selectedGenre === "Tous" || primaryGenre === selectedGenre;
+
+    const searchableText = [
+      movie.title,
+      movie.director,
+      review.content,
+      review.author,
+      ...genres
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return matchesGenre && searchableText.includes(search);
+  });
+
+  movieCount.textContent =
+    `· ${filteredReviews.length} critique${
+      filteredReviews.length > 1 ? "s" : ""
+    }`;
+
+  if (filteredReviews.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <strong>Aucune séance ne correspond à ta recherche.</strong>
+        <br /><br />
+        Essaie un autre titre, un genre différent ou écris une nouvelle critique.
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = filteredReviews
+    .map((review, index) => createMovieCard(review, index))
+    .join("");
+
+  document.querySelectorAll(".favorite").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!currentUser) {
+        setAuthMode("login");
+        openAuthModal();
+
+        showAuthMessage(
+          "Connecte-toi ou crée un compte pour aimer une microcritique.",
+          "error"
+        );
+
+        return;
+      }
+
+      const reviewId = button.dataset.reviewId;
+
+      button.disabled = true;
+
+      try {
+        await toggleReviewLike(reviewId);
+        await refreshHomeReviews();
+      } catch (error) {
+        console.error("Erreur de like :", error);
+
+        alert(`Impossible de modifier ton like : ${error.message}`);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+}
+
+async function refreshHomeReviews() {
+  publicReviews = await getPublicReviews();
+  renderHomeReviews();
+}
+
+/* ---------------------------------
+   Modale de publication
+--------------------------------- */
+
+function openReviewModal() {
+  if (!currentUser) {
+    setAuthMode("login");
+    openAuthModal();
+
+    showAuthMessage(
+      "Connecte-toi ou crée un compte avant de publier une critique.",
+      "error"
+    );
+
+    return;
+  }
+
+  reviewModal.classList.add("visible");
+}
+
+function closeReviewModal() {
+  reviewModal.classList.remove("visible");
+}
+
+/* ---------------------------------
+   Événements et publication
+--------------------------------- */
+
+function setupHome() {
+  tmdbSearchButton.addEventListener("click", searchTmdbMovies);
+
+  tmdbSearchInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      searchTmdbMovies();
+    }
+  });
+
+  reviewInput.addEventListener("input", updateReviewCharacterCounter);
+
+  updateReviewCharacterCounter();
+
+  openModal.addEventListener("click", openReviewModal);
+
+  closeModal.addEventListener("click", closeReviewModal);
+
+  reviewModal.addEventListener("click", (event) => {
+    if (event.target === reviewModal) {
+      closeReviewModal();
+    }
+  });
+
+  filters.addEventListener("click", (event) => {
+    if (!event.target.classList.contains("filter")) {
+      return;
+    }
+
+    document.querySelectorAll(".filter").forEach((button) => {
+      button.classList.remove("active");
+    });
+
+    event.target.classList.add("active");
+    selectedGenre = event.target.dataset.genre;
+
+    renderHomeReviews();
+  });
+
+  searchInput.addEventListener("input", renderHomeReviews);
+
+  reviewForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    if (!currentUser) {
+      closeReviewModal();
+      openAuthModal();
+      return;
+    }
+
+    const submitButton = reviewForm.querySelector(
+      'button[type="submit"]'
+    );
+
+    submitButton.disabled = true;
+    submitButton.textContent = "Publication…";
+
+    try {
+      if (!selectedTmdbMovie) {
+        throw new Error(
+          "Choisis un film dans les résultats TMDB avant de publier."
+        );
+      }
+
+      const payload = {
+        title: document.getElementById("title").value.trim(),
+        tmdbMovie: selectedTmdbMovie,
+        year: document.getElementById("year").value,
+        director: document.getElementById("director").value,
+        genre: document.getElementById("genre").value,
+        rating: document.getElementById("rating").value,
+        content: reviewInput.value.trim(),
+
+        tags: document
+          .getElementById("tags")
+          .value
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean)
+      };
+
+      await publishReview(payload);
+
+      reviewForm.reset();
+      updateReviewCharacterCounter();
+
+      resetSelectedTmdbMovie();
+
+      tmdbSearchInput.value = "";
+      clearTmdbResults();
+      clearTmdbSearchMessage();
+
+      closeReviewModal();
+
+      selectedGenre = "Tous";
+      searchInput.value = "";
+
+      document.querySelectorAll(".filter").forEach((button) => {
+        button.classList.toggle(
+          "active",
+          button.dataset.genre === "Tous"
+        );
+      });
+
+      await refreshHomeReviews();
+
+      document
+        .querySelector("#critiques")
+        .scrollIntoView({ behavior: "smooth" });
+
+      alert("Ta microcritique est publiée sur Le dernier rang. ✨");
+    } catch (error) {
+      console.error(error);
+
+      alert(`Impossible de publier : ${error.message}`);
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = "Publier la critique";
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeReviewModal();
+    }
+  });
+
+  document.addEventListener("authChanged", async () => {
+    await refreshHomeReviews();
+    await handleWriteTmdbFromUrl();
+  });
+}
+
+async function initialiseHome() {
+  setupHome();
+  await refreshHomeReviews();
+  await handleWriteTmdbFromUrl();
+}
+
+initialiseHome();
