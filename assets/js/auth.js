@@ -17,12 +17,17 @@ function getAuthElements() {
     authMessage: document.getElementById("authMessage"),
     userMenu: document.getElementById("userMenu"),
     userGreeting: document.getElementById("userGreeting"),
+    navAvatar: document.getElementById("navAvatar"),
     logoutButton: document.getElementById("logoutButton")
   };
 }
 
 function showAuthMessage(message, type = "success") {
   const { authMessage } = getAuthElements();
+
+  if (!authMessage) {
+    return;
+  }
 
   authMessage.textContent = message;
   authMessage.className = "status-message";
@@ -49,26 +54,41 @@ function setAuthMode(mode) {
 
   const isSignup = mode === "signup";
 
-  usernameField.hidden = !isSignup;
-  usernameInput.required = isSignup;
+  if (usernameField) {
+    usernameField.hidden = !isSignup;
+  }
 
-  authTitle.textContent = isSignup
-    ? "Créer un compte"
-    : "Bienvenue";
+  if (usernameInput) {
+    usernameInput.required = isSignup;
+  }
 
-  authSubmitButton.textContent = isSignup
-    ? "Créer mon compte"
-    : "Se connecter";
+  if (authTitle) {
+    authTitle.textContent = isSignup
+      ? "Créer un compte"
+      : "Bienvenue";
+  }
 
-  authNote.textContent = isSignup
-    ? "Tu recevras un e-mail de confirmation avant de pouvoir te connecter."
-    : "Connecte-toi pour publier une microcritique et retrouver tes films.";
+  if (authSubmitButton) {
+    authSubmitButton.textContent = isSignup
+      ? "Créer mon compte"
+      : "Se connecter";
+  }
+
+  if (authNote) {
+    authNote.textContent = isSignup
+      ? "Tu recevras un e-mail de confirmation avant de pouvoir te connecter."
+      : "Connecte-toi pour publier une microcritique et retrouver tes films.";
+  }
 
   showAuthMessage("");
 }
 
 function openAuthModal() {
   const { authModal } = getAuthElements();
+
+  if (!authModal) {
+    return;
+  }
 
   authModal.classList.add("visible");
   showAuthMessage("");
@@ -77,8 +97,14 @@ function openAuthModal() {
 function closeAuthModal() {
   const { authModal, authForm } = getAuthElements();
 
-  authModal.classList.remove("visible");
-  authForm.reset();
+  if (authModal) {
+    authModal.classList.remove("visible");
+  }
+
+  if (authForm) {
+    authForm.reset();
+  }
+
   showAuthMessage("");
 }
 
@@ -95,43 +121,88 @@ async function loadCurrentProfile() {
     .eq("id", currentUser.id)
     .single();
 
-  if (!error) {
+  if (error) {
+    console.error(
+      "Erreur de chargement du profil :",
+      error.message
+    );
+
+    currentProfile = null;
+  } else {
     currentProfile = data;
   }
 
   updateNavigation();
 }
 
-
 function updateNavigation() {
   const {
     authButton,
     userMenu,
-    userGreeting
+    userGreeting,
+    navAvatar
   } = getAuthElements();
 
   if (currentUser) {
-    authButton.hidden = true;
-    authButton.style.display = "none";
+    if (authButton) {
+      authButton.hidden = true;
+      authButton.style.display = "none";
+    }
 
-    userMenu.hidden = false;
-    userMenu.style.display = "flex";
+    if (userMenu) {
+      userMenu.hidden = false;
+      userMenu.style.display = "flex";
+    }
 
-    const fallbackUsername = currentUser.email.split("@")[0];
-    const username = currentProfile?.username || fallbackUsername;
+    const fallbackUsername =
+      currentUser.email?.split("@")[0] || "Membre";
 
-    userGreeting.textContent = `Bonjour, ${username}`;
+    const username =
+      currentProfile?.username || fallbackUsername;
+
+    if (userGreeting) {
+      userGreeting.textContent = `Bonjour, ${username}`;
+    }
+
+    const avatarUrl = currentProfile?.avatar_url;
+
+    if (navAvatar) {
+      if (avatarUrl) {
+        /*
+          ?v= force le navigateur à recharger l'image
+          après un changement de photo.
+        */
+        navAvatar.src = `${avatarUrl}?v=${Date.now()}`;
+        navAvatar.alt = `Photo de profil de ${username}`;
+        navAvatar.hidden = false;
+      } else {
+        navAvatar.hidden = true;
+        navAvatar.removeAttribute("src");
+        navAvatar.alt = "";
+      }
+    }
   } else {
-    authButton.hidden = false;
-    authButton.style.display = "inline-block";
+    if (authButton) {
+      authButton.hidden = false;
+      authButton.style.display = "inline-block";
+    }
 
-    userMenu.hidden = true;
-    userMenu.style.display = "none";
+    if (userMenu) {
+      userMenu.hidden = true;
+      userMenu.style.display = "none";
+    }
 
-    userGreeting.textContent = "";
+    if (userGreeting) {
+      userGreeting.textContent = "";
+    }
+
+    if (navAvatar) {
+      navAvatar.hidden = true;
+      navAvatar.removeAttribute("src");
+      navAvatar.alt = "";
+    }
   }
 }
-
 
 function emitAuthChanged() {
   document.dispatchEvent(
@@ -155,18 +226,24 @@ function setupAuth() {
     logoutButton
   } = getAuthElements();
 
-  authButton.addEventListener("click", () => {
-    setAuthMode("login");
-    openAuthModal();
-  });
+  if (authButton) {
+    authButton.addEventListener("click", () => {
+      setAuthMode("login");
+      openAuthModal();
+    });
+  }
 
-  closeButton.addEventListener("click", closeAuthModal);
+  if (closeButton) {
+    closeButton.addEventListener("click", closeAuthModal);
+  }
 
-  authModal.addEventListener("click", (event) => {
-    if (event.target === authModal) {
-      closeAuthModal();
-    }
-  });
+  if (authModal) {
+    authModal.addEventListener("click", (event) => {
+      if (event.target === authModal) {
+        closeAuthModal();
+      }
+    });
+  }
 
   document.querySelectorAll(".auth-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
@@ -174,87 +251,102 @@ function setupAuth() {
     });
   });
 
-  authForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  if (authForm) {
+    authForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-    const email = document.getElementById("authEmail").value.trim();
-    const password = document.getElementById("authPassword").value;
-    const username = usernameInput.value.trim();
+      const emailInput = document.getElementById("authEmail");
+      const passwordInput = document.getElementById("authPassword");
 
-    authSubmitButton.disabled = true;
-    authSubmitButton.textContent = "Un instant…";
+      const email = emailInput?.value.trim() || "";
+      const password = passwordInput?.value || "";
+      const username = usernameInput?.value.trim() || "";
 
-    try {
-      if (authMode === "signup") {
-        const { error } = await supabaseClient.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              username: username
-            },
-            emailRedirectTo:
-              window.location.origin + window.location.pathname
-          }
-        });
+      if (!authSubmitButton) {
+        return;
+      }
 
-        if (error) throw error;
+      authSubmitButton.disabled = true;
+      authSubmitButton.textContent = "Un instant…";
 
-        showAuthMessage(
-          "Ton compte a été créé. Regarde ta boîte e-mail et confirme ton adresse avant de te connecter.",
-          "success"
-        );
-
-        authForm.reset();
-      } else {
-        const { error } =
-          await supabaseClient.auth.signInWithPassword({
+      try {
+        if (authMode === "signup") {
+          const { error } = await supabaseClient.auth.signUp({
             email,
-            password
+            password,
+            options: {
+              data: {
+                username
+              },
+              emailRedirectTo:
+                window.location.origin + window.location.pathname
+            }
           });
 
-        if (error) throw error;
+          if (error) {
+            throw error;
+          }
 
-        closeAuthModal();
+          showAuthMessage(
+            "Ton compte a été créé. Regarde ta boîte e-mail et confirme ton adresse avant de te connecter.",
+            "success"
+          );
+
+          authForm.reset();
+        } else {
+          const { error } =
+            await supabaseClient.auth.signInWithPassword({
+              email,
+              password
+            });
+
+          if (error) {
+            throw error;
+          }
+
+          closeAuthModal();
+        }
+      } catch (error) {
+        console.error("Erreur d’authentification :", error);
+        showAuthMessage(error.message, "error");
+      } finally {
+        authSubmitButton.disabled = false;
+
+        authSubmitButton.textContent =
+          authMode === "signup"
+            ? "Créer mon compte"
+            : "Se connecter";
       }
-    } catch (error) {
-      showAuthMessage(error.message, "error");
-    } finally {
-      authSubmitButton.disabled = false;
+    });
+  }
 
-      authSubmitButton.textContent =
-        authMode === "signup"
-          ? "Créer mon compte"
-          : "Se connecter";
-    }
-  });
+  if (logoutButton) {
+    logoutButton.addEventListener("click", async () => {
+      try {
+        const { error } = await supabaseClient.auth.signOut();
 
+        if (error) {
+          throw error;
+        }
 
-  logoutButton.addEventListener("click", async () => {
-    try {
-      const { error } = await supabaseClient.auth.signOut();
+        currentUser = null;
+        currentProfile = null;
 
-      if (error) {
-        throw error;
+        updateNavigation();
+        emitAuthChanged();
+
+        if (window.location.pathname.endsWith("profil.html")) {
+          window.location.href = "index.html";
+        }
+      } catch (error) {
+        console.error("Erreur de déconnexion :", error);
+
+        alert(
+          "La déconnexion n'a pas pu être effectuée. Réessaie."
+        );
       }
-
-      // Mise à jour immédiate de l'interface,
-      // en complément de onAuthStateChange.
-      currentUser = null;
-      currentProfile = null;
-
-      updateNavigation();
-      emitAuthChanged();
-
-      if (window.location.pathname.endsWith("profil.html")) {
-        window.location.href = "index.html";
-      }
-    } catch (error) {
-      console.error("Erreur de déconnexion :", error);
-      alert("La déconnexion n'a pas pu être effectuée. Réessaie.");
-    }
-  });
-
+    });
+  }
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
@@ -275,12 +367,14 @@ async function initialiseAuth() {
   await loadCurrentProfile();
   emitAuthChanged();
 
-  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-    currentUser = session?.user || null;
+  supabaseClient.auth.onAuthStateChange(
+    async (_event, session) => {
+      currentUser = session?.user || null;
 
-    await loadCurrentProfile();
-    emitAuthChanged();
-  });
+      await loadCurrentProfile();
+      emitAuthChanged();
+    }
+  );
 }
 
 initialiseAuth();
