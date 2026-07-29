@@ -1543,3 +1543,107 @@ footer {
 }
 
 
+/* =====================================================
+   AJOUT D'UN FILM À UNE LISTE
+   ===================================================== */
+
+.film-list-area {
+  margin-top: 28px;
+}
+
+.film-list-panel {
+  max-width: 560px;
+  margin-top: 14px;
+  padding: 16px;
+  background: #f4e4df;
+  border: 1px solid #dfc1ba;
+  border-radius: 12px;
+}
+
+.film-list-panel p {
+  margin: 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.film-list-panel-intro {
+  margin-bottom: 12px !important;
+}
+
+.film-list-items {
+  display: grid;
+  gap: 8px;
+}
+
+.film-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 12px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.film-list-item strong,
+.film-list-item span {
+  display: block;
+}
+
+.film-list-item strong {
+  font-size: 0.92rem;
+}
+
+.film-list-item span {
+  margin-top: 3px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+}
+
+.button-list-add,
+.button-list-added {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+}
+
+.button-list-add {
+  color: white;
+  background: var(--red);
+  border: 1px solid var(--red);
+}
+
+.button-list-add:hover {
+  background: var(--deep-red);
+  border-color: var(--deep-red);
+}
+
+.button-list-added {
+  color: var(--deep-red);
+  background: transparent;
+  border: 1px solid #d9aaa5;
+}
+
+.button-list-added:hover {
+  color: white;
+  background: var(--red);
+  border-color: var(--red);
+}
+
+@media (max-width: 650px) {
+  .film-list-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .film-list-item button {
+    width: 100%;
+  }
+}
+
