@@ -29,7 +29,6 @@ function posterClassFor(index) {
   return posters[index % posters.length];
 }
 
-
 function createMovieCard(review, index, options = {}) {
   const movie = review.movies || {};
   const genres = movie.genres || [];
@@ -40,7 +39,7 @@ function createMovieCard(review, index, options = {}) {
   const likeCount = Number(review.like_count || 0);
   const hasLiked = Boolean(review.liked_by_current_user);
 
-  const deleteButton = options.canDelete
+  const actionButton = options.canDelete
     ? `
       <button
         class="delete-review"
@@ -86,6 +85,18 @@ function createMovieCard(review, index, options = {}) {
       </div>
     `;
 
+  const filmLink = movie.id
+    ? `
+      <a
+        class="film-link"
+        href="film.html?id=${encodeURIComponent(movie.id)}"
+        title="Voir la fiche du film"
+      >
+        Fiche
+      </a>
+    `
+    : "";
+
   return `
     <article class="movie-card">
       ${posterMarkup}
@@ -117,16 +128,21 @@ function createMovieCard(review, index, options = {}) {
 
         <div class="card-bottom">
           <span class="author">Par ${escapeHTML(author)}</span>
-          ${deleteButton}
+
+          <div class="card-actions">
+            ${filmLink}
+            ${actionButton}
+          </div>
         </div>
       </div>
     </article>
   `;
 }
 
-
 async function getProfilesByUserIds(userIds) {
-  const uniqueUserIds = [...new Set(userIds)];
+  const uniqueUserIds = [
+    ...new Set(userIds.filter(Boolean))
+  ];
 
   if (uniqueUserIds.length === 0) {
     return {};
@@ -258,14 +274,12 @@ async function getPublicReviews() {
     reviews.map((review) => review.user_id)
   );
 
-
   const reviewsWithAuthors = reviews.map((review) => ({
     ...review,
     author: profilesById[review.user_id]?.username || "Membre"
   }));
 
   return enrichReviewsWithLikes(reviewsWithAuthors);
-
 }
 
 async function getMyReviews(userId) {
@@ -294,7 +308,63 @@ async function getMyReviews(userId) {
     return [];
   }
 
-return enrichReviewsWithLikes(reviews);
+  const profilesById = await getProfilesByUserIds(
+    reviews.map((review) => review.user_id)
+  );
+
+  const reviewsWithAuthors = reviews.map((review) => ({
+    ...review,
+    author: profilesById[review.user_id]?.username || "Membre"
+  }));
+
+  return enrichReviewsWithLikes(reviewsWithAuthors);
+}
+
+/*
+  Récupère toutes les critiques publiques liées à un film.
+  Cette fonction est utilisée par film.js.
+*/
+async function getReviewsByMovieId(movieId) {
+  const { data: reviews, error } = await supabaseClient
+    .from("reviews")
+    .select(`
+      id,
+      user_id,
+      rating,
+      content,
+      created_at,
+      movies (
+        id,
+        title,
+        release_year,
+        director,
+        poster_url,
+        genres
+      )
+    `)
+    .eq("movie_id", movieId)
+    .eq("is_published", true)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(
+      "Erreur de chargement des critiques du film :",
+      error.message
+    );
+
+    return [];
+  }
+
+  const profilesById = await getProfilesByUserIds(
+    reviews.map((review) => review.user_id)
+  );
+
+  const reviewsWithAuthors = reviews.map((review) => ({
+    ...review,
+    author: profilesById[review.user_id]?.username || "Membre"
+  }));
+
+  return enrichReviewsWithLikes(reviewsWithAuthors);
 }
 
 async function publishReview(payload) {
@@ -313,12 +383,6 @@ async function publishReview(payload) {
     tags
   } = payload;
 
-  /*
-    Ordre des genres :
-    1. genre principal adapté aux filtres du site ;
-    2. genres récupérés depuis TMDB ;
-    3. tags personnels écrits par l'utilisatrice.
-  */
   const genres = [
     ...new Set(
       [
@@ -339,10 +403,6 @@ async function publishReview(payload) {
     created_by: currentUser.id
   };
 
-  /*
-    Enrichissement de la fiche avec les informations TMDB.
-    Ces colonnes ont été ajoutées dans Supabase auparavant.
-  */
   if (tmdbMovie) {
     movieData.tmdb_id = tmdbMovie.tmdb_id;
     movieData.poster_path = tmdbMovie.poster_path || null;
@@ -353,10 +413,6 @@ async function publishReview(payload) {
 
   let existingMovie = null;
 
-  /*
-    Recherche prioritaire avec tmdb_id :
-    c'est l'identifiant unique et fiable d'un film.
-  */
   if (tmdbId) {
     const { data, error } = await supabaseClient
       .from("movies")
@@ -368,10 +424,6 @@ async function publishReview(payload) {
 
     existingMovie = data;
   } else {
-    /*
-      Solution de secours pour les films ajoutés manuellement
-      avant l'intégration TMDB.
-    */
     const { data, error } = await supabaseClient
       .from("movies")
       .select("id")
@@ -398,10 +450,6 @@ async function publishReview(payload) {
 
     movieId = createdMovie.id;
   } else if (tmdbMovie) {
-    /*
-      Si ce film existait déjà dans la base, il reçoit maintenant
-      ses métadonnées TMDB : affiche, synopsis, réalisateur, etc.
-    */
     const { error: updateMovieError } = await supabaseClient
       .from("movies")
       .update(movieData)
