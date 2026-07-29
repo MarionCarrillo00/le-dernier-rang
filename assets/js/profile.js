@@ -206,7 +206,15 @@ function renderMovieLists(lists) {
             </button>
           </div>
 
-          <h3>${escapeHTML(list.title)}</h3>
+
+<h3>
+  <a
+    class="movie-list-link"
+    href="liste.html?id=${encodeURIComponent(list.id)}"
+  >
+    ${escapeHTML(list.title)}
+  </a>
+</h3>
 
           <p>
             ${
