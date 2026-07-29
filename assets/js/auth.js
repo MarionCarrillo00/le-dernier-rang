@@ -219,13 +219,32 @@ function setupAuth() {
     }
   });
 
-  logoutButton.addEventListener("click", async () => {
-    await supabaseClient.auth.signOut();
 
-    if (window.location.pathname.endsWith("profil.html")) {
-      window.location.href = "index.html";
+  logoutButton.addEventListener("click", async () => {
+    try {
+      const { error } = await supabaseClient.auth.signOut();
+
+      if (error) {
+        throw error;
+      }
+
+      // Mise à jour immédiate de l'interface,
+      // en complément de onAuthStateChange.
+      currentUser = null;
+      currentProfile = null;
+
+      updateNavigation();
+      emitAuthChanged();
+
+      if (window.location.pathname.endsWith("profil.html")) {
+        window.location.href = "index.html";
+      }
+    } catch (error) {
+      console.error("Erreur de déconnexion :", error);
+      alert("La déconnexion n'a pas pu être effectuée. Réessaie.");
     }
   });
+
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
