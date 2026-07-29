@@ -6,19 +6,40 @@ const profileSubtitle = document.getElementById("profileSubtitle");
 
 const myListsGrid = document.getElementById("myListsGrid");
 const listForm = document.getElementById("listForm");
+
 const openListFormButton = document.getElementById(
   "openListFormButton"
 );
+
 const cancelListFormButton = document.getElementById(
   "cancelListFormButton"
 );
+
 const listTitleInput = document.getElementById("listTitle");
+
 const listDescriptionInput = document.getElementById(
   "listDescription"
 );
+
 const listVisibilityInput = document.getElementById(
   "listVisibility"
 );
+
+/* Photo de profil */
+
+const profileAvatar = document.getElementById("profileAvatar");
+
+const profileAvatarPlaceholder = document.getElementById(
+  "profileAvatarPlaceholder"
+);
+
+const avatarInput = document.getElementById("avatarInput");
+
+const avatarStatus = document.getElementById("avatarStatus");
+
+/* =====================================================
+   PROFIL ET AVATAR
+   ===================================================== */
 
 function getCurrentUsername() {
   return (
@@ -27,6 +48,155 @@ function getCurrentUsername() {
     "Membre"
   );
 }
+
+function getAvatarInitial() {
+  return getCurrentUsername().charAt(0).toUpperCase() || "?";
+}
+
+function showAvatarStatus(message, type = "") {
+  avatarStatus.textContent = message;
+  avatarStatus.className = "avatar-status";
+
+  if (type) {
+    avatarStatus.classList.add(type);
+  }
+}
+
+function renderProfileAvatar() {
+  if (!currentUser) {
+    profileAvatar.hidden = true;
+    profileAvatar.removeAttribute("src");
+
+    profileAvatarPlaceholder.hidden = false;
+    profileAvatarPlaceholder.textContent = "?";
+
+    showAvatarStatus("");
+    return;
+  }
+
+  const avatarUrl = currentProfile?.avatar_url;
+
+  if (avatarUrl) {
+    /*
+      Le paramètre ?v= évite que le navigateur conserve
+      une ancienne photo après un nouveau téléversement.
+    */
+    profileAvatar.src = `${avatarUrl}?v=${Date.now()}`;
+    profileAvatar.alt = `Photo de profil de ${getCurrentUsername()}`;
+
+    profileAvatar.hidden = false;
+    profileAvatarPlaceholder.hidden = true;
+  } else {
+    profileAvatar.hidden = true;
+    profileAvatar.removeAttribute("src");
+
+    profileAvatarPlaceholder.hidden = false;
+    profileAvatarPlaceholder.textContent = getAvatarInitial();
+  }
+}
+
+async function uploadProfileAvatar(file) {
+  if (!currentUser) {
+    return;
+  }
+
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+  ];
+
+  if (!allowedTypes.includes(file.type)) {
+    showAvatarStatus(
+      "Choisis une image JPG, PNG ou WebP.",
+      "error"
+    );
+    return;
+  }
+
+  const maximumSize = 2 * 1024 * 1024;
+
+  if (file.size > maximumSize) {
+    showAvatarStatus(
+      "La photo doit faire moins de 2 Mo.",
+      "error"
+    );
+    return;
+  }
+
+  showAvatarStatus("Téléversement de la photo…");
+
+  /*
+    Une seule photo par membre :
+    avatars/<id_utilisateur>/avatar
+  */
+  const filePath = `${currentUser.id}/avatar`;
+
+  try {
+    const { error: uploadError } = await supabaseClient.storage
+      .from("avatars")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: true,
+        contentType: file.type
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data: publicUrlData } = supabaseClient.storage
+      .from("avatars")
+      .getPublicUrl(filePath);
+
+    const avatarUrl = publicUrlData.publicUrl;
+
+    const { error: profileError } = await supabaseClient
+      .from("profiles")
+      .update({
+        avatar_url: avatarUrl
+      })
+      .eq("id", currentUser.id);
+
+    if (profileError) {
+      throw profileError;
+    }
+
+    currentProfile = {
+      ...currentProfile,
+      avatar_url: avatarUrl
+    };
+
+    renderProfileAvatar();
+
+    document.dispatchEvent(
+      new CustomEvent("authChanged", {
+        detail: {
+          user: currentUser,
+          profile: currentProfile
+        }
+      })
+    );
+
+    showAvatarStatus(
+      "Ta photo de profil est enregistrée.",
+      "success"
+    );
+  } catch (error) {
+    console.error("Erreur de téléversement de l’avatar :", error);
+
+    showAvatarStatus(
+      `Impossible d’enregistrer cette photo : ${error.message}`,
+      "error"
+    );
+  } finally {
+    avatarInput.value = "";
+  }
+}
+
+/* =====================================================
+   FORMULAIRE DE LISTE
+   ===================================================== */
 
 function showListForm() {
   listForm.hidden = false;
@@ -39,6 +209,10 @@ function hideListForm() {
   openListFormButton.hidden = false;
   listForm.reset();
 }
+
+/* =====================================================
+   CRITIQUES DU PROFIL
+   ===================================================== */
 
 function renderProfileReviews(reviews) {
   const username = getCurrentUsername();
@@ -56,6 +230,8 @@ function renderProfileReviews(reviews) {
       : "microcritique";
 
   document.querySelector(".profile-stat small").textContent = label;
+
+  renderProfileAvatar();
 
   if (reviews.length === 0) {
     myReviewsGrid.innerHTML = `
@@ -111,6 +287,10 @@ function renderProfileReviews(reviews) {
     });
   });
 }
+
+/* =====================================================
+   LISTES
+   ===================================================== */
 
 async function getMyMovieLists() {
   if (!currentUser) {
@@ -174,6 +354,7 @@ function renderMovieLists(lists) {
         Crée une collection pour réunir les films qui restent avec toi.
       </div>
     `;
+
     return;
   }
 
@@ -191,7 +372,9 @@ function renderMovieLists(lists) {
       return `
         <article class="movie-list-card">
           <div class="movie-list-card-top">
-            <span class="list-visibility ${list.is_public ? "public" : "private"}">
+            <span class="list-visibility ${
+              list.is_public ? "public" : "private"
+            }">
               ${visibilityLabel}
             </span>
 
@@ -206,15 +389,14 @@ function renderMovieLists(lists) {
             </button>
           </div>
 
-
-<h3>
-  <a
-    class="movie-list-link"
-    href="liste.html?id=${encodeURIComponent(list.id)}"
-  >
-    ${escapeHTML(list.title)}
-  </a>
-</h3>
+          <h3>
+            <a
+              class="movie-list-link"
+              href="liste.html?id=${encodeURIComponent(list.id)}"
+            >
+              ${escapeHTML(list.title)}
+            </a>
+          </h3>
 
           <p>
             ${
@@ -230,9 +412,11 @@ function renderMovieLists(lists) {
             </span>
 
             <span>
-              ${list.is_public
-                ? "Visible par tous"
-                : "Visible uniquement par moi"}
+              ${
+                list.is_public
+                  ? "Visible par tous"
+                  : "Visible uniquement par moi"
+              }
             </span>
           </div>
         </article>
@@ -328,6 +512,10 @@ async function createMovieList(event) {
   }
 }
 
+/* =====================================================
+   CHARGEMENT DE LA PAGE
+   ===================================================== */
+
 async function loadMyProfilePage() {
   if (!currentUser) {
     myReviewsGrid.innerHTML = `
@@ -342,11 +530,14 @@ async function loadMyProfilePage() {
 
     reviewTotal.textContent = "0";
     profileTitle.textContent = "Mon carnet de cinéma";
+
     profileSubtitle.textContent =
       "Tes films, tes mots, les traces que les séances ont laissées.";
 
     openListFormButton.hidden = true;
     listForm.hidden = true;
+
+    renderProfileAvatar();
 
     return;
   }
@@ -368,6 +559,14 @@ function setupProfilePage() {
   cancelListFormButton.addEventListener("click", hideListForm);
 
   listForm.addEventListener("submit", createMovieList);
+
+  avatarInput.addEventListener("change", () => {
+    const file = avatarInput.files?.[0];
+
+    if (file) {
+      uploadProfileAvatar(file);
+    }
+  });
 }
 
 document.addEventListener("authChanged", () => {
