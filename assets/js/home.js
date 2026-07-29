@@ -87,6 +87,121 @@ const openModal = document.getElementById("openModal");
 const closeModal = document.getElementById("closeModal");
 const reviewForm = document.getElementById("reviewForm");
 
+const tmdbSearchInput = document.getElementById("tmdbSearchInput");
+const tmdbSearchButton = document.getElementById("tmdbSearchButton");
+const tmdbSearchMessage = document.getElementById("tmdbSearchMessage");
+const tmdbResults = document.getElementById("tmdbResults");
+
+let selectedTmdbMovie = null;
+
+
+function clearTmdbSearchMessage() {
+  tmdbSearchMessage.textContent = "";
+}
+
+function showTmdbSearchMessage(message) {
+  tmdbSearchMessage.textContent = message;
+}
+
+function clearTmdbResults() {
+  tmdbResults.replaceChildren();
+}
+
+function selectTmdbMovie(movie) {
+  selectedTmdbMovie = movie;
+
+  document.getElementById("title").value = movie.title || "";
+  document.getElementById("year").value = movie.release_year || "";
+
+  clearTmdbResults();
+
+  showTmdbSearchMessage(
+    `Film sélectionné : ${movie.title}${
+      movie.release_year ? ` (${movie.release_year})` : ""
+    }.`
+  );
+}
+
+function displayTmdbResults(results) {
+  clearTmdbResults();
+
+  if (!results || results.length === 0) {
+    showTmdbSearchMessage(
+      "Aucun film trouvé. Essaie avec un autre titre."
+    );
+    return;
+  }
+
+  clearTmdbSearchMessage();
+
+  results.slice(0, 8).forEach((movie) => {
+    const resultButton = document.createElement("button");
+
+    resultButton.type = "button";
+    resultButton.className = "tmdb-result";
+
+    const title = movie.title || "Film sans titre";
+    const year = movie.release_year || "—";
+    const overview = movie.overview || "Synopsis non disponible.";
+
+    resultButton.innerHTML = `
+      <strong></strong>
+      <span></span>
+    `;
+
+    resultButton.querySelector("strong").textContent = `${title} (${year})`;
+    resultButton.querySelector("span").textContent = overview;
+
+    resultButton.addEventListener("click", () => {
+      selectTmdbMovie(movie);
+    });
+
+    tmdbResults.appendChild(resultButton);
+  });
+}
+
+async function searchTmdbMovies() {
+  const query = tmdbSearchInput.value.trim();
+
+  selectedTmdbMovie = null;
+  clearTmdbResults();
+  clearTmdbSearchMessage();
+
+  if (query.length < 2) {
+    showTmdbSearchMessage(
+      "Saisis au moins 2 caractères pour rechercher un film."
+    );
+    return;
+  }
+
+  tmdbSearchButton.disabled = true;
+  tmdbSearchButton.textContent = "Recherche…";
+
+  try {
+    const { data, error } = await supabaseClient.functions.invoke(
+      "tmdb-search",
+      {
+        body: { query }
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    displayTmdbResults(data?.results || []);
+  } catch (error) {
+    console.error("Erreur de recherche TMDB :", error);
+
+    showTmdbSearchMessage(
+      "Impossible de rechercher le film pour le moment. Réessaie dans quelques instants."
+    );
+  } finally {
+    tmdbSearchButton.disabled = false;
+    tmdbSearchButton.textContent = "Rechercher";
+  }
+}
+
 function allHomeReviews() {
   return [...publicReviews, ...defaultMovies];
 }
