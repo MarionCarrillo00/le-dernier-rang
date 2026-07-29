@@ -2191,3 +2191,135 @@ footer {
     text-align: center;
   }
 }
+
+/* =====================================================
+   RECHERCHE CINÉMA TMDB DEPUIS L'ACCUEIL
+   ===================================================== */
+
+.search-box {
+  z-index: 10;
+}
+
+.home-tmdb-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  left: 0;
+  display: none;
+  max-height: 520px;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.home-tmdb-results.visible {
+  display: block;
+}
+
+.home-tmdb-heading {
+  margin: 3px 5px 12px;
+  color: var(--red);
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.home-tmdb-message {
+  padding: 10px 7px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.82rem;
+}
+
+.home-tmdb-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 8px;
+  border-top: 1px solid var(--line);
+}
+
+.home-tmdb-item:first-of-type {
+  border-top: none;
+}
+
+.home-tmdb-details {
+  min-width: 0;
+}
+
+.home-tmdb-details strong {
+  display: block;
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.home-tmdb-details p {
+  display: -webkit-box;
+  margin: 5px 0 0;
+  overflow: hidden;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.home-tmdb-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+.home-tmdb-film-button,
+.home-tmdb-write-button {
+  padding: 7px 9px;
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+}
+
+.home-tmdb-film-button {
+  color: var(--deep-red);
+  background: transparent;
+  border: 1px solid #d9aaa5;
+}
+
+.home-tmdb-film-button:hover {
+  color: white;
+  background: var(--deep-red);
+  border-color: var(--deep-red);
+}
+
+.home-tmdb-write-button {
+  color: white;
+  background: var(--red);
+  border: 1px solid var(--red);
+}
+
+.home-tmdb-write-button:hover {
+  background: var(--deep-red);
+  border-color: var(--deep-red);
+}
+
+@media (max-width: 650px) {
+  .home-tmdb-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .home-tmdb-actions {
+    width: 100%;
+  }
+
+  .home-tmdb-film-button,
+  .home-tmdb-write-button {
+    flex: 1;
+  }
+}
