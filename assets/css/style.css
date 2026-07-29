@@ -2148,3 +2148,20 @@ footer {
     flex: 1;
   }
 }
+
+
+.review-author-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.review-author-link:hover .author {
+  color: var(--red);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.review-author-link:hover .review-author-avatar {
+  border-color: var(--red);
+}
+
