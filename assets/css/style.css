@@ -2003,3 +2003,148 @@ footer {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* =====================================================
+   PROFIL PUBLIC D’UN MEMBRE
+   ===================================================== */
+
+.member-page {
+  width: min(1120px, 86%);
+  min-height: 75vh;
+  margin: 0 auto;
+  padding: 42px 0 90px;
+}
+
+.member-hero-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+  padding: 36px;
+  color: white;
+  background:
+    linear-gradient(120deg, rgba(31, 19, 18, 0.91), rgba(113, 35, 36, 0.72)),
+    url("https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1600&q=80")
+    center / cover;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+.member-profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.member-avatar-large {
+  display: block;
+  width: 118px;
+  height: 118px;
+  flex: 0 0 auto;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.82);
+  border-radius: 50%;
+  box-shadow: 0 10px 22px rgba(20, 13, 12, 0.22);
+}
+
+.member-avatar-placeholder {
+  display: grid;
+  color: var(--cream);
+  background: rgba(255, 255, 255, 0.15);
+  font-family: Arial, sans-serif;
+  font-size: 2.5rem;
+  font-weight: bold;
+  place-items: center;
+}
+
+.member-hero-card .red-eyebrow {
+  color: #f3d8aa;
+}
+
+.member-hero-card h1 {
+  margin: 0 0 12px;
+  color: white;
+  font-size: clamp(2.8rem, 5vw, 4.8rem);
+}
+
+.member-hero-card p {
+  max-width: 620px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 1.04rem;
+  line-height: 1.6;
+}
+
+.member-statistics {
+  display: flex;
+  gap: 12px;
+}
+
+.member-stat {
+  min-width: 122px;
+  padding: 16px;
+  color: var(--ink);
+  text-align: center;
+  background: var(--cream);
+  border-radius: 12px;
+}
+
+.member-stat strong {
+  display: block;
+  color: var(--red);
+  font-size: 2rem;
+}
+
+.member-stat small {
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+}
+
+.member-section {
+  margin-top: 72px;
+}
+
+.member-reviews-grid {
+  grid-template-columns: 1fr;
+}
+
+.member-list-card {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.member-list-card:hover h3 {
+  color: var(--red);
+}
+
+@media (max-width: 750px) {
+  .member-page {
+    width: min(100% - 32px, 600px);
+    padding-top: 28px;
+  }
+
+  .member-hero-card {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 25px;
+  }
+
+  .member-profile-identity {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .member-avatar-large {
+    width: 96px;
+    height: 96px;
+  }
+
+  .member-statistics {
+    width: 100%;
+  }
+
+  .member-stat {
+    flex: 1;
+  }
+}
