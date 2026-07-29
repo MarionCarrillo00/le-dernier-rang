@@ -42,14 +42,52 @@
 
   <main class="profile-page">
     <section class="profile-header">
-      <div>
-        <div class="eyebrow red-eyebrow">Mon espace</div>
+      <div class="profile-intro">
+        <!-- Photo de profil -->
+        <div class="avatar-editor">
+          <img
+            id="profileAvatar"
+            class="profile-avatar"
+            alt="Photo de profil"
+            hidden
+          />
 
-        <h1 id="profileTitle">Mon carnet de cinéma</h1>
+          <div
+            class="profile-avatar-placeholder"
+            id="profileAvatarPlaceholder"
+            aria-hidden="true"
+          >
+            ?
+          </div>
 
-        <p id="profileSubtitle">
-          Tes films, tes mots, les traces que les séances ont laissées.
-        </p>
+          <label class="avatar-upload-button" for="avatarInput">
+            Choisir une photo
+
+            <input
+              id="avatarInput"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              hidden
+            />
+          </label>
+
+          <p
+            class="avatar-status"
+            id="avatarStatus"
+            aria-live="polite"
+          ></p>
+        </div>
+
+        <!-- Présentation du profil -->
+        <div>
+          <div class="eyebrow red-eyebrow">Mon espace</div>
+
+          <h1 id="profileTitle">Mon carnet de cinéma</h1>
+
+          <p id="profileSubtitle">
+            Tes films, tes mots, les traces que les séances ont laissées.
+          </p>
+        </div>
       </div>
 
       <div class="profile-stat">
