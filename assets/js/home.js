@@ -1,84 +1,4 @@
 
-const defaultMovies = [
-  {
-    id: "demo-1",
-    author: "Le dernier rang",
-    rating: 4.5,
-    content:
-      "Une solitude à deux, douce et immense, dans une ville qui ne dort jamais.",
-    movies: {
-      title: "Lost in Translation",
-      release_year: 2003,
-      director: "Sofia Coppola",
-      genres: ["Romance", "Tokyo", "mélancolie", "nuit"]
-    }
-  },
-  {
-    id: "demo-2",
-    author: "Le dernier rang",
-    rating: 4,
-    content:
-      "Quand l’infiniment grand devient une très belle histoire d’amour.",
-    movies: {
-      title: "Interstellar",
-      release_year: 2014,
-      director: "Christopher Nolan",
-      genres: ["Science-fiction", "espace", "temps", "vertige"]
-    }
-  },
-  {
-    id: "demo-3",
-    author: "Le dernier rang",
-    rating: 4,
-    content:
-      "Un Paris rêvé, tendre et légèrement trop joli — mais c’est précisément ce qui le rend précieux.",
-    movies: {
-      title: "Le Fabuleux Destin d’Amélie Poulain",
-      release_year: 2001,
-      director: "Jean-Pierre Jeunet",
-      genres: ["Romance", "Paris", "fantaisie", "tendresse"]
-    }
-  },
-  {
-    id: "demo-4",
-    author: "Le dernier rang",
-    rating: 5,
-    content:
-      "Un rêve immense où chaque porte ouverte nous rend un peu plus courageux.",
-    movies: {
-      title: "Le Voyage de Chihiro",
-      release_year: 2001,
-      director: "Hayao Miyazaki",
-      genres: ["Animation", "Japon", "enfance", "merveille"]
-    }
-  },
-  {
-    id: "demo-5",
-    author: "Le dernier rang",
-    rating: 4,
-    content:
-      "La beauté trouble de ce que l’on ne comprend jamais tout à fait.",
-    movies: {
-      title: "The Virgin Suicides",
-      release_year: 1999,
-      director: "Sofia Coppola",
-      genres: ["Drame", "adolescence", "banlieue", "mystère"]
-    }
-  },
-  {
-    id: "demo-6",
-    author: "Le dernier rang",
-    rating: 3.5,
-    content: "La lumière du jour n’a jamais été aussi inquiétante.",
-    movies: {
-      title: "Midsommar",
-      release_year: 2019,
-      director: "Ari Aster",
-      genres: ["Horreur", "Suède", "rupture", "soleil"]
-    }
-  }
-];
-
 let publicReviews = [];
 let selectedGenre = "Tous";
 let selectedTmdbMovie = null;
@@ -105,6 +25,31 @@ const selectedMovieMeta = document.getElementById("selectedMovieMeta");
 const selectedMovieOverview = document.getElementById(
   "selectedMovieOverview"
 );
+
+const reviewInput = document.getElementById("review");
+const reviewCharacterCounter = document.getElementById(
+  "reviewCharacterCounter"
+);
+
+/* ---------------------------------
+   Compteur de caractères
+--------------------------------- */
+
+function updateReviewCharacterCounter() {
+  if (!reviewInput || !reviewCharacterCounter) {
+    return;
+  }
+
+  const maximum = Number(reviewInput.maxLength) || 140;
+  const length = reviewInput.value.length;
+
+  reviewCharacterCounter.textContent = `${length} / ${maximum}`;
+
+  reviewCharacterCounter.classList.toggle(
+    "limit-reached",
+    length >= maximum
+  );
+}
 
 /* ---------------------------------
    Recherche et sélection TMDB
@@ -327,13 +272,9 @@ async function searchTmdbMovies() {
    Accueil et affichage des critiques
 --------------------------------- */
 
-
 function allHomeReviews() {
-  // Pour le moment, l'accueil affiche uniquement
-  // les critiques réellement publiées dans Supabase.
   return publicReviews;
 }
-
 
 function getPrimaryGenre(review) {
   return review.movies?.genres?.[0] || "Cinéma";
@@ -383,7 +324,6 @@ function renderHomeReviews() {
     .map((review, index) => createMovieCard(review, index))
     .join("");
 
-
   document.querySelectorAll(".favorite").forEach((button) => {
     button.addEventListener("click", async () => {
       if (!currentUser) {
@@ -404,19 +344,16 @@ function renderHomeReviews() {
 
       try {
         await toggleReviewLike(reviewId);
-
-        // Recharge les critiques : le compteur et le cœur
-        // seront immédiatement mis à jour.
         await refreshHomeReviews();
       } catch (error) {
         console.error("Erreur de like :", error);
+
         alert(`Impossible de modifier ton like : ${error.message}`);
       } finally {
         button.disabled = false;
       }
     });
   });
-
 }
 
 async function refreshHomeReviews() {
@@ -461,6 +398,10 @@ function setupHome() {
       searchTmdbMovies();
     }
   });
+
+  reviewInput.addEventListener("input", updateReviewCharacterCounter);
+
+  updateReviewCharacterCounter();
 
   openModal.addEventListener("click", openReviewModal);
 
@@ -517,7 +458,7 @@ function setupHome() {
         director: document.getElementById("director").value,
         genre: document.getElementById("genre").value,
         rating: document.getElementById("rating").value,
-        content: document.getElementById("review").value.trim(),
+        content: reviewInput.value.trim(),
 
         tags: document
           .getElementById("tags")
@@ -530,8 +471,10 @@ function setupHome() {
       await publishReview(payload);
 
       reviewForm.reset();
+      updateReviewCharacterCounter();
 
       resetSelectedTmdbMovie();
+
       tmdbSearchInput.value = "";
       clearTmdbResults();
       clearTmdbSearchMessage();
@@ -557,6 +500,7 @@ function setupHome() {
       alert("Ta microcritique est publiée sur Le dernier rang. ✨");
     } catch (error) {
       console.error(error);
+
       alert(`Impossible de publier : ${error.message}`);
     } finally {
       submitButton.disabled = false;
@@ -571,7 +515,7 @@ function setupHome() {
   });
 
   document.addEventListener("authChanged", () => {
-    renderHomeReviews();
+    refreshHomeReviews();
   });
 }
 
