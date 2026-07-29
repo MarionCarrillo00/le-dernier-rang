@@ -289,6 +289,20 @@ function closeReviewModal() {
 }
 
 function setupHome() {
+  
+  tmdbSearchButton.addEventListener("click", searchTmdbMovies);
+
+  tmdbSearchInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      searchTmdbMovies();
+    }
+  });
+
+  document.getElementById("title").addEventListener("input", () => {
+    selectedTmdbMovie = null;
+  });
+
   openModal.addEventListener("click", openReviewModal);
 
   closeModal.addEventListener("click", closeReviewModal);
