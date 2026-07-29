@@ -98,8 +98,16 @@ const tmdbSearchButton = document.getElementById("tmdbSearchButton");
 const tmdbSearchMessage = document.getElementById("tmdbSearchMessage");
 const tmdbResults = document.getElementById("tmdbResults");
 
+const selectedMovieCard = document.getElementById("selectedMovieCard");
+const selectedMoviePoster = document.getElementById("selectedMoviePoster");
+const selectedMovieTitle = document.getElementById("selectedMovieTitle");
+const selectedMovieMeta = document.getElementById("selectedMovieMeta");
+const selectedMovieOverview = document.getElementById(
+  "selectedMovieOverview"
+);
+
 /* ---------------------------------
-   Recherche TMDB
+   Recherche et sélection TMDB
 --------------------------------- */
 
 function clearTmdbSearchMessage() {
@@ -114,19 +122,123 @@ function clearTmdbResults() {
   tmdbResults.replaceChildren();
 }
 
-function selectTmdbMovie(movie) {
-  selectedTmdbMovie = movie;
+function getPrimarySiteGenre(tmdbGenres) {
+  const genres = tmdbGenres || [];
+
+  if (genres.includes("Drame")) return "Drame";
+  if (genres.includes("Romance")) return "Romance";
+  if (genres.includes("Horreur")) return "Horreur";
+  if (genres.includes("Animation")) return "Animation";
+
+  if (
+    genres.includes("Science-Fiction") ||
+    genres.includes("Science fiction") ||
+    genres.includes("Science-Fiction & Fantastique")
+  ) {
+    return "Science-fiction";
+  }
+
+  if (genres.includes("Comédie")) return "Comédie";
+  if (genres.includes("Documentaire")) return "Documentaire";
+  if (genres.includes("Thriller")) return "Thriller";
+
+  return genres[0] || "Cinéma";
+}
+
+function resetSelectedTmdbMovie() {
+  selectedTmdbMovie = null;
+
+  selectedMovieCard.hidden = true;
+
+  selectedMoviePoster.hidden = true;
+  selectedMoviePoster.removeAttribute("src");
+  selectedMoviePoster.alt = "";
+
+  selectedMovieTitle.textContent = "";
+  selectedMovieMeta.textContent = "";
+  selectedMovieOverview.textContent = "";
+
+  document.getElementById("title").value = "";
+  document.getElementById("year").value = "";
+  document.getElementById("director").value = "";
+  document.getElementById("genre").value = "";
+}
+
+function displaySelectedTmdbMovie(movie) {
+  const genres = movie.genres || [];
+  const primaryGenre = getPrimarySiteGenre(genres);
 
   document.getElementById("title").value = movie.title || "";
   document.getElementById("year").value = movie.release_year || "";
+  document.getElementById("director").value =
+    movie.director || "Réalisateur·rice non précisé·e";
+  document.getElementById("genre").value = primaryGenre;
 
-  clearTmdbResults();
-
-  showTmdbSearchMessage(
-    `Film sélectionné : ${movie.title}${
+  selectedMovieTitle.textContent =
+    `${movie.title || "Film sans titre"}${
       movie.release_year ? ` (${movie.release_year})` : ""
-    }.`
-  );
+    }`;
+
+  selectedMovieMeta.textContent = [
+    movie.director || "Réalisateur·rice non précisé·e",
+    genres.join(" · ")
+  ]
+    .filter(Boolean)
+    .join(" — ");
+
+  selectedMovieOverview.textContent =
+    movie.overview || "Synopsis non disponible.";
+
+  if (movie.poster_url) {
+    selectedMoviePoster.src = movie.poster_url;
+    selectedMoviePoster.alt = `Affiche de ${movie.title || "ce film"}`;
+    selectedMoviePoster.hidden = false;
+  } else {
+    selectedMoviePoster.hidden = true;
+    selectedMoviePoster.removeAttribute("src");
+  }
+
+  selectedMovieCard.hidden = false;
+}
+
+async function selectTmdbMovie(movie) {
+  clearTmdbResults();
+  showTmdbSearchMessage("Chargement des détails du film…");
+
+  try {
+    const { data, error } = await supabaseClient.functions.invoke(
+      "tmdb-details",
+      {
+        body: {
+          movieId: movie.tmdb_id
+        }
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.result) {
+      throw new Error("Détails du film introuvables.");
+    }
+
+    selectedTmdbMovie = data.result;
+
+    displaySelectedTmdbMovie(selectedTmdbMovie);
+
+    showTmdbSearchMessage(
+      "Film sélectionné. Tu peux maintenant attribuer ta note et écrire ta microcritique."
+    );
+  } catch (error) {
+    console.error("Erreur de récupération des détails TMDB :", error);
+
+    resetSelectedTmdbMovie();
+
+    showTmdbSearchMessage(
+      "Impossible de charger les détails de ce film. Réessaie."
+    );
+  }
 }
 
 function displayTmdbResults(results) {
@@ -172,7 +284,7 @@ function displayTmdbResults(results) {
 async function searchTmdbMovies() {
   const query = tmdbSearchInput.value.trim();
 
-  selectedTmdbMovie = null;
+  resetSelectedTmdbMovie();
   clearTmdbResults();
   clearTmdbSearchMessage();
 
@@ -321,12 +433,6 @@ function setupHome() {
     }
   });
 
-  // Si le titre est modifié à la main après une sélection TMDB,
-  // le film TMDB sélectionné n'est plus retenu.
-  document.getElementById("title").addEventListener("input", () => {
-    selectedTmdbMovie = null;
-  });
-
   openModal.addEventListener("click", openReviewModal);
 
   closeModal.addEventListener("click", closeReviewModal);
@@ -369,22 +475,19 @@ function setupHome() {
     submitButton.textContent = "Publication…";
 
     try {
+      if (!selectedTmdbMovie) {
+        throw new Error(
+          "Choisis un film dans les résultats TMDB avant de publier."
+        );
+      }
+
       const payload = {
         title: document.getElementById("title").value.trim(),
-
-        // Contient les données TMDB si un résultat a été sélectionné.
         tmdbMovie: selectedTmdbMovie,
-
         year: document.getElementById("year").value,
-
-        director:
-          document.getElementById("director").value.trim() ||
-          "Réalisateur·rice non précisé·e",
-
+        director: document.getElementById("director").value,
         genre: document.getElementById("genre").value,
-
         rating: document.getElementById("rating").value,
-
         content: document.getElementById("review").value.trim(),
 
         tags: document
@@ -399,8 +502,7 @@ function setupHome() {
 
       reviewForm.reset();
 
-      // Remise à zéro de la recherche TMDB après publication.
-      selectedTmdbMovie = null;
+      resetSelectedTmdbMovie();
       tmdbSearchInput.value = "";
       clearTmdbResults();
       clearTmdbSearchMessage();
