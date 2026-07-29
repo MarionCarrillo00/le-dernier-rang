@@ -1368,3 +1368,17 @@ footer {
     font-size: 0.8rem;
   }
 }
+
+.character-counter {
+  margin: -8px 0 16px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+.character-counter.limit-reached {
+  color: var(--red);
+  font-weight: bold;
+}
+
