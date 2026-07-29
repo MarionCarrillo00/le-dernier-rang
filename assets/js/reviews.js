@@ -181,6 +181,7 @@ async function getMyReviews(userId) {
   return reviews;
 }
 
+
 async function publishReview(payload) {
   if (!currentUser) {
     throw new Error("Tu dois être connectée pour publier une critique.");
@@ -188,6 +189,7 @@ async function publishReview(payload) {
 
   const {
     title,
+    tmdbMovie,
     year,
     director,
     genre,
@@ -196,17 +198,63 @@ async function publishReview(payload) {
     tags
   } = payload;
 
-  const genres = [...new Set([genre, ...tags])];
+  const genres = [
+    ...new Set([genre, ...tags].filter(Boolean))
+  ];
 
-  const { data: existingMovie, error: searchError } =
-    await supabaseClient
+  // Les données TMDB existent uniquement si un résultat a été sélectionné.
+  const tmdbId = tmdbMovie?.tmdb_id || null;
+
+  const movieData = {
+    title,
+    release_year: year ? Number(year) : null,
+    director,
+    genres,
+    created_by: currentUser.id
+  };
+
+  // Si le film vient de TMDB, on enrichit sa fiche avec les données récupérées.
+  if (tmdbMovie) {
+    movieData.tmdb_id = tmdbMovie.tmdb_id;
+    movieData.poster_path = tmdbMovie.poster_path || null;
+    movieData.poster_url = tmdbMovie.poster_url || null;
+    movieData.overview = tmdbMovie.overview || "";
+    movieData.original_title = tmdbMovie.original_title || "";
+  }
+
+  let existingMovie = null;
+
+  /*
+    Recherche prioritaire avec l'identifiant TMDB :
+    c'est l'identifiant le plus fiable, notamment lorsqu'il existe
+    plusieurs films ayant le même titre.
+  */
+  if (tmdbId) {
+    const { data, error } = await supabaseClient
+      .from("movies")
+      .select("id")
+      .eq("tmdb_id", tmdbId)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    existingMovie = data;
+  } else {
+    /*
+      Si le film est saisi manuellement, on conserve le comportement
+      précédent : recherche par titre.
+    */
+    const { data, error } = await supabaseClient
       .from("movies")
       .select("id")
       .ilike("title", title)
       .limit(1)
       .maybeSingle();
 
-  if (searchError) throw searchError;
+    if (error) throw error;
+
+    existingMovie = data;
+  }
 
   let movieId = existingMovie?.id;
 
@@ -214,19 +262,24 @@ async function publishReview(payload) {
     const { data: createdMovie, error: movieError } =
       await supabaseClient
         .from("movies")
-        .insert({
-          title,
-          release_year: year ? Number(year) : null,
-          director,
-          genres,
-          created_by: currentUser.id
-        })
+        .insert(movieData)
         .select("id")
         .single();
 
     if (movieError) throw movieError;
 
     movieId = createdMovie.id;
+  } else if (tmdbMovie) {
+    /*
+      Si le film existe déjà, on met à jour sa fiche avec les données TMDB.
+      C'est utile pour les films créés manuellement avant l'intégration TMDB.
+    */
+    const { error: updateMovieError } = await supabaseClient
+      .from("movies")
+      .update(movieData)
+      .eq("id", movieId);
+
+    if (updateMovieError) throw updateMovieError;
   }
 
   const { error: reviewError } = await supabaseClient
@@ -247,6 +300,7 @@ async function publishReview(payload) {
 
   if (reviewError) throw reviewError;
 }
+
 
 async function deleteReview(reviewId) {
   const { error } = await supabaseClient
