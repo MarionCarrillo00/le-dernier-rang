@@ -29,6 +29,7 @@ function posterClassFor(index) {
   return posters[index % posters.length];
 }
 
+
 function createMovieCard(review, index, options = {}) {
   const movie = review.movies || {};
   const genres = movie.genres || [];
@@ -42,6 +43,10 @@ function createMovieCard(review, index, options = {}) {
     "";
 
   const authorInitial = author.charAt(0).toUpperCase() || "?";
+
+  const authorProfileLink = review.user_id
+    ? `membre.html?id=${encodeURIComponent(review.user_id)}`
+    : "";
 
   const posterUrl = movie.poster_url || "";
   const likeCount = Number(review.like_count || 0);
@@ -123,6 +128,30 @@ function createMovieCard(review, index, options = {}) {
       </span>
     `;
 
+  const authorMarkup = authorProfileLink
+    ? `
+      <a
+        class="review-author review-author-link"
+        href="${authorProfileLink}"
+        title="Voir le profil de ${escapeHTML(author)}"
+      >
+        ${authorAvatarMarkup}
+
+        <span class="author">
+          Par ${escapeHTML(author)}
+        </span>
+      </a>
+    `
+    : `
+      <div class="review-author">
+        ${authorAvatarMarkup}
+
+        <span class="author">
+          Par ${escapeHTML(author)}
+        </span>
+      </div>
+    `;
+
   return `
     <article class="movie-card">
       ${posterMarkup}
@@ -155,13 +184,7 @@ function createMovieCard(review, index, options = {}) {
         </div>
 
         <div class="card-bottom">
-          <div class="review-author">
-            ${authorAvatarMarkup}
-
-            <span class="author">
-              Par ${escapeHTML(author)}
-            </span>
-          </div>
+          ${authorMarkup}
 
           <div class="card-actions">
             ${filmLink}
@@ -172,6 +195,7 @@ function createMovieCard(review, index, options = {}) {
     </article>
   `;
 }
+
 
 async function getProfilesByUserIds(userIds) {
   const uniqueUserIds = [
