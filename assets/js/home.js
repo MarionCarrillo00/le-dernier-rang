@@ -383,15 +383,40 @@ function renderHomeReviews() {
     .map((review, index) => createMovieCard(review, index))
     .join("");
 
-  document.querySelectorAll(".favorite").forEach((button) => {
-    button.addEventListener("click", () => {
-      button.classList.toggle("liked");
 
-      button.textContent = button.classList.contains("liked")
-        ? "♥"
-        : "♡";
+  document.querySelectorAll(".favorite").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!currentUser) {
+        setAuthMode("login");
+        openAuthModal();
+
+        showAuthMessage(
+          "Connecte-toi ou crée un compte pour aimer une microcritique.",
+          "error"
+        );
+
+        return;
+      }
+
+      const reviewId = button.dataset.reviewId;
+
+      button.disabled = true;
+
+      try {
+        await toggleReviewLike(reviewId);
+
+        // Recharge les critiques : le compteur et le cœur
+        // seront immédiatement mis à jour.
+        await refreshHomeReviews();
+      } catch (error) {
+        console.error("Erreur de like :", error);
+        alert(`Impossible de modifier ton like : ${error.message}`);
+      } finally {
+        button.disabled = false;
+      }
     });
   });
+
 }
 
 async function refreshHomeReviews() {
