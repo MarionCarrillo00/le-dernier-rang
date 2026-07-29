@@ -1,6 +1,9 @@
 
 const filmPageContent = document.getElementById("filmPageContent");
 
+let currentFilmMovie = null;
+let listPanelOpen = false;
+
 function getMovieIdFromUrl() {
   const params = new URLSearchParams(window.location.search);
   return params.get("id");
@@ -23,7 +26,9 @@ function renderFilmError(message) {
   filmPageContent.innerHTML = `
     <div class="film-error">
       <h1>Cette séance est introuvable.</h1>
+
       <p>${escapeHTML(message)}</p>
+
       <a class="button-primary" href="index.html#critiques">
         Retour aux microcritiques
       </a>
@@ -64,6 +69,7 @@ function renderCast(cast) {
 
               <div>
                 <strong>${escapeHTML(person.name)}</strong>
+
                 ${
                   person.character
                     ? `<span>${escapeHTML(person.character)}</span>`
@@ -78,7 +84,141 @@ function renderCast(cast) {
   `;
 }
 
-function renderFilmPage(movie, tmdbDetails, reviews) {
+async function getMyListsForMovie(movieId) {
+  if (!currentUser) {
+    return [];
+  }
+
+  const { data: lists, error: listsError } = await supabaseClient
+    .from("movie_lists")
+    .select(`
+      id,
+      title,
+      description,
+      is_public,
+      created_at
+    `)
+    .eq("user_id", currentUser.id)
+    .order("created_at", { ascending: false });
+
+  if (listsError) {
+    throw listsError;
+  }
+
+  if (!lists || lists.length === 0) {
+    return [];
+  }
+
+  const listIds = lists.map((list) => list.id);
+
+  const { data: items, error: itemsError } = await supabaseClient
+    .from("movie_list_items")
+    .select("list_id, movie_id")
+    .in("list_id", listIds)
+    .eq("movie_id", movieId);
+
+  if (itemsError) {
+    throw itemsError;
+  }
+
+  const movieListIds = new Set(
+    (items || []).map((item) => item.list_id)
+  );
+
+  return lists.map((list) => ({
+    ...list,
+    contains_movie: movieListIds.has(list.id)
+  }));
+}
+
+function renderListPanel(lists) {
+  if (!listPanelOpen) {
+    return "";
+  }
+
+  if (!currentUser) {
+    return `
+      <div class="film-list-panel">
+        <p>
+          Connecte-toi pour ajouter ce film à l’une de tes listes.
+        </p>
+
+        <button
+          class="button-secondary"
+          type="button"
+          id="openLoginForListsButton"
+        >
+          Se connecter
+        </button>
+      </div>
+    `;
+  }
+
+  if (lists.length === 0) {
+    return `
+      <div class="film-list-panel">
+        <p>
+          Tu n’as pas encore créé de liste.
+        </p>
+
+        <a class="button-secondary" href="profil.html">
+          Créer ma première liste
+        </a>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="film-list-panel">
+      <p class="film-list-panel-intro">
+        Choisis une collection pour y ranger ce film.
+      </p>
+
+      <div class="film-list-items">
+        ${lists
+          .map(
+            (list) => `
+              <div class="film-list-item">
+                <div>
+                  <strong>${escapeHTML(list.title)}</strong>
+
+                  <span>
+                    ${
+                      list.is_public
+                        ? "Liste publique"
+                        : "Liste privée"
+                    }
+                  </span>
+                </div>
+
+                <button
+                  class="${
+                    list.contains_movie
+                      ? "button-list-added"
+                      : "button-list-add"
+                  }"
+                  type="button"
+                  data-list-id="${list.id}"
+                  data-action="${
+                    list.contains_movie ? "remove" : "add"
+                  }"
+                >
+                  ${
+                    list.contains_movie
+                      ? "Retirer"
+                      : "Ajouter"
+                  }
+                </button>
+              </div>
+            `
+          )
+          .join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderFilmPage(movie, tmdbDetails, reviews, lists = []) {
   const title = tmdbDetails?.title || movie.title || "Film sans titre";
 
   const releaseYear =
@@ -99,10 +239,9 @@ function renderFilmPage(movie, tmdbDetails, reviews) {
   const originalTitle =
     tmdbDetails?.original_title || movie.original_title || "";
 
-  const genres =
-    tmdbDetails?.genres?.length
-      ? tmdbDetails.genres
-      : movie.genres || [];
+  const genres = tmdbDetails?.genres?.length
+    ? tmdbDetails.genres
+    : movie.genres || [];
 
   const averageRating = formatAverageRating(reviews);
 
@@ -178,6 +317,22 @@ function renderFilmPage(movie, tmdbDetails, reviews) {
             </small>
           </div>
         </div>
+
+        <div class="film-list-area">
+          <button
+            class="button-secondary"
+            type="button"
+            id="toggleListPanelButton"
+          >
+            ${
+              listPanelOpen
+                ? "Fermer mes listes"
+                : "+ Ajouter à une liste"
+            }
+          </button>
+
+          ${renderListPanel(lists)}
+        </div>
       </div>
     </section>
 
@@ -221,6 +376,7 @@ function renderFilmPage(movie, tmdbDetails, reviews) {
   `;
 
   setupFilmLikeButtons();
+  setupListButtons();
 }
 
 function setupFilmLikeButtons() {
@@ -248,12 +404,107 @@ function setupFilmLikeButtons() {
         await initialiseFilmPage();
       } catch (error) {
         console.error("Erreur de like :", error);
+
         alert(`Impossible de modifier ton like : ${error.message}`);
       } finally {
         button.disabled = false;
       }
     });
   });
+}
+
+function setupListButtons() {
+  const toggleListPanelButton = document.getElementById(
+    "toggleListPanelButton"
+  );
+
+  if (toggleListPanelButton) {
+    toggleListPanelButton.addEventListener("click", async () => {
+      if (!currentUser) {
+        setAuthMode("login");
+        openAuthModal();
+
+        showAuthMessage(
+          "Connecte-toi ou crée un compte pour gérer tes listes.",
+          "error"
+        );
+
+        return;
+      }
+
+      listPanelOpen = !listPanelOpen;
+      await initialiseFilmPage();
+    });
+  }
+
+  const openLoginForListsButton = document.getElementById(
+    "openLoginForListsButton"
+  );
+
+  if (openLoginForListsButton) {
+    openLoginForListsButton.addEventListener("click", () => {
+      setAuthMode("login");
+      openAuthModal();
+    });
+  }
+
+  document
+    .querySelectorAll(".film-list-item button")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        if (!currentUser || !currentFilmMovie) {
+          return;
+        }
+
+        const listId = button.dataset.listId;
+        const action = button.dataset.action;
+
+        button.disabled = true;
+        button.textContent =
+          action === "add" ? "Ajout…" : "Retrait…";
+
+        try {
+          if (action === "add") {
+            const { error } = await supabaseClient
+              .from("movie_list_items")
+              .insert({
+                list_id: listId,
+                movie_id: currentFilmMovie.id
+              });
+
+            /*
+              La contrainte unique évite les doublons.
+              Si la ligne existe déjà, on rafraîchit simplement l'écran.
+            */
+            if (error && error.code !== "23505") {
+              throw error;
+            }
+          } else {
+            const { error } = await supabaseClient
+              .from("movie_list_items")
+              .delete()
+              .eq("list_id", listId)
+              .eq("movie_id", currentFilmMovie.id);
+
+            if (error) {
+              throw error;
+            }
+          }
+
+          await initialiseFilmPage();
+        } catch (error) {
+          console.error("Erreur de gestion de liste :", error);
+
+          alert(
+            `Impossible de modifier cette liste : ${error.message}`
+          );
+
+          button.disabled = false;
+          button.textContent =
+            action === "add" ? "Ajouter" : "Retirer";
+        }
+      });
+    });
 }
 
 async function initialiseFilmPage() {
@@ -286,11 +537,21 @@ async function initialiseFilmPage() {
     }
 
     if (!movie) {
-      renderFilmError("Ce film n’existe pas ou n’est plus disponible.");
+      renderFilmError(
+        "Ce film n’existe pas ou n’est plus disponible."
+      );
+
       return;
     }
 
-    const reviews = await getReviewsByMovieId(movie.id);
+    currentFilmMovie = movie;
+
+    const [reviews, lists] = await Promise.all([
+      getReviewsByMovieId(movie.id),
+      currentUser
+        ? getMyListsForMovie(movie.id)
+        : Promise.resolve([])
+    ]);
 
     let tmdbDetails = null;
 
@@ -309,7 +570,7 @@ async function initialiseFilmPage() {
       }
     }
 
-    renderFilmPage(movie, tmdbDetails, reviews);
+    renderFilmPage(movie, tmdbDetails, reviews, lists);
   } catch (error) {
     console.error("Erreur de chargement de la fiche film :", error);
 
