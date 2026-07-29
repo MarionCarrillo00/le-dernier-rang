@@ -2,11 +2,21 @@
 const filmPageContent = document.getElementById("filmPageContent");
 
 let currentFilmMovie = null;
+let currentTmdbMovieId = null;
 let listPanelOpen = false;
 
 function getMovieIdFromUrl() {
   const params = new URLSearchParams(window.location.search);
   return params.get("id");
+}
+
+function getTmdbIdFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const tmdbId = Number(params.get("tmdb"));
+
+  return Number.isInteger(tmdbId) && tmdbId > 0
+    ? tmdbId
+    : null;
 }
 
 function formatAverageRating(reviews) {
@@ -85,7 +95,7 @@ function renderCast(cast) {
 }
 
 async function getMyListsForMovie(movieId) {
-  if (!currentUser) {
+  if (!currentUser || !movieId) {
     return [];
   }
 
@@ -154,6 +164,16 @@ function renderListPanel(lists) {
     `;
   }
 
+  if (!currentFilmMovie?.id) {
+    return `
+      <div class="film-list-panel">
+        <p>
+          Publie une première microcritique pour ajouter ce film à tes listes.
+        </p>
+      </div>
+    `;
+  }
+
   if (lists.length === 0) {
     return `
       <div class="film-list-panel">
@@ -218,6 +238,14 @@ function renderListPanel(lists) {
   `;
 }
 
+function buildWriteReviewLink(tmdbId) {
+  if (!tmdbId) {
+    return "index.html";
+  }
+
+  return `index.html?writeTmdb=${encodeURIComponent(tmdbId)}`;
+}
+
 function renderFilmPage(movie, tmdbDetails, reviews, lists = []) {
   const title = tmdbDetails?.title || movie.title || "Film sans titre";
 
@@ -243,7 +271,9 @@ function renderFilmPage(movie, tmdbDetails, reviews, lists = []) {
     ? tmdbDetails.genres
     : movie.genres || [];
 
+  const tmdbId = tmdbDetails?.tmdb_id || movie.tmdb_id || null;
   const averageRating = formatAverageRating(reviews);
+  const filmExistsInCatalog = Boolean(movie.id);
 
   document.title = `${title} — Le dernier rang`;
 
@@ -318,19 +348,48 @@ function renderFilmPage(movie, tmdbDetails, reviews, lists = []) {
           </div>
         </div>
 
-        <div class="film-list-area">
-          <button
-            class="button-secondary"
-            type="button"
-            id="toggleListPanelButton"
-          >
-            ${
-              listPanelOpen
-                ? "Fermer mes listes"
-                : "+ Ajouter à une liste"
-            }
-          </button>
+        <div class="film-primary-actions">
+          ${
+            tmdbId
+              ? `
+                <a
+                  class="button-primary"
+                  href="${buildWriteReviewLink(tmdbId)}"
+                >
+                  Écrire une microcritique
+                </a>
+              `
+              : ""
+          }
 
+          ${
+            filmExistsInCatalog
+              ? `
+                <button
+                  class="button-secondary"
+                  type="button"
+                  id="toggleListPanelButton"
+                >
+                  ${
+                    listPanelOpen
+                      ? "Fermer mes listes"
+                      : "+ Ajouter à une liste"
+                  }
+                </button>
+              `
+              : `
+                <button
+                  class="button-secondary"
+                  type="button"
+                  id="toggleListPanelButton"
+                >
+                  + Ajouter à une liste
+                </button>
+              `
+          }
+        </div>
+
+        <div class="film-list-area">
           ${renderListPanel(lists)}
         </div>
       </div>
@@ -367,7 +426,18 @@ function renderFilmPage(movie, tmdbDetails, reviews, lists = []) {
               <div class="empty-state">
                 <strong>Pas encore de microcritique pour ce film.</strong>
                 <br /><br />
-                Sois la première personne à laisser quelques mots.
+                ${
+                  tmdbId
+                    ? `
+                      <a
+                        class="button-primary"
+                        href="${buildWriteReviewLink(tmdbId)}"
+                      >
+                        Écrire la première microcritique
+                      </a>
+                    `
+                    : "Sois la première personne à laisser quelques mots."
+                }
               </div>
             `
         }
@@ -452,7 +522,7 @@ function setupListButtons() {
     .querySelectorAll(".film-list-item button")
     .forEach((button) => {
       button.addEventListener("click", async () => {
-        if (!currentUser || !currentFilmMovie) {
+        if (!currentUser || !currentFilmMovie?.id) {
           return;
         }
 
@@ -472,10 +542,6 @@ function setupListButtons() {
                 movie_id: currentFilmMovie.id
               });
 
-            /*
-              La contrainte unique évite les doublons.
-              Si la ligne existe déjà, on rafraîchit simplement l'écran.
-            */
             if (error && error.code !== "23505") {
               throw error;
             }
@@ -507,68 +573,150 @@ function setupListButtons() {
     });
 }
 
+async function getMovieFromCatalog(movieId) {
+  const { data, error } = await supabaseClient
+    .from("movies")
+    .select(`
+      id,
+      tmdb_id,
+      title,
+      original_title,
+      release_year,
+      director,
+      poster_url,
+      overview,
+      genres
+    `)
+    .eq("id", movieId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+async function getMovieFromCatalogByTmdbId(tmdbId) {
+  const { data, error } = await supabaseClient
+    .from("movies")
+    .select(`
+      id,
+      tmdb_id,
+      title,
+      original_title,
+      release_year,
+      director,
+      poster_url,
+      overview,
+      genres
+    `)
+    .eq("tmdb_id", tmdbId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+async function getTmdbDetails(tmdbId) {
+  const { data, error } = await supabaseClient.functions.invoke(
+    "tmdb-details",
+    {
+      body: {
+        movieId: tmdbId
+      }
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data?.result) {
+    throw new Error("Les détails TMDB du film sont introuvables.");
+  }
+
+  return data.result;
+}
+
 async function initialiseFilmPage() {
   const movieId = getMovieIdFromUrl();
+  const tmdbIdFromUrl = getTmdbIdFromUrl();
 
-  if (!movieId) {
+  if (!movieId && !tmdbIdFromUrl) {
     renderFilmError("Aucun identifiant de film n’a été transmis.");
     return;
   }
 
   try {
-    const { data: movie, error: movieError } = await supabaseClient
-      .from("movies")
-      .select(`
-        id,
-        tmdb_id,
-        title,
-        original_title,
-        release_year,
-        director,
-        poster_url,
-        overview,
-        genres
-      `)
-      .eq("id", movieId)
-      .maybeSingle();
+    let movie = null;
+    let tmdbDetails = null;
 
-    if (movieError) {
-      throw movieError;
+    /*
+      Cas 1 : film déjà présent dans le catalogue Supabase.
+    */
+    if (movieId) {
+      movie = await getMovieFromCatalog(movieId);
+
+      if (!movie) {
+        renderFilmError(
+          "Ce film n’existe pas ou n’est plus disponible."
+        );
+        return;
+      }
+
+      currentTmdbMovieId = movie.tmdb_id || null;
+
+      if (movie.tmdb_id) {
+        tmdbDetails = await getTmdbDetails(movie.tmdb_id);
+      }
     }
 
-    if (!movie) {
-      renderFilmError(
-        "Ce film n’existe pas ou n’est plus disponible."
-      );
+    /*
+      Cas 2 : fiche ouverte directement depuis un résultat TMDB.
+      Le film peut ne pas encore exister dans Supabase.
+    */
+    if (!movie && tmdbIdFromUrl) {
+      currentTmdbMovieId = tmdbIdFromUrl;
 
-      return;
+      movie = await getMovieFromCatalogByTmdbId(tmdbIdFromUrl);
+
+      tmdbDetails = await getTmdbDetails(tmdbIdFromUrl);
+
+      /*
+        Film virtuel : utilisé seulement pour afficher la fiche.
+        Il sera réellement créé dans Supabase au moment de la
+        première microcritique.
+      */
+      if (!movie) {
+        movie = {
+          id: null,
+          tmdb_id: tmdbDetails.tmdb_id,
+          title: tmdbDetails.title,
+          original_title: tmdbDetails.original_title,
+          release_year: tmdbDetails.release_year,
+          director: tmdbDetails.director,
+          poster_url: tmdbDetails.poster_url,
+          overview: tmdbDetails.overview,
+          genres: tmdbDetails.genres || []
+        };
+      }
     }
 
     currentFilmMovie = movie;
 
     const [reviews, lists] = await Promise.all([
-      getReviewsByMovieId(movie.id),
-      currentUser
+      movie.id
+        ? getReviewsByMovieId(movie.id)
+        : Promise.resolve([]),
+
+      currentUser && movie.id
         ? getMyListsForMovie(movie.id)
         : Promise.resolve([])
     ]);
-
-    let tmdbDetails = null;
-
-    if (movie.tmdb_id) {
-      const { data, error } = await supabaseClient.functions.invoke(
-        "tmdb-details",
-        {
-          body: {
-            movieId: movie.tmdb_id
-          }
-        }
-      );
-
-      if (!error && data?.result) {
-        tmdbDetails = data.result;
-      }
-    }
 
     renderFilmPage(movie, tmdbDetails, reviews, lists);
   } catch (error) {
