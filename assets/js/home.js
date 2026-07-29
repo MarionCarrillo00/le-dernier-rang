@@ -4,10 +4,14 @@ let selectedGenre = "Tous";
 let selectedTmdbMovie = null;
 let isLoadingWriteTmdb = false;
 
+let homeTmdbSearchTimeout = null;
+let lastHomeTmdbQuery = "";
+
 const grid = document.getElementById("moviesGrid");
 const searchInput = document.getElementById("searchInput");
 const filters = document.getElementById("filters");
 const movieCount = document.getElementById("movieCount");
+const homeTmdbResults = document.getElementById("homeTmdbResults");
 
 const reviewModal = document.getElementById("reviewModal");
 const openModal = document.getElementById("openModal");
@@ -23,11 +27,13 @@ const selectedMovieCard = document.getElementById("selectedMovieCard");
 const selectedMoviePoster = document.getElementById("selectedMoviePoster");
 const selectedMovieTitle = document.getElementById("selectedMovieTitle");
 const selectedMovieMeta = document.getElementById("selectedMovieMeta");
+
 const selectedMovieOverview = document.getElementById(
   "selectedMovieOverview"
 );
 
 const reviewInput = document.getElementById("review");
+
 const reviewCharacterCounter = document.getElementById(
   "reviewCharacterCounter"
 );
@@ -54,6 +60,7 @@ function updateReviewCharacterCounter() {
 
 /* ---------------------------------
    Recherche et sélection TMDB
+   dans la modale de publication
 --------------------------------- */
 
 function clearTmdbSearchMessage() {
@@ -118,6 +125,7 @@ function displaySelectedTmdbMovie(movie) {
   document.getElementById("year").value = movie.release_year || "";
   document.getElementById("director").value =
     movie.director || "Réalisateur·rice non précisé·e";
+
   document.getElementById("genre").value = primaryGenre;
 
   selectedMovieTitle.textContent =
@@ -147,12 +155,6 @@ function displaySelectedTmdbMovie(movie) {
   selectedMovieCard.hidden = false;
 }
 
-/*
-  Charge les détails complets TMDB à partir de son identifiant.
-  Cette fonction sert :
-  - à la sélection depuis les résultats de recherche ;
-  - à la fiche film qui renvoie vers la modale d’écriture.
-*/
 async function loadTmdbMovieDetails(tmdbId) {
   const { data, error } = await supabaseClient.functions.invoke(
     "tmdb-details",
@@ -206,6 +208,7 @@ function displayTmdbResults(results) {
     showTmdbSearchMessage(
       "Aucun film trouvé. Essaie avec un autre titre."
     );
+
     return;
   }
 
@@ -250,6 +253,7 @@ async function searchTmdbMovies() {
     showTmdbSearchMessage(
       "Saisis au moins 2 caractères pour rechercher un film."
     );
+
     return;
   }
 
@@ -368,6 +372,201 @@ async function handleWriteTmdbFromUrl() {
 }
 
 /* ---------------------------------
+   Recherche TMDB depuis l'accueil
+--------------------------------- */
+
+function clearHomeTmdbResults() {
+  if (!homeTmdbResults) {
+    return;
+  }
+
+  homeTmdbResults.replaceChildren();
+  homeTmdbResults.classList.remove("visible");
+}
+
+function displayHomeTmdbMessage(message) {
+  if (!homeTmdbResults) {
+    return;
+  }
+
+  homeTmdbResults.innerHTML = `
+    <div class="home-tmdb-message">
+      ${escapeHTML(message)}
+    </div>
+  `;
+
+  homeTmdbResults.classList.add("visible");
+}
+
+function openFilmFromHomeTmdb(movie) {
+  window.location.href =
+    `film.html?tmdb=${encodeURIComponent(movie.tmdb_id)}`;
+}
+
+function writeReviewFromHomeTmdb(movie) {
+  /*
+    L'URL permet de garder le même comportement,
+    qu'on soit déjà connectée ou non.
+    Après connexion, le film sera préchargé.
+  */
+  window.location.href =
+    `index.html?writeTmdb=${encodeURIComponent(movie.tmdb_id)}`;
+}
+
+function displayHomeTmdbResults(results) {
+  clearHomeTmdbResults();
+
+  if (!results || results.length === 0) {
+    displayHomeTmdbMessage(
+      "Aucun autre film trouvé dans le catalogue TMDB."
+    );
+
+    return;
+  }
+
+  const heading = document.createElement("div");
+
+  heading.className = "home-tmdb-heading";
+  heading.textContent = "Découvrir dans le cinéma";
+
+  homeTmdbResults.appendChild(heading);
+
+  results.slice(0, 5).forEach((movie) => {
+    const item = document.createElement("article");
+
+    item.className = "home-tmdb-item";
+
+    const details = document.createElement("div");
+
+    details.className = "home-tmdb-details";
+
+    const title = document.createElement("strong");
+
+    title.textContent =
+      `${movie.title || "Film sans titre"} (${
+        movie.release_year || "—"
+      })`;
+
+    const overview = document.createElement("p");
+
+    overview.textContent =
+      movie.overview || "Synopsis non disponible.";
+
+    details.appendChild(title);
+    details.appendChild(overview);
+
+    const actions = document.createElement("div");
+
+    actions.className = "home-tmdb-actions";
+
+    const filmButton = document.createElement("button");
+
+    filmButton.type = "button";
+    filmButton.className = "home-tmdb-film-button";
+    filmButton.textContent = "Fiche";
+
+    filmButton.addEventListener("click", () => {
+      openFilmFromHomeTmdb(movie);
+    });
+
+    const writeButton = document.createElement("button");
+
+    writeButton.type = "button";
+    writeButton.className = "home-tmdb-write-button";
+    writeButton.textContent = "Écrire";
+
+    writeButton.addEventListener("click", () => {
+      writeReviewFromHomeTmdb(movie);
+    });
+
+    actions.appendChild(filmButton);
+    actions.appendChild(writeButton);
+
+    item.appendChild(details);
+    item.appendChild(actions);
+
+    homeTmdbResults.appendChild(item);
+  });
+
+  homeTmdbResults.classList.add("visible");
+}
+
+async function searchTmdbFromHome(query) {
+  const cleanQuery = query.trim();
+
+  if (cleanQuery.length < 2) {
+    clearHomeTmdbResults();
+    return;
+  }
+
+  lastHomeTmdbQuery = cleanQuery;
+
+  displayHomeTmdbMessage("Recherche dans le catalogue cinéma…");
+
+  try {
+    const { data, error } = await supabaseClient.functions.invoke(
+      "tmdb-search",
+      {
+        body: {
+          query: cleanQuery
+        }
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    /*
+      Ignore une réponse devenue obsolète si une nouvelle
+      recherche a été lancée pendant son chargement.
+    */
+    if (lastHomeTmdbQuery !== cleanQuery) {
+      return;
+    }
+
+    displayHomeTmdbResults(data?.results || []);
+  } catch (error) {
+    console.error(
+      "Erreur de recherche TMDB depuis l'accueil :",
+      error
+    );
+
+    if (lastHomeTmdbQuery === cleanQuery) {
+      displayHomeTmdbMessage(
+        "Impossible de rechercher des films pour le moment."
+      );
+    }
+  }
+}
+
+function handleHomeSearchInput() {
+  const query = searchInput.value.trim();
+
+  /*
+    Le filtre habituel reste immédiat :
+    il agit seulement sur les critiques existantes.
+  */
+  renderHomeReviews();
+
+  clearTimeout(homeTmdbSearchTimeout);
+
+  if (query.length < 2) {
+    lastHomeTmdbQuery = "";
+    clearHomeTmdbResults();
+    return;
+  }
+
+  /*
+    Attend 450 ms après la frappe pour ne pas envoyer
+    une recherche TMDB à chaque caractère.
+  */
+  homeTmdbSearchTimeout = setTimeout(() => {
+    searchTmdbFromHome(query);
+  }, 450);
+}
+
+/* ---------------------------------
    Accueil et affichage des critiques
 --------------------------------- */
 
@@ -413,9 +612,10 @@ function renderHomeReviews() {
       <div class="empty-state">
         <strong>Aucune séance ne correspond à ta recherche.</strong>
         <br /><br />
-        Essaie un autre titre, un genre différent ou écris une nouvelle critique.
+        Essaie un autre titre, un genre différent ou découvre un film dans les résultats ci-dessus.
       </div>
     `;
+
     return;
   }
 
@@ -527,7 +727,7 @@ function setupHome() {
     renderHomeReviews();
   });
 
-  searchInput.addEventListener("input", renderHomeReviews);
+  searchInput.addEventListener("input", handleHomeSearchInput);
 
   reviewForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -584,6 +784,9 @@ function setupHome() {
 
       selectedGenre = "Tous";
       searchInput.value = "";
+
+      clearHomeTmdbResults();
+      lastHomeTmdbQuery = "";
 
       document.querySelectorAll(".filter").forEach((button) => {
         button.classList.toggle(
