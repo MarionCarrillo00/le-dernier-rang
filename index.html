@@ -28,7 +28,11 @@
 
       <div class="user-menu" id="userMenu" hidden>
         <span id="userGreeting"></span>
-        <a class="profile-link" href="profil.html">Mon espace</a>
+
+        <a class="profile-link" href="profil.html">
+          Mon espace
+        </a>
+
         <button class="logout-button" id="logoutButton">
           Déconnexion
         </button>
@@ -43,8 +47,8 @@
       <h1>Les films restent.<br /><em>Nous aussi.</em></h1>
 
       <p>
-        Le dernier rang est un lieu pour partager ce qu’un film laisse derrière lui :
-        une image, une émotion, une phrase, parfois une petite secousse.
+        Le dernier rang est un lieu pour partager ce qu’un film laisse derrière
+        lui : une image, une émotion, une phrase, parfois une petite secousse.
       </p>
 
       <button
@@ -81,11 +85,26 @@
         </div>
 
         <div class="filters" id="filters">
-          <button class="filter active" data-genre="Tous">Tous</button>
-          <button class="filter" data-genre="Drame">Drame</button>
-          <button class="filter" data-genre="Romance">Romance</button>
-          <button class="filter" data-genre="Horreur">Horreur</button>
-          <button class="filter" data-genre="Animation">Animation</button>
+          <button class="filter active" data-genre="Tous">
+            Tous
+          </button>
+
+          <button class="filter" data-genre="Drame">
+            Drame
+          </button>
+
+          <button class="filter" data-genre="Romance">
+            Romance
+          </button>
+
+          <button class="filter" data-genre="Horreur">
+            Horreur
+          </button>
+
+          <button class="filter" data-genre="Animation">
+            Animation
+          </button>
+
           <button class="filter" data-genre="Science-fiction">
             Science-fiction
           </button>
@@ -102,9 +121,9 @@
         <h2>Un endroit pour ne pas oublier.</h2>
 
         <p>
-          Le dernier rang est un petit refuge cinéphile : des impressions brèves,
-          des coups de cœur, des films qui consolent et ceux qui laissent une
-          étrange lumière plusieurs jours après.
+          Le dernier rang est un petit refuge cinéphile : des impressions
+          brèves, des coups de cœur, des films qui consolent et ceux qui
+          laissent une étrange lumière plusieurs jours après.
         </p>
       </div>
     </section>
@@ -127,10 +146,10 @@
       </div>
 
       <form id="reviewForm">
-        
+        <!-- Recherche TMDB -->
         <div class="tmdb-search-section">
           <label for="tmdbSearchInput">
-            Rechercher un film dans TMDB
+            Rechercher un film
           </label>
 
           <div class="tmdb-search-row">
@@ -138,7 +157,7 @@
               id="tmdbSearchInput"
               type="search"
               autocomplete="off"
-              placeholder="Ex. Le Fabuleux Destin d’Amélie Poulain"
+              placeholder="Ex. Le Voyage de Chihiro"
             />
 
             <button
@@ -151,7 +170,7 @@
           </div>
 
           <p class="form-note">
-            Sélectionne un résultat pour préremplir le titre et l’année.
+            Choisis un résultat pour récupérer automatiquement les informations du film.
           </p>
 
           <div
@@ -167,51 +186,36 @@
           ></div>
         </div>
 
+        <!-- Fiche affichée après sélection d'un film TMDB -->
+        <div
+          class="selected-movie-card"
+          id="selectedMovieCard"
+          hidden
+        >
+          <img
+            id="selectedMoviePoster"
+            class="selected-movie-poster"
+            alt=""
+            hidden
+          />
+
+          <div class="selected-movie-content">
+            <strong id="selectedMovieTitle"></strong>
+
+            <p id="selectedMovieMeta"></p>
+
+            <p id="selectedMovieOverview"></p>
+          </div>
+        </div>
+
+        <!-- Données techniques alimentées automatiquement par TMDB -->
+        <input id="title" type="hidden" />
+        <input id="year" type="hidden" />
+        <input id="director" type="hidden" />
+        <input id="genre" type="hidden" />
+
+        <!-- Informations que l'utilisatrice renseigne elle-même -->
         <div class="form-grid">
-          <div class="field">
-            <label for="title">Titre du film *</label>
-            <input
-              id="title"
-              required
-              placeholder="Ex. Portrait de la jeune fille en feu"
-            />
-          </div>
-
-          <div class="field">
-            <label for="year">Année</label>
-            <input
-              id="year"
-              type="number"
-              min="1888"
-              max="2100"
-              placeholder="2019"
-            />
-          </div>
-
-          <div class="field">
-            <label for="director">Réalisateur·rice</label>
-            <input
-              id="director"
-              placeholder="Ex. Céline Sciamma"
-            />
-          </div>
-
-          <div class="field">
-            <label for="genre">Genre *</label>
-
-            <select id="genre" required>
-              <option value="">Choisir un genre</option>
-              <option>Drame</option>
-              <option>Romance</option>
-              <option>Horreur</option>
-              <option>Animation</option>
-              <option>Science-fiction</option>
-              <option>Comédie</option>
-              <option>Documentaire</option>
-              <option>Thriller</option>
-            </select>
-          </div>
-
           <div class="field">
             <label for="rating">Note *</label>
 
@@ -231,6 +235,7 @@
 
           <div class="field">
             <label for="tags">Tags personnels</label>
+
             <input
               id="tags"
               placeholder="solitude, Paris, pluie"
