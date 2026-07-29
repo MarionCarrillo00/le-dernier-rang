@@ -1938,3 +1938,29 @@ footer {
   display: none !important;
 }
 
+/* =====================================================
+   AVATAR DANS LA NAVIGATION
+   ===================================================== */
+
+.nav-avatar {
+  display: block;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--cream);
+}
+
+.nav-avatar[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 650px) {
+  .nav-avatar {
+    width: 27px;
+    height: 27px;
+  }
+}
+
