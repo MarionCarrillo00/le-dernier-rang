@@ -1382,3 +1382,164 @@ footer {
   font-weight: bold;
 }
 
+
+/* =====================================================
+   LISTES DE FILMS — ESPACE PERSONNEL
+   ===================================================== */
+
+.profile-lists-section {
+  margin-bottom: 85px;
+}
+
+.profile-reviews-section {
+  margin-top: 30px;
+}
+
+.list-form {
+  margin: 0 0 24px;
+  padding: 24px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 7px 20px rgba(62, 44, 34, 0.04);
+}
+
+.list-form[hidden] {
+  display: none;
+}
+
+.list-form textarea {
+  min-height: 95px;
+}
+
+.list-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.button-text {
+  padding: 8px 4px;
+  color: var(--grey);
+  background: transparent;
+  border: none;
+  font-family: Arial, sans-serif;
+  font-size: 0.82rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.button-text:hover {
+  color: var(--red);
+}
+
+.lists-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.movie-list-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+  padding: 20px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 7px 20px rgba(62, 44, 34, 0.04);
+  transition: 0.2s ease;
+}
+
+.movie-list-card:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-3px);
+}
+
+.movie-list-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.list-visibility {
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+}
+
+.list-visibility.public {
+  color: #176239;
+  background: #e3f4e9;
+}
+
+.list-visibility.private {
+  color: var(--deep-red);
+  background: #f4e4df;
+}
+
+.delete-list-button {
+  padding: 0;
+  color: var(--grey);
+  background: transparent;
+  border: none;
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.delete-list-button:hover {
+  color: var(--red);
+}
+
+.movie-list-card h3 {
+  margin: 22px 0 10px;
+  font-size: 1.5rem;
+  font-weight: normal;
+  line-height: 1.05;
+}
+
+.movie-list-card p {
+  margin: 0;
+  color: var(--grey);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.movie-list-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+  color: var(--grey);
+  border-top: 1px solid var(--line);
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+}
+
+.lists-empty-state {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 950px) {
+  .lists-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .lists-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .list-form-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+
