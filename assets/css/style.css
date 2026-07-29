@@ -1964,3 +1964,42 @@ footer {
   }
 }
 
+
+/* =====================================================
+   AVATARS DES AUTEURS DE MICROCRITIQUES
+   ===================================================== */
+
+.review-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.review-author-avatar {
+  display: block;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--cream);
+  object-fit: cover;
+}
+
+.review-author-placeholder {
+  display: grid;
+  color: var(--cream);
+  background: var(--deep-red);
+  font-family: Arial, sans-serif;
+  font-size: 0.66rem;
+  font-weight: bold;
+  place-items: center;
+}
+
+.review-author .author {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
