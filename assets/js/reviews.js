@@ -29,12 +29,16 @@ function posterClassFor(index) {
   return posters[index % posters.length];
 }
 
+
 function createMovieCard(review, index, options = {}) {
   const movie = review.movies || {};
   const genres = movie.genres || [];
   const primaryGenre = genres[0] || "Cinéma";
   const author = options.author || review.author || "Membre";
   const posterUrl = movie.poster_url || "";
+
+  const likeCount = Number(review.like_count || 0);
+  const hasLiked = Boolean(review.liked_by_current_user);
 
   const deleteButton = options.canDelete
     ? `
@@ -47,13 +51,17 @@ function createMovieCard(review, index, options = {}) {
       </button>
     `
     : `
-      <button class="favorite" title="Ajouter aux favoris">♡</button>
+      <button
+        class="favorite ${hasLiked ? "liked" : ""}"
+        data-review-id="${review.id}"
+        title="${hasLiked ? "Retirer mon like" : "J’aime cette critique"}"
+        aria-label="${hasLiked ? "Retirer mon like" : "J’aime cette critique"}"
+      >
+        ${hasLiked ? "♥" : "♡"}
+        <span class="like-count">${likeCount}</span>
+      </button>
     `;
 
-  /*
-    Si TMDB a fourni une affiche, elle est utilisée.
-    Sinon, le site conserve le joli fond coloré avec le titre.
-  */
   const posterMarkup = posterUrl
     ? `
       <div class="poster poster-image">
@@ -116,6 +124,7 @@ function createMovieCard(review, index, options = {}) {
   `;
 }
 
+
 async function getProfilesByUserIds(userIds) {
   const uniqueUserIds = [...new Set(userIds)];
 
@@ -136,6 +145,87 @@ async function getProfilesByUserIds(userIds) {
   return Object.fromEntries(
     data.map((profile) => [profile.id, profile])
   );
+}
+
+async function enrichReviewsWithLikes(reviews) {
+  if (!reviews || reviews.length === 0) {
+    return [];
+  }
+
+  const reviewIds = reviews.map((review) => review.id);
+
+  const { data: likes, error } = await supabaseClient
+    .from("review_likes")
+    .select("review_id, user_id")
+    .in("review_id", reviewIds);
+
+  if (error) {
+    console.error("Erreur de chargement des likes :", error.message);
+
+    return reviews.map((review) => ({
+      ...review,
+      like_count: 0,
+      liked_by_current_user: false
+    }));
+  }
+
+  return reviews.map((review) => {
+    const reviewLikes = likes.filter(
+      (like) => like.review_id === review.id
+    );
+
+    return {
+      ...review,
+      like_count: reviewLikes.length,
+      liked_by_current_user: currentUser
+        ? reviewLikes.some((like) => like.user_id === currentUser.id)
+        : false
+    };
+  });
+}
+
+async function toggleReviewLike(reviewId) {
+  if (!currentUser) {
+    throw new Error("Connecte-toi pour aimer une microcritique.");
+  }
+
+  const { data: existingLike, error: searchError } =
+    await supabaseClient
+      .from("review_likes")
+      .select("id")
+      .eq("review_id", reviewId)
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+  if (searchError) {
+    throw searchError;
+  }
+
+  if (existingLike) {
+    const { error: deleteError } = await supabaseClient
+      .from("review_likes")
+      .delete()
+      .eq("id", existingLike.id);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    return false;
+  }
+
+  const { error: insertError } = await supabaseClient
+    .from("review_likes")
+    .insert({
+      review_id: reviewId,
+      user_id: currentUser.id
+    });
+
+  if (insertError) {
+    throw insertError;
+  }
+
+  return true;
 }
 
 async function getPublicReviews() {
@@ -168,10 +258,14 @@ async function getPublicReviews() {
     reviews.map((review) => review.user_id)
   );
 
-  return reviews.map((review) => ({
+
+  const reviewsWithAuthors = reviews.map((review) => ({
     ...review,
     author: profilesById[review.user_id]?.username || "Membre"
   }));
+
+  return enrichReviewsWithLikes(reviewsWithAuthors);
+
 }
 
 async function getMyReviews(userId) {
