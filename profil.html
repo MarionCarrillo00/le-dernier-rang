@@ -28,9 +28,11 @@
 
       <div class="user-menu" id="userMenu" hidden>
         <span id="userGreeting"></span>
+
         <a class="profile-link active-profile-link" href="profil.html">
           Mon espace
         </a>
+
         <button class="logout-button" id="logoutButton">
           Déconnexion
         </button>
@@ -56,7 +58,77 @@
       </div>
     </section>
 
-    <section>
+    <!-- MES LISTES -->
+    <section class="profile-lists-section">
+      <div class="section-title">
+        <div>
+          <div class="eyebrow red-eyebrow">Mes listes</div>
+          <h2>Mes petites collections</h2>
+        </div>
+
+        <button
+          class="button-primary"
+          id="openListFormButton"
+          type="button"
+        >
+          Créer une liste
+        </button>
+      </div>
+
+      <form id="listForm" class="list-form" hidden>
+        <div class="form-grid">
+          <div class="field">
+            <label for="listTitle">Titre de la liste *</label>
+
+            <input
+              id="listTitle"
+              required
+              minlength="2"
+              maxlength="80"
+              placeholder="Ex. Films pour les jours de pluie"
+            />
+          </div>
+
+          <div class="field">
+            <label for="listVisibility">Visibilité *</label>
+
+            <select id="listVisibility">
+              <option value="public">Publique</option>
+              <option value="private">Privée</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label for="listDescription">Description</label>
+
+            <textarea
+              id="listDescription"
+              maxlength="280"
+              placeholder="Quelques mots sur l’esprit de cette liste…"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="list-form-actions">
+          <button class="button-primary" type="submit">
+            Créer ma liste
+          </button>
+
+          <button
+            class="button-text"
+            id="cancelListFormButton"
+            type="button"
+          >
+            Annuler
+          </button>
+        </div>
+      </form>
+
+      <div class="lists-grid" id="myListsGrid"></div>
+    </section>
+
+    <!-- MES CRITIQUES -->
+    <section class="profile-reviews-section">
       <div class="section-title">
         <div>
           <div class="eyebrow red-eyebrow">Mon journal</div>
@@ -164,4 +236,3 @@
   <script src="assets/js/profile.js"></script>
 </body>
 </html>
-
