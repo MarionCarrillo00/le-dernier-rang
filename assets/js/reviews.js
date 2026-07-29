@@ -33,9 +33,17 @@ function createMovieCard(review, index, options = {}) {
   const movie = review.movies || {};
   const genres = movie.genres || [];
   const primaryGenre = genres[0] || "Cinéma";
-  const author = options.author || review.author || "Membre";
-  const posterUrl = movie.poster_url || "";
 
+  const author = options.author || review.author || "Membre";
+
+  const authorAvatarUrl =
+    options.authorAvatarUrl ||
+    review.author_avatar_url ||
+    "";
+
+  const authorInitial = author.charAt(0).toUpperCase() || "?";
+
+  const posterUrl = movie.poster_url || "";
   const likeCount = Number(review.like_count || 0);
   const hasLiked = Boolean(review.liked_by_current_user);
 
@@ -97,6 +105,24 @@ function createMovieCard(review, index, options = {}) {
     `
     : "";
 
+  const authorAvatarMarkup = authorAvatarUrl
+    ? `
+      <img
+        class="review-author-avatar"
+        src="${escapeHTML(authorAvatarUrl)}"
+        alt="Photo de profil de ${escapeHTML(author)}"
+        loading="lazy"
+      />
+    `
+    : `
+      <span
+        class="review-author-avatar review-author-placeholder"
+        aria-hidden="true"
+      >
+        ${escapeHTML(authorInitial)}
+      </span>
+    `;
+
   return `
     <article class="movie-card">
       ${posterMarkup}
@@ -104,7 +130,9 @@ function createMovieCard(review, index, options = {}) {
       <div class="movie-content">
         <div class="movie-meta">
           <span>
-            ${escapeHTML(movie.director || "Réalisateur·rice non précisé·e")}
+            ${escapeHTML(
+              movie.director || "Réalisateur·rice non précisé·e"
+            )}
           </span>
 
           <span class="rating" title="${review.rating}/5">
@@ -127,7 +155,13 @@ function createMovieCard(review, index, options = {}) {
         </div>
 
         <div class="card-bottom">
-          <span class="author">Par ${escapeHTML(author)}</span>
+          <div class="review-author">
+            ${authorAvatarMarkup}
+
+            <span class="author">
+              Par ${escapeHTML(author)}
+            </span>
+          </div>
 
           <div class="card-actions">
             ${filmLink}
@@ -150,7 +184,7 @@ async function getProfilesByUserIds(userIds) {
 
   const { data, error } = await supabaseClient
     .from("profiles")
-    .select("id, username")
+    .select("id, username, avatar_url")
     .in("id", uniqueUserIds);
 
   if (error) {
@@ -161,6 +195,15 @@ async function getProfilesByUserIds(userIds) {
   return Object.fromEntries(
     data.map((profile) => [profile.id, profile])
   );
+}
+
+function addAuthorsToReviews(reviews, profilesById) {
+  return reviews.map((review) => ({
+    ...review,
+    author: profilesById[review.user_id]?.username || "Membre",
+    author_avatar_url:
+      profilesById[review.user_id]?.avatar_url || ""
+  }));
 }
 
 async function enrichReviewsWithLikes(reviews) {
@@ -274,10 +317,10 @@ async function getPublicReviews() {
     reviews.map((review) => review.user_id)
   );
 
-  const reviewsWithAuthors = reviews.map((review) => ({
-    ...review,
-    author: profilesById[review.user_id]?.username || "Membre"
-  }));
+  const reviewsWithAuthors = addAuthorsToReviews(
+    reviews,
+    profilesById
+  );
 
   return enrichReviewsWithLikes(reviewsWithAuthors);
 }
@@ -312,17 +355,17 @@ async function getMyReviews(userId) {
     reviews.map((review) => review.user_id)
   );
 
-  const reviewsWithAuthors = reviews.map((review) => ({
-    ...review,
-    author: profilesById[review.user_id]?.username || "Membre"
-  }));
+  const reviewsWithAuthors = addAuthorsToReviews(
+    reviews,
+    profilesById
+  );
 
   return enrichReviewsWithLikes(reviewsWithAuthors);
 }
 
 /*
-  Récupère toutes les critiques publiques liées à un film.
-  Cette fonction est utilisée par film.js.
+  Récupère toutes les critiques publiques d’un film.
+  Utilisée sur film.html par film.js.
 */
 async function getReviewsByMovieId(movieId) {
   const { data: reviews, error } = await supabaseClient
@@ -359,10 +402,10 @@ async function getReviewsByMovieId(movieId) {
     reviews.map((review) => review.user_id)
   );
 
-  const reviewsWithAuthors = reviews.map((review) => ({
-    ...review,
-    author: profilesById[review.user_id]?.username || "Membre"
-  }));
+  const reviewsWithAuthors = addAuthorsToReviews(
+    reviews,
+    profilesById
+  );
 
   return enrichReviewsWithLikes(reviewsWithAuthors);
 }
@@ -420,7 +463,9 @@ async function publishReview(payload) {
       .eq("tmdb_id", tmdbId)
       .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
 
     existingMovie = data;
   } else {
@@ -431,7 +476,9 @@ async function publishReview(payload) {
       .limit(1)
       .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
 
     existingMovie = data;
   }
@@ -446,7 +493,9 @@ async function publishReview(payload) {
         .select("id")
         .single();
 
-    if (movieError) throw movieError;
+    if (movieError) {
+      throw movieError;
+    }
 
     movieId = createdMovie.id;
   } else if (tmdbMovie) {
@@ -455,7 +504,9 @@ async function publishReview(payload) {
       .update(movieData)
       .eq("id", movieId);
 
-    if (updateMovieError) throw updateMovieError;
+    if (updateMovieError) {
+      throw updateMovieError;
+    }
   }
 
   const { error: reviewError } = await supabaseClient
@@ -474,7 +525,9 @@ async function publishReview(payload) {
     );
   }
 
-  if (reviewError) throw reviewError;
+  if (reviewError) {
+    throw reviewError;
+  }
 }
 
 async function deleteReview(reviewId) {
@@ -483,5 +536,7 @@ async function deleteReview(reviewId) {
     .delete()
     .eq("id", reviewId);
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 }
