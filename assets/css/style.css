@@ -2165,3 +2165,29 @@ footer {
   border-color: var(--red);
 }
 
+
+/* Actions principales sur une fiche film */
+
+.film-primary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.film-list-area {
+  margin-top: 14px;
+}
+
+@media (max-width: 650px) {
+  .film-primary-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .film-primary-actions .button-primary,
+  .film-primary-actions .button-secondary {
+    width: 100%;
+    text-align: center;
+  }
+}
