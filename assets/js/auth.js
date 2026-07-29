@@ -102,6 +102,7 @@ async function loadCurrentProfile() {
   updateNavigation();
 }
 
+
 function updateNavigation() {
   const {
     authButton,
@@ -111,7 +112,10 @@ function updateNavigation() {
 
   if (currentUser) {
     authButton.hidden = true;
+    authButton.style.display = "none";
+
     userMenu.hidden = false;
+    userMenu.style.display = "flex";
 
     const fallbackUsername = currentUser.email.split("@")[0];
     const username = currentProfile?.username || fallbackUsername;
@@ -119,9 +123,15 @@ function updateNavigation() {
     userGreeting.textContent = `Bonjour, ${username}`;
   } else {
     authButton.hidden = false;
+    authButton.style.display = "inline-block";
+
     userMenu.hidden = true;
+    userMenu.style.display = "none";
+
+    userGreeting.textContent = "";
   }
 }
+
 
 function emitAuthChanged() {
   document.dispatchEvent(
