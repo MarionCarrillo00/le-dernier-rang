@@ -34,6 +34,7 @@ function createMovieCard(review, index, options = {}) {
   const genres = movie.genres || [];
   const primaryGenre = genres[0] || "Cinéma";
   const author = options.author || review.author || "Membre";
+  const posterUrl = movie.poster_url || "";
 
   const deleteButton = options.canDelete
     ? `
@@ -49,8 +50,21 @@ function createMovieCard(review, index, options = {}) {
       <button class="favorite" title="Ajouter aux favoris">♡</button>
     `;
 
-  return `
-    <article class="movie-card">
+  /*
+    Si TMDB a fourni une affiche, elle est utilisée.
+    Sinon, le site conserve le joli fond coloré avec le titre.
+  */
+  const posterMarkup = posterUrl
+    ? `
+      <div class="poster poster-image">
+        <img
+          src="${escapeHTML(posterUrl)}"
+          alt="Affiche de ${escapeHTML(movie.title || "ce film")}"
+          loading="lazy"
+        />
+      </div>
+    `
+    : `
       <div class="poster ${posterClassFor(index)}">
         <div class="poster-content">
           <span class="year">
@@ -62,6 +76,11 @@ function createMovieCard(review, index, options = {}) {
           </h3>
         </div>
       </div>
+    `;
+
+  return `
+    <article class="movie-card">
+      ${posterMarkup}
 
       <div class="movie-content">
         <div class="movie-meta">
@@ -81,7 +100,10 @@ function createMovieCard(review, index, options = {}) {
 
           ${genres
             .filter((genre) => genre !== primaryGenre)
-            .map((genre) => `<span class="tag">${escapeHTML(genre)}</span>`)
+            .map(
+              (genre) =>
+                `<span class="tag">${escapeHTML(genre)}</span>`
+            )
             .join("")}
         </div>
 
@@ -181,7 +203,6 @@ async function getMyReviews(userId) {
   return reviews;
 }
 
-
 async function publishReview(payload) {
   if (!currentUser) {
     throw new Error("Tu dois être connectée pour publier une critique.");
@@ -198,11 +219,22 @@ async function publishReview(payload) {
     tags
   } = payload;
 
+  /*
+    Ordre des genres :
+    1. genre principal adapté aux filtres du site ;
+    2. genres récupérés depuis TMDB ;
+    3. tags personnels écrits par l'utilisatrice.
+  */
   const genres = [
-    ...new Set([genre, ...tags].filter(Boolean))
+    ...new Set(
+      [
+        genre,
+        ...(tmdbMovie?.genres || []),
+        ...tags
+      ].filter(Boolean)
+    )
   ];
 
-  // Les données TMDB existent uniquement si un résultat a été sélectionné.
   const tmdbId = tmdbMovie?.tmdb_id || null;
 
   const movieData = {
@@ -213,7 +245,10 @@ async function publishReview(payload) {
     created_by: currentUser.id
   };
 
-  // Si le film vient de TMDB, on enrichit sa fiche avec les données récupérées.
+  /*
+    Enrichissement de la fiche avec les informations TMDB.
+    Ces colonnes ont été ajoutées dans Supabase auparavant.
+  */
   if (tmdbMovie) {
     movieData.tmdb_id = tmdbMovie.tmdb_id;
     movieData.poster_path = tmdbMovie.poster_path || null;
@@ -225,9 +260,8 @@ async function publishReview(payload) {
   let existingMovie = null;
 
   /*
-    Recherche prioritaire avec l'identifiant TMDB :
-    c'est l'identifiant le plus fiable, notamment lorsqu'il existe
-    plusieurs films ayant le même titre.
+    Recherche prioritaire avec tmdb_id :
+    c'est l'identifiant unique et fiable d'un film.
   */
   if (tmdbId) {
     const { data, error } = await supabaseClient
@@ -241,8 +275,8 @@ async function publishReview(payload) {
     existingMovie = data;
   } else {
     /*
-      Si le film est saisi manuellement, on conserve le comportement
-      précédent : recherche par titre.
+      Solution de secours pour les films ajoutés manuellement
+      avant l'intégration TMDB.
     */
     const { data, error } = await supabaseClient
       .from("movies")
@@ -271,8 +305,8 @@ async function publishReview(payload) {
     movieId = createdMovie.id;
   } else if (tmdbMovie) {
     /*
-      Si le film existe déjà, on met à jour sa fiche avec les données TMDB.
-      C'est utile pour les films créés manuellement avant l'intégration TMDB.
+      Si ce film existait déjà dans la base, il reçoit maintenant
+      ses métadonnées TMDB : affiche, synopsis, réalisateur, etc.
     */
     const { error: updateMovieError } = await supabaseClient
       .from("movies")
@@ -300,7 +334,6 @@ async function publishReview(payload) {
 
   if (reviewError) throw reviewError;
 }
-
 
 async function deleteReview(reviewId) {
   const { error } = await supabaseClient
