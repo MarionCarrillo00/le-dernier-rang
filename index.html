@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -5,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Le dernier rang — Microcritiques cinéma</title>
+
+  <!-- Bibliothèque Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
@@ -41,6 +45,11 @@
       cursor: pointer;
     }
 
+    button:disabled {
+      cursor: wait;
+      opacity: 0.7;
+    }
+
     /* Navigation */
 
     .navbar {
@@ -69,7 +78,7 @@
     .menu {
       display: flex;
       align-items: center;
-      gap: 22px;
+      gap: 15px;
     }
 
     .menu a {
@@ -95,6 +104,45 @@
     .button-primary:hover {
       background: var(--deep-red);
       transform: translateY(-1px);
+    }
+
+    .login-button {
+      padding: 10px 15px;
+      color: var(--deep-red);
+      background: transparent;
+      border: 1px solid var(--red);
+      border-radius: 999px;
+      font-size: 0.88rem;
+      transition: 0.2s ease;
+    }
+
+    .login-button:hover {
+      color: white;
+      background: var(--red);
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--deep-red);
+      font-family: Arial, sans-serif;
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    .logout-button {
+      padding: 7px 10px;
+      color: var(--grey);
+      background: transparent;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 0.75rem;
+    }
+
+    .logout-button:hover {
+      color: var(--deep-red);
+      border-color: var(--red);
     }
 
     /* Hero */
@@ -191,7 +239,7 @@
       text-align: right;
     }
 
-    /* Filtres */
+    /* Recherche et filtres */
 
     .controls {
       display: grid;
@@ -252,7 +300,7 @@
       border-color: var(--ink);
     }
 
-    /* Cards */
+    /* Cartes films */
 
     .movies-grid {
       display: grid;
@@ -452,7 +500,7 @@
       border-radius: 12px;
     }
 
-    /* Modal */
+    /* Fenêtres */
 
     .modal {
       position: fixed;
@@ -532,9 +580,69 @@
       outline: none;
     }
 
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(184, 68, 68, 0.1);
+    }
+
     textarea {
       min-height: 120px;
       resize: vertical;
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .auth-tab {
+      padding: 8px 12px;
+      color: var(--grey);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      font-size: 0.9rem;
+    }
+
+    .auth-tab.active {
+      color: var(--deep-red);
+      border-bottom-color: var(--red);
+      font-weight: bold;
+    }
+
+    .form-note {
+      margin-top: 16px;
+      color: var(--grey);
+      font-family: Arial, sans-serif;
+      font-size: 0.78rem;
+      line-height: 1.5;
+    }
+
+    .status-message {
+      display: none;
+      margin: 0 0 18px;
+      padding: 11px 13px;
+      border-radius: 7px;
+      font-family: Arial, sans-serif;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .status-message.visible {
+      display: block;
+    }
+
+    .status-message.success {
+      color: #176239;
+      background: #e3f4e9;
+    }
+
+    .status-message.error {
+      color: #8b2626;
+      background: #fae5e2;
     }
 
     footer {
@@ -586,33 +694,60 @@
       .form-grid {
         grid-template-columns: 1fr;
       }
+
+      .user-menu {
+        max-width: 155px;
+        overflow: hidden;
+      }
+
+      #userGreeting {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
   </style>
 </head>
 
 <body>
   <nav class="navbar">
-    <a href="#" class="logo">Après la séance</a>
+    <a href="#" class="logo">Le dernier rang</a>
 
     <div class="menu">
       <a href="#critiques">Microcritiques</a>
       <a href="#a-propos">À propos</a>
-      <button class="button-primary" id="openModal">Écrire une critique</button>
+
+      <button class="button-primary" id="openModal">
+        Écrire une critique
+      </button>
+
+      <button class="login-button" id="authButton">
+        Connexion
+      </button>
+
+      <div class="user-menu" id="userMenu" hidden>
+        <span id="userGreeting"></span>
+        <button class="logout-button" id="logoutButton">
+          Déconnexion
+        </button>
+      </div>
     </div>
   </nav>
 
   <header class="hero">
     <div class="hero-content">
-      <div class="eyebrow">Un carnet de cinéma personnel</div>
+      <div class="eyebrow">Microcritiques de cinéma</div>
 
       <h1>Les films restent.<br /><em>Nous aussi.</em></h1>
 
       <p>
-        Des critiques courtes, sensibles et sincères.
-        Une trace de ce que l’on a ressenti, quelques instants après le générique.
+        Le dernier rang est un lieu pour partager ce qu’un film laisse derrière lui :
+        une image, une émotion, une phrase, parfois une petite secousse.
       </p>
 
-      <button class="button-primary" onclick="document.querySelector('#critiques').scrollIntoView({behavior: 'smooth'})">
+      <button
+        class="button-primary"
+        onclick="document.querySelector('#critiques').scrollIntoView({behavior: 'smooth'})"
+      >
         Explorer les critiques
       </button>
     </div>
@@ -622,13 +757,18 @@
     <section id="critiques">
       <div class="section-title">
         <div>
-          <div class="eyebrow" style="color: var(--red)">Dernières séances</div>
+          <div class="eyebrow" style="color: var(--red)">
+            Dernières séances
+          </div>
+
           <h2>À l’affiche dans mon cœur</h2>
         </div>
 
         <p>
-          Quelques mots seulement. Parce qu’un film n’a parfois besoin que d’une phrase pour continuer à vivre.
-        <span id="movieCount"></span>
+          Quelques mots seulement. Parce qu’un film n’a parfois besoin que
+          d’une phrase pour continuer à vivre.
+          <span id="movieCount"></span>
+        </p>
       </div>
 
       <div class="controls">
@@ -656,7 +796,9 @@
     <section id="a-propos" style="margin-top: 100px;">
       <div style="max-width: 720px; margin: auto; text-align: center;">
         <div class="eyebrow" style="color: var(--red)">À propos</div>
+
         <h2>Un endroit pour ne pas oublier.</h2>
+
         <p style="color: var(--grey); font-size: 1.08rem; line-height: 1.7;">
           Le dernier rang est un petit refuge cinéphile : des impressions brèves,
           des coups de cœur, des films qui consolent et ceux qui laissent une
@@ -667,36 +809,54 @@
   </main>
 
   <footer>
-    Le dernier rang · Microcritiques de cinéma · Fait avec attention et beaucoup trop d’émotions devant les génériques.
+    Le dernier rang · Microcritiques de cinéma · Fait avec attention
+    et beaucoup trop d’émotions devant les génériques.
   </footer>
 
   <!-- Fenêtre d'ajout de critique -->
+
   <div class="modal" id="reviewModal">
     <div class="modal-box">
       <div class="modal-head">
         <h3>Nouvelle critique</h3>
-        <button class="close-button" id="closeModal" aria-label="Fermer">×</button>
+        <button class="close-button" id="closeModal" aria-label="Fermer">
+          ×
+        </button>
       </div>
 
       <form id="reviewForm">
         <div class="form-grid">
           <div class="field">
             <label for="title">Titre du film *</label>
-            <input id="title" required placeholder="Ex. Portrait de la jeune fille en feu" />
+            <input
+              id="title"
+              required
+              placeholder="Ex. Portrait de la jeune fille en feu"
+            />
           </div>
 
           <div class="field">
             <label for="year">Année</label>
-            <input id="year" type="number" min="1888" max="2100" placeholder="2019" />
+            <input
+              id="year"
+              type="number"
+              min="1888"
+              max="2100"
+              placeholder="2019"
+            />
           </div>
 
           <div class="field">
             <label for="director">Réalisateur·rice</label>
-            <input id="director" placeholder="Ex. Céline Sciamma" />
+            <input
+              id="director"
+              placeholder="Ex. Céline Sciamma"
+            />
           </div>
 
           <div class="field">
             <label for="genre">Genre *</label>
+
             <select id="genre" required>
               <option value="">Choisir un genre</option>
               <option>Drame</option>
@@ -712,6 +872,7 @@
 
           <div class="field">
             <label for="rating">Note *</label>
+
             <select id="rating" required>
               <option value="">Choisir</option>
               <option value="1">1 / 5</option>
@@ -728,11 +889,15 @@
 
           <div class="field">
             <label for="tags">Tags (séparés par des virgules)</label>
-            <input id="tags" placeholder="solitude, Paris, pluie" />
+            <input
+              id="tags"
+              placeholder="solitude, Paris, pluie"
+            />
           </div>
 
           <div class="field full">
             <label for="review">Ta microcritique *</label>
+
             <textarea
               id="review"
               required
@@ -742,15 +907,123 @@
           </div>
         </div>
 
-        <button class="button-primary" type="submit">Publier la critique</button>
+        <button class="button-primary" type="submit">
+          Publier la critique
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Fenêtre connexion / inscription -->
+
+  <div class="modal" id="authModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="authTitle">Bienvenue</h3>
+
+        <button
+          class="close-button"
+          id="closeAuthModal"
+          aria-label="Fermer"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="auth-tabs">
+        <button
+          class="auth-tab active"
+          type="button"
+          data-auth-mode="login"
+        >
+          Se connecter
+        </button>
+
+        <button
+          class="auth-tab"
+          type="button"
+          data-auth-mode="signup"
+        >
+          Créer un compte
+        </button>
+      </div>
+
+      <div class="status-message" id="authMessage"></div>
+
+      <form id="authForm">
+        <div class="field" id="usernameField" hidden>
+          <label for="username">Pseudo *</label>
+
+          <input
+            id="username"
+            minlength="3"
+            maxlength="30"
+            placeholder="Ex. marioncinephile"
+          />
+        </div>
+
+        <div class="field">
+          <label for="authEmail">Adresse e-mail *</label>
+
+          <input
+            id="authEmail"
+            type="email"
+            required
+            autocomplete="email"
+            placeholder="vous@exemple.fr"
+          />
+        </div>
+
+        <div class="field">
+          <label for="authPassword">Mot de passe *</label>
+
+          <input
+            id="authPassword"
+            type="password"
+            required
+            minlength="6"
+            autocomplete="current-password"
+            placeholder="Au moins 6 caractères"
+          />
+        </div>
+
+        <button class="button-primary" type="submit" id="authSubmitButton">
+          Se connecter
+        </button>
+
+        <p class="form-note" id="authNote">
+          Connecte-toi pour publier une microcritique et retrouver tes films.
+        </p>
       </form>
     </div>
   </div>
 
   <script>
+    /* ==========================================================
+       SUPABASE
+       La clé publishable est prévue pour être côté navigateur.
+       Ne jamais mettre une clé sb_secret_ dans ce fichier.
+    ========================================================== */
+
+    const SUPABASE_URL = "https://rlykropbkwozttbwlpey.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+      "sb_publishable_Jy-aJ5MrCIyeCIwnDt6SXw_OKp_Cu7Z";
+
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+    /* ==========================================================
+       CRITIQUES DE DÉMONSTRATION
+       Elles restent visibles au lancement du site.
+       Les nouvelles critiques sont enregistrées dans Supabase.
+    ========================================================== */
+
     const defaultMovies = [
       {
-        id: 1,
+        id: "demo-1",
         title: "Lost in Translation",
         year: 2003,
         director: "Sofia Coppola",
@@ -758,10 +1031,11 @@
         rating: 4.5,
         review: "Une solitude à deux, douce et immense, dans une ville qui ne dort jamais.",
         tags: ["Tokyo", "mélancolie", "nuit"],
-        poster: "poster-1"
+        poster: "poster-1",
+        author: "Le dernier rang"
       },
       {
-        id: 2,
+        id: "demo-2",
         title: "Interstellar",
         year: 2014,
         director: "Christopher Nolan",
@@ -769,10 +1043,11 @@
         rating: 4,
         review: "Quand l’infiniment grand devient une très belle histoire d’amour.",
         tags: ["espace", "temps", "vertige"],
-        poster: "poster-2"
+        poster: "poster-2",
+        author: "Le dernier rang"
       },
       {
-        id: 3,
+        id: "demo-3",
         title: "Le Fabuleux Destin d’Amélie Poulain",
         year: 2001,
         director: "Jean-Pierre Jeunet",
@@ -780,8 +1055,646 @@
         rating: 4,
         review: "Un Paris rêvé, tendre et légèrement trop joli — mais c’est précisément ce qui le rend précieux.",
         tags: ["Paris", "fantaisie", "tendresse"],
-        poster: "poster-3"
+        poster: "poster-3",
+        author: "Le dernier rang"
       },
       {
-        id: 4,
-        title: "Le Voyage
+        id: "demo-4",
+        title: "Le Voyage de Chihiro",
+        year: 2001,
+        director: "Hayao Miyazaki",
+        genre: "Animation",
+        rating: 5,
+        review: "Un rêve immense où chaque porte ouverte nous rend un peu plus courageux.",
+        tags: ["Japon", "enfance", "merveille"],
+        poster: "poster-4",
+        author: "Le dernier rang"
+      },
+      {
+        id: "demo-5",
+        title: "The Virgin Suicides",
+        year: 1999,
+        director: "Sofia Coppola",
+        genre: "Drame",
+        rating: 4,
+        review: "La beauté trouble de ce que l’on ne comprend jamais tout à fait.",
+        tags: ["adolescence", "banlieue", "mystère"],
+        poster: "poster-5",
+        author: "Le dernier rang"
+      },
+      {
+        id: "demo-6",
+        title: "Midsommar",
+        year: 2019,
+        director: "Ari Aster",
+        genre: "Horreur",
+        rating: 3.5,
+        review: "La lumière du jour n’a jamais été aussi inquiétante.",
+        tags: ["Suède", "rupture", "soleil"],
+        poster: "poster-6",
+        author: "Le dernier rang"
+      }
+    ];
+
+    let databaseMovies = [];
+    let selectedGenre = "Tous";
+    let currentUser = null;
+    let currentProfile = null;
+    let authMode = "login";
+
+    const grid = document.getElementById("moviesGrid");
+    const searchInput = document.getElementById("searchInput");
+    const filters = document.getElementById("filters");
+    const movieCount = document.getElementById("movieCount");
+
+    const reviewModal = document.getElementById("reviewModal");
+    const openModal = document.getElementById("openModal");
+    const closeModal = document.getElementById("closeModal");
+    const reviewForm = document.getElementById("reviewForm");
+
+    const authModal = document.getElementById("authModal");
+    const authButton = document.getElementById("authButton");
+    const closeAuthModal = document.getElementById("closeAuthModal");
+    const authForm = document.getElementById("authForm");
+    const authTitle = document.getElementById("authTitle");
+    const authSubmitButton = document.getElementById("authSubmitButton");
+    const authNote = document.getElementById("authNote");
+    const usernameField = document.getElementById("usernameField");
+    const usernameInput = document.getElementById("username");
+    const authMessage = document.getElementById("authMessage");
+
+    const userMenu = document.getElementById("userMenu");
+    const userGreeting = document.getElementById("userGreeting");
+    const logoutButton = document.getElementById("logoutButton");
+
+    function stars(rating) {
+      const full = Math.floor(rating);
+      const half = rating % 1 !== 0;
+
+      return (
+        "★".repeat(full) +
+        (half ? "½" : "") +
+        "☆".repeat(5 - full - (half ? 1 : 0))
+      );
+    }
+
+    function escapeHTML(value) {
+      const div = document.createElement("div");
+      div.textContent = value || "";
+      return div.innerHTML;
+    }
+
+    function posterClassFor(index) {
+      const posters = [
+        "poster-1",
+        "poster-2",
+        "poster-3",
+        "poster-4",
+        "poster-5",
+        "poster-6"
+      ];
+
+      return posters[index % posters.length];
+    }
+
+    function allMovies() {
+      return [...databaseMovies, ...defaultMovies];
+    }
+
+    function renderMovies() {
+      const search = searchInput.value.toLowerCase().trim();
+
+      const filteredMovies = allMovies().filter((movie) => {
+        const matchesGenre =
+          selectedGenre === "Tous" || movie.genre === selectedGenre;
+
+        const searchableText = [
+          movie.title,
+          movie.director,
+          movie.genre,
+          movie.review,
+          movie.author,
+          ...movie.tags
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return matchesGenre && searchableText.includes(search);
+      });
+
+      movieCount.textContent =
+        `· ${filteredMovies.length} critique${filteredMovies.length > 1 ? "s" : ""}`;
+
+      if (filteredMovies.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <strong>Aucune séance ne correspond à ta recherche.</strong>
+            <br /><br />
+            Essaie un autre titre, un genre différent ou écris une nouvelle critique.
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filteredMovies
+        .map(
+          (movie, index) => `
+            <article class="movie-card">
+              <div class="poster ${movie.poster || posterClassFor(index)}">
+                <div class="poster-content">
+                  <span class="year">${escapeHTML(String(movie.year || "—"))}</span>
+                  <h3 class="movie-title">${escapeHTML(movie.title)}</h3>
+                </div>
+              </div>
+
+              <div class="movie-content">
+                <div class="movie-meta">
+                  <span>${escapeHTML(movie.director || "Réalisateur·rice non précisé·e")}</span>
+                  <span class="rating" title="${movie.rating}/5">${stars(movie.rating)}</span>
+                </div>
+
+                <p class="review">“${escapeHTML(movie.review)}”</p>
+
+                <div class="tags">
+                  <span class="tag">${escapeHTML(movie.genre)}</span>
+
+                  ${movie.tags
+                    .filter((tag) => tag !== movie.genre)
+                    .map((tag) => `<span class="tag">${escapeHTML(tag)}</span>`)
+                    .join("")}
+                </div>
+
+                <div class="card-bottom">
+                  <span class="author">
+                    Par ${escapeHTML(movie.author || "Membre")}
+                  </span>
+
+                  <button
+                    class="favorite"
+                    aria-label="Ajouter aux favoris"
+                    title="Ajouter aux favoris"
+                  >
+                    ♡
+                  </button>
+                </div>
+              </div>
+            </article>
+          `
+        )
+        .join("");
+
+      document.querySelectorAll(".favorite").forEach((button) => {
+        button.addEventListener("click", () => {
+          button.classList.toggle("liked");
+
+          button.textContent = button.classList.contains("liked")
+            ? "♥"
+            : "♡";
+        });
+      });
+    }
+
+    /* ==========================================================
+       CHARGEMENT DES CRITIQUES DEPUIS SUPABASE
+    ========================================================== */
+
+    async function loadDatabaseReviews() {
+      const { data, error } = await supabaseClient
+        .from("reviews")
+        .select(`
+          id,
+          user_id,
+          rating,
+          content,
+          created_at,
+          movies (
+            id,
+            title,
+            release_year,
+            director,
+            poster_url,
+            genres
+          ),
+          profiles!reviews_user_id_fkey (
+            username
+          )
+        `)
+        .eq("is_published", true)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Erreur de chargement des critiques :", error.message);
+        return;
+      }
+
+      databaseMovies = data.map((review, index) => {
+        const movie = review.movies || {};
+        const genres = movie.genres || [];
+
+        return {
+          id: review.id,
+          title: movie.title || "Film sans titre",
+          year: movie.release_year || "—",
+          director: movie.director || "Réalisateur·rice non précisé·e",
+          genre: genres[0] || "Cinéma",
+          rating: Number(review.rating),
+          review: review.content,
+          tags: genres,
+          poster: posterClassFor(index),
+          author: review.profiles?.username || "Membre"
+        };
+      });
+
+      renderMovies();
+    }
+
+    /* ==========================================================
+       PROFIL ET NAVIGATION
+    ========================================================== */
+
+    async function loadProfile() {
+      if (!currentUser) {
+        currentProfile = null;
+        updateNavigation();
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .select("username")
+        .eq("id", currentUser.id)
+        .single();
+
+      if (!error) {
+        currentProfile = data;
+      }
+
+      updateNavigation();
+    }
+
+    function updateNavigation() {
+      if (currentUser) {
+        authButton.hidden = true;
+        userMenu.hidden = false;
+
+        const fallbackUsername = currentUser.email.split("@")[0];
+
+        userGreeting.textContent =
+          `Bonjour, ${currentProfile?.username || fallbackUsername}`;
+      } else {
+        authButton.hidden = false;
+        userMenu.hidden = true;
+      }
+    }
+
+    /* ==========================================================
+       FENÊTRE AUTHENTIFICATION
+    ========================================================== */
+
+    function showAuthMessage(message, type = "success") {
+      authMessage.textContent = message;
+      authMessage.className = "status-message";
+
+      if (message) {
+        authMessage.classList.add("visible", type);
+      }
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+
+      document.querySelectorAll(".auth-tab").forEach((tab) => {
+        tab.classList.toggle("active", tab.dataset.authMode === mode);
+      });
+
+      const isSignup = mode === "signup";
+
+      usernameField.hidden = !isSignup;
+      usernameInput.required = isSignup;
+
+      authTitle.textContent = isSignup
+        ? "Créer un compte"
+        : "Bienvenue";
+
+      authSubmitButton.textContent = isSignup
+        ? "Créer mon compte"
+        : "Se connecter";
+
+      authNote.textContent = isSignup
+        ? "Tu recevras un e-mail de confirmation avant de pouvoir te connecter."
+        : "Connecte-toi pour publier une microcritique et retrouver tes films.";
+
+      showAuthMessage("");
+    }
+
+    function openAuthModal() {
+      authModal.classList.add("visible");
+      showAuthMessage("");
+    }
+
+    function closeAuth() {
+      authModal.classList.remove("visible");
+      authForm.reset();
+      showAuthMessage("");
+    }
+
+    authButton.addEventListener("click", () => {
+      setAuthMode("login");
+      openAuthModal();
+    });
+
+    closeAuthModal.addEventListener("click", closeAuth);
+
+    authModal.addEventListener("click", (event) => {
+      if (event.target === authModal) {
+        closeAuth();
+      }
+    });
+
+    document.querySelectorAll(".auth-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        setAuthMode(tab.dataset.authMode);
+      });
+    });
+
+    authForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const email = document.getElementById("authEmail").value.trim();
+      const password = document.getElementById("authPassword").value;
+      const username = usernameInput.value.trim();
+
+      authSubmitButton.disabled = true;
+      authSubmitButton.textContent = "Un instant…";
+
+      try {
+        if (authMode === "signup") {
+          const { error } = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                username: username
+              },
+
+              emailRedirectTo:
+                window.location.origin + window.location.pathname
+            }
+          });
+
+          if (error) throw error;
+
+          showAuthMessage(
+            "Ton compte a été créé. Regarde maintenant ta boîte e-mail et confirme ton adresse avant de te connecter.",
+            "success"
+          );
+
+          authForm.reset();
+        } else {
+          const { error } =
+            await supabaseClient.auth.signInWithPassword({
+              email,
+              password
+            });
+
+          if (error) throw error;
+
+          closeAuth();
+        }
+      } catch (error) {
+        showAuthMessage(error.message, "error");
+      } finally {
+        authSubmitButton.disabled = false;
+
+        authSubmitButton.textContent =
+          authMode === "signup"
+            ? "Créer mon compte"
+            : "Se connecter";
+      }
+    });
+
+    logoutButton.addEventListener("click", async () => {
+      await supabaseClient.auth.signOut();
+    });
+
+    /* ==========================================================
+       FENÊTRE DE PUBLICATION
+    ========================================================== */
+
+    async function openReviewModal() {
+      if (!currentUser) {
+        setAuthMode("login");
+        openAuthModal();
+
+        showAuthMessage(
+          "Connecte-toi ou crée ton compte avant de publier une critique.",
+          "error"
+        );
+
+        return;
+      }
+
+      reviewModal.classList.add("visible");
+    }
+
+    openModal.addEventListener("click", openReviewModal);
+
+    closeModal.addEventListener("click", () => {
+      reviewModal.classList.remove("visible");
+    });
+
+    reviewModal.addEventListener("click", (event) => {
+      if (event.target === reviewModal) {
+        reviewModal.classList.remove("visible");
+      }
+    });
+
+    /* ==========================================================
+       PUBLICATION D'UNE CRITIQUE DANS LA BASE
+    ========================================================== */
+
+    reviewForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!currentUser) {
+        reviewModal.classList.remove("visible");
+        setAuthMode("login");
+        openAuthModal();
+        return;
+      }
+
+      const submitButton =
+        reviewForm.querySelector('button[type="submit"]');
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Publication…";
+
+      try {
+        const title = document.getElementById("title").value.trim();
+
+        const yearValue =
+          document.getElementById("year").value;
+
+        const director =
+          document.getElementById("director").value.trim() ||
+          "Réalisateur·rice non précisé·e";
+
+        const genre = document.getElementById("genre").value;
+
+        const rating = Number(
+          document.getElementById("rating").value
+        );
+
+        const content =
+          document.getElementById("review").value.trim();
+
+        const tags = document
+          .getElementById("tags")
+          .value
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean);
+
+        const genres = [...new Set([genre, ...tags])];
+
+        /* Vérifie si le film existe déjà dans la base */
+
+        const { data: existingMovie, error: movieSearchError } =
+          await supabaseClient
+            .from("movies")
+            .select("id")
+            .ilike("title", title)
+            .limit(1)
+            .maybeSingle();
+
+        if (movieSearchError) throw movieSearchError;
+
+        let movieId = existingMovie?.id;
+
+        /* Si le film n'existe pas encore, on le crée */
+
+        if (!movieId) {
+          const { data: createdMovie, error: movieInsertError } =
+            await supabaseClient
+              .from("movies")
+              .insert({
+                title: title,
+                release_year: yearValue
+                  ? Number(yearValue)
+                  : null,
+                director: director,
+                genres: genres,
+                created_by: currentUser.id
+              })
+              .select("id")
+              .single();
+
+          if (movieInsertError) throw movieInsertError;
+
+          movieId = createdMovie.id;
+        }
+
+        /* Création de la microcritique */
+
+        const { error: reviewInsertError } = await supabaseClient
+          .from("reviews")
+          .insert({
+            user_id: currentUser.id,
+            movie_id: movieId,
+            rating: rating,
+            content: content,
+            is_published: true
+          });
+
+        if (reviewInsertError) {
+          if (reviewInsertError.code === "23505") {
+            throw new Error(
+              "Tu as déjà publié une microcritique pour ce film."
+            );
+          }
+
+          throw reviewInsertError;
+        }
+
+        reviewForm.reset();
+        reviewModal.classList.remove("visible");
+
+        selectedGenre = "Tous";
+        searchInput.value = "";
+
+        document.querySelectorAll(".filter").forEach((button) => {
+          button.classList.toggle(
+            "active",
+            button.dataset.genre === "Tous"
+          );
+        });
+
+        await loadDatabaseReviews();
+
+        document
+          .querySelector("#critiques")
+          .scrollIntoView({ behavior: "smooth" });
+
+        alert("Ta microcritique est publiée sur Le dernier rang. ✨");
+      } catch (error) {
+        console.error(error);
+
+        alert(
+          `Impossible de publier la critique : ${error.message}`
+        );
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "Publier la critique";
+      }
+    });
+
+    /* ==========================================================
+       FILTRES, RECHERCHE ET ÉTAT DE SESSION
+    ========================================================== */
+
+    filters.addEventListener("click", (event) => {
+      if (!event.target.classList.contains("filter")) return;
+
+      document.querySelectorAll(".filter").forEach((button) => {
+        button.classList.remove("active");
+      });
+
+      event.target.classList.add("active");
+
+      selectedGenre = event.target.dataset.genre;
+
+      renderMovies();
+    });
+
+    searchInput.addEventListener("input", renderMovies);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        reviewModal.classList.remove("visible");
+        closeAuth();
+      }
+    });
+
+    supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+      currentUser = session?.user || null;
+
+      await loadProfile();
+    });
+
+    async function initialiseSite() {
+      const {
+        data: { session }
+      } = await supabaseClient.auth.getSession();
+
+      currentUser = session?.user || null;
+
+      await loadProfile();
+      await loadDatabaseReviews();
+
+      renderMovies();
+    }
+
+    initialiseSite();
+  </script>
+</body>
+</html>
