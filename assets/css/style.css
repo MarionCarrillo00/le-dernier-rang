@@ -1012,4 +1012,15 @@ footer {
   .profile-header {
     padding: 30px;
   }
+
+  
+/* Respecte l'attribut HTML hidden malgré le display:flex du menu */
+.user-menu[hidden] {
+  display: none !important;
+}
+
+.login-button[hidden] {
+  display: none !important;
+}
+
 }
