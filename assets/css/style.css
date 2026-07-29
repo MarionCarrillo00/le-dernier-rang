@@ -1317,3 +1317,54 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+
+/* =====================================================
+   NAVIGATION MOBILE — VERSION RESPIRANTE
+   ===================================================== */
+
+@media (max-width: 650px) {
+  .navbar {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 6%;
+  }
+
+  .menu {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    gap: 9px;
+  }
+
+  /* Le nom de la personne est joli sur ordinateur,
+     mais prend trop de place sur petit écran. */
+  #userGreeting {
+    display: none;
+  }
+
+  /* On annule l'ancienne règle qui coupait le menu. */
+  .user-menu {
+    max-width: none;
+    overflow: visible;
+    gap: 9px;
+  }
+
+  .profile-link {
+    font-size: 0.75rem !important;
+  }
+
+  .logout-button {
+    padding: 6px 8px;
+    font-size: 0.7rem;
+  }
+
+  .button-primary {
+    padding: 10px 13px;
+    font-size: 0.82rem;
+  }
+
+  .login-button {
+    padding: 9px 12px;
+    font-size: 0.8rem;
+  }
+}
