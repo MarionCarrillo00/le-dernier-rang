@@ -1258,55 +1258,94 @@
        CHARGEMENT DES CRITIQUES DEPUIS SUPABASE
     ========================================================== */
 
-    async function loadDatabaseReviews() {
-      const { data, error } = await supabaseClient
-        .from("reviews")
-        .select(`
-          id,
-          user_id,
-          rating,
-          content,
-          created_at,
-          movies (
-            id,
-            title,
-            release_year,
-            director,
-            poster_url,
-            genres
-          ),
-          profiles!reviews_user_id_fkey (
-            username
-          )
-        `)
-        .eq("is_published", true)
-        .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Erreur de chargement des critiques :", error.message);
-        return;
-      }
+async function loadDatabaseReviews() {
+  /*
+    On récupère d'abord les critiques et les films associés.
+    On ne demande volontairement PAS les profiles ici :
+    cela évite le problème de relation Supabase reviews → profiles.
+  */
+  const { data: reviews, error: reviewsError } = await supabaseClient
+    .from("reviews")
+    .select(`
+      id,
+      user_id,
+      rating,
+      content,
+      created_at,
+      movies (
+        id,
+        title,
+        release_year,
+        director,
+        poster_url,
+        genres
+      )
+    `)
+    .eq("is_published", true)
+    .order("created_at", { ascending: false });
 
-      databaseMovies = data.map((review, index) => {
-        const movie = review.movies || {};
-        const genres = movie.genres || [];
+  if (reviewsError) {
+    console.error(
+      "Erreur de chargement des critiques :",
+      reviewsError.message
+    );
 
-        return {
-          id: review.id,
-          title: movie.title || "Film sans titre",
-          year: movie.release_year || "—",
-          director: movie.director || "Réalisateur·rice non précisé·e",
-          genre: genres[0] || "Cinéma",
-          rating: Number(review.rating),
-          review: review.content,
-          tags: genres,
-          poster: posterClassFor(index),
-          author: review.profiles?.username || "Membre"
-        };
-      });
+    return;
+  }
 
-      renderMovies();
+  /*
+    On récupère ensuite tous les profils nécessaires
+    dans une requête séparée.
+  */
+  const userIds = [...new Set(reviews.map((review) => review.user_id))];
+
+  let profilesById = {};
+
+  if (userIds.length > 0) {
+    const { data: profiles, error: profilesError } = await supabaseClient
+      .from("profiles")
+      .select("id, username")
+      .in("id", userIds);
+
+    if (profilesError) {
+      console.error(
+        "Erreur de chargement des profils :",
+        profilesError.message
+      );
+    } else {
+      profilesById = Object.fromEntries(
+        profiles.map((profile) => [profile.id, profile])
+      );
     }
+  }
+
+  /*
+    On transforme les lignes reçues en cartes affichables
+    sur la page d'accueil.
+  */
+  databaseMovies = reviews.map((review, index) => {
+    const movie = review.movies || {};
+    const genres = movie.genres || [];
+    const profile = profilesById[review.user_id];
+
+    return {
+      id: review.id,
+      title: movie.title || "Film sans titre",
+      year: movie.release_year || "—",
+      director: movie.director || "Réalisateur·rice non précisé·e",
+      genre: genres[0] || "Cinéma",
+      rating: Number(review.rating),
+      review: review.content,
+      tags: genres,
+      poster: posterClassFor(index),
+      author: profile?.username || "Membre"
+    };
+  });
+
+  renderMovies();
+}
+
 
     /* ==========================================================
        PROFIL ET NAVIGATION
