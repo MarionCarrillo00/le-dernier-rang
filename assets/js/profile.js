@@ -1201,6 +1201,7 @@ async function createMovieList(event) {
    CHARGEMENT DE LA PAGE
    ===================================================== */
 
+
 async function loadMyProfilePage() {
   if (!currentUser) {
     if (myReviewsGrid) {
@@ -1263,27 +1264,30 @@ async function loadMyProfilePage() {
     openListFormButton.hidden = false;
   }
 
-  try {
-    const [
-      reviews,
-      wishlistMovies,
-      lists,
-      incomingFriendRequests
-    ] = await Promise.all([
-      getMyReviews(currentUser.id),
-      getMyWishlistMovies(),
-      getMyMovieLists(),
-      getIncomingFriendRequests()
-    ]);
+  const results = await Promise.allSettled([
+    getMyReviews(currentUser.id),
+    getMyWishlistMovies(),
+    getMyMovieLists(),
+    getIncomingFriendRequests()
+  ]);
 
-    renderProfileReviews(reviews);
-    renderWishlistMovies(wishlistMovies);
-    renderMovieLists(lists);
-    renderFriendRequests(incomingFriendRequests);
-  } catch (error) {
+  const [
+    reviewsResult,
+    wishlistResult,
+    listsResult,
+    friendRequestsResult
+  ] = results;
+
+  /* -------------------------------
+     Critiques
+     ------------------------------- */
+
+  if (reviewsResult.status === "fulfilled") {
+    renderProfileReviews(reviewsResult.value);
+  } else {
     console.error(
-      "Erreur de chargement de l’espace personnel :",
-      error
+      "Erreur de chargement des critiques :",
+      reviewsResult.reason
     );
 
     if (myReviewsGrid) {
@@ -1293,28 +1297,76 @@ async function loadMyProfilePage() {
         </div>
       `;
     }
+  }
+
+  /* -------------------------------
+     Wishlist
+     ------------------------------- */
+
+  if (wishlistResult.status === "fulfilled") {
+    renderWishlistMovies(wishlistResult.value);
+  } else {
+    console.error(
+      "Erreur de chargement de la wishlist :",
+      wishlistResult.reason
+    );
 
     if (myWishlistGrid) {
       myWishlistGrid.innerHTML = `
-        <div class="empty-state">
+        <div class="empty-state wishlist-empty-state">
           Impossible de charger ta liste À voir pour le moment.
         </div>
       `;
     }
+  }
+
+  /* -------------------------------
+     Listes personnalisées
+     ------------------------------- */
+
+  if (listsResult.status === "fulfilled") {
+    renderMovieLists(listsResult.value);
+  } else {
+    console.error(
+      "Erreur de chargement des listes :",
+      listsResult.reason
+    );
 
     if (myListsGrid) {
       myListsGrid.innerHTML = `
-        <div class="empty-state">
+        <div class="empty-state lists-empty-state">
           Impossible de charger tes listes pour le moment.
         </div>
       `;
     }
+  }
+
+  /* -------------------------------
+     Demandes d'amis
+     ------------------------------- */
+
+  if (friendRequestsResult.status === "fulfilled") {
+    renderFriendRequests(friendRequestsResult.value);
+  } else {
+    console.error(
+      "Erreur de chargement des demandes d’amis :",
+      friendRequestsResult.reason
+    );
 
     if (friendRequestsSection) {
       friendRequestsSection.hidden = true;
     }
+
+    if (friendRequestsGrid) {
+      friendRequestsGrid.innerHTML = "";
+    }
+
+    if (friendRequestsCount) {
+      friendRequestsCount.textContent = "0";
+    }
   }
 }
+
 
 /* =====================================================
    ÉVÉNEMENTS
