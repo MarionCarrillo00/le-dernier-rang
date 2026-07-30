@@ -2899,3 +2899,75 @@ footer {
     height: 38px;
   }
 }
+
+/* =====================================================
+   FICHE FILM : AVATARS MIS EN VALEUR
+   ===================================================== */
+
+.movie-card-film-review .film-review-header {
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.movie-card-film-review .review-author {
+  gap: 13px;
+}
+
+.movie-card-film-review .review-author-avatar {
+  width: 54px;
+  height: 54px;
+  border: 3px solid var(--cream);
+  outline: 1px solid rgba(184, 68, 68, 0.38);
+  box-shadow: 0 5px 14px rgba(61, 43, 32, 0.16);
+}
+
+.movie-card-film-review .review-author-placeholder {
+  color: var(--cream);
+  background: var(--deep-red);
+  font-size: 1.05rem;
+}
+
+.movie-card-film-review .author {
+  font-size: 1.08rem;
+  line-height: 1.2;
+}
+
+.movie-card-film-review .review-author-link:hover .review-author-avatar {
+  outline-color: var(--red);
+  transform: scale(1.04);
+}
+
+.movie-card-film-review .review-author-avatar {
+  transition: transform 0.2s ease, outline-color 0.2s ease;
+}
+
+/* Le contenu reste parfaitement aligné sous le début du texte,
+   après l'emplacement de l'avatar. */
+.movie-card-film-review .review,
+.movie-card-film-review .tags {
+  padding-left: 67px;
+}
+
+.movie-card-film-review .review-note-only {
+  margin-left: 67px;
+}
+
+@media (max-width: 650px) {
+  .movie-card-film-review .review-author-avatar {
+    width: 46px;
+    height: 46px;
+  }
+
+  .movie-card-film-review .author {
+    font-size: 1rem;
+  }
+
+  .movie-card-film-review .review,
+  .movie-card-film-review .tags {
+    padding-left: 0;
+  }
+
+  .movie-card-film-review .review-note-only {
+    margin-left: 0;
+  }
+}
