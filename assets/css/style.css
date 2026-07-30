@@ -3011,16 +3011,13 @@ footer {
 .review-comment-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   padding: 0;
   color: var(--grey);
   background: transparent;
   border: none;
   font-family: Arial, sans-serif;
   font-size: 0.72rem;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
 }
 
 .review-comment-toggle:hover,
@@ -3029,9 +3026,17 @@ footer {
 }
 
 .review-comment-toggle span {
-  min-width: 12px;
-  font-size: 0.68rem;
-  text-align: center;
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  color: var(--deep-red);
+  background: #f4e4df;
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.64rem;
+  line-height: 1;
+  place-items: center;
 }
 
 .review-comments-panel {
@@ -3198,5 +3203,42 @@ footer {
     align-items: flex-start;
     flex-direction: column;
   }
+}
+
+/* Lien discret vers la discussion depuis l'accueil et les profils */
+
+.review-discussion-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  text-decoration: none;
+}
+
+.review-discussion-link:hover {
+  color: var(--red);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.review-discussion-link span {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  color: var(--deep-red);
+  background: #f4e4df;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  line-height: 1;
+  place-items: center;
+}
+
+/* Compensation de la navigation sticky lors d'un lien #review-... */
+
+.movie-card-film-review {
+  scroll-margin-top: 100px;
 }
 
