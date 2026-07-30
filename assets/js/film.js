@@ -734,11 +734,15 @@ function renderFilmPage(
       <div class="movies-grid film-reviews-grid" id="filmReviewsGrid">
         ${
           reviews.length
-            ? reviews
-                .map((review, index) =>
-                  createMovieCard(review, index)
-                )
-                .join("")
+            ? 
+reviews
+  .map((review, index) =>
+    createMovieCard(review, index, {
+      compactFilmReview: true
+    })
+  )
+  .join("")
+
             : `
               <div class="empty-state">
                 <strong>Pas encore de microcritique pour ce film.</strong>
