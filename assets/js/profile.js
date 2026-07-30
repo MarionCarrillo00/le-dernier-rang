@@ -27,7 +27,55 @@ const listVisibilityInput = document.getElementById(
   "listVisibility"
 );
 
-/* Photo de profil */
+/* =====================================================
+   MODALE D'ÉDITION DES MICROCRITIQUES
+   ===================================================== */
+
+const editReviewModal = document.getElementById(
+  "editReviewModal"
+);
+
+const editReviewForm = document.getElementById(
+  "editReviewForm"
+);
+
+const closeEditReviewModalButton = document.getElementById(
+  "closeEditReviewModal"
+);
+
+const cancelEditReviewButton = document.getElementById(
+  "cancelEditReviewButton"
+);
+
+const editReviewTitle = document.getElementById(
+  "editReviewTitle"
+);
+
+const editReviewMovieTitle = document.getElementById(
+  "editReviewMovieTitle"
+);
+
+const editReviewRating = document.getElementById(
+  "editReviewRating"
+);
+
+const editReviewContent = document.getElementById(
+  "editReviewContent"
+);
+
+const editReviewCharacterCounter = document.getElementById(
+  "editReviewCharacterCounter"
+);
+
+const saveEditReviewButton = document.getElementById(
+  "saveEditReviewButton"
+);
+
+let editingReviewId = null;
+
+/* =====================================================
+   PHOTO DE PROFIL
+   ===================================================== */
 
 const profileAvatar = document.getElementById("profileAvatar");
 
@@ -213,6 +261,93 @@ function hideListForm() {
 }
 
 /* =====================================================
+   ÉDITION DES NOTES ET MICROCRITIQUES
+   ===================================================== */
+
+function updateEditReviewCharacterCounter() {
+  if (!editReviewContent || !editReviewCharacterCounter) {
+    return;
+  }
+
+  const maximum = Number(editReviewContent.maxLength) || 140;
+  const length = editReviewContent.value.length;
+
+  editReviewCharacterCounter.textContent =
+    `${length} / ${maximum}`;
+
+  editReviewCharacterCounter.classList.toggle(
+    "limit-reached",
+    length >= maximum
+  );
+}
+
+function openEditReviewModal(button) {
+  editingReviewId = button.dataset.reviewId;
+
+  const movieTitle =
+    button.dataset.reviewTitle || "Film sans titre";
+
+  const rating = button.dataset.reviewRating || "—";
+
+  const currentContent =
+    button.dataset.reviewContent || "";
+
+  const hasExistingContent = Boolean(
+    currentContent.trim()
+  );
+
+  editReviewTitle.textContent = hasExistingContent
+    ? "Modifier mes mots"
+    : "Ajouter quelques mots";
+
+  editReviewMovieTitle.textContent = movieTitle;
+
+  /*
+    La note est ici uniquement informative.
+    Aucun champ de sélection n'est proposé :
+    elle ne peut pas être modifiée via cette modale.
+  */
+  editReviewRating.textContent =
+    `${stars(rating)} · ${rating}/5`;
+
+  editReviewContent.value = currentContent;
+
+  saveEditReviewButton.textContent = hasExistingContent
+    ? "Enregistrer mes modifications"
+    : "Ajouter à ma note";
+
+  updateEditReviewCharacterCounter();
+
+  editReviewModal.classList.add("visible");
+
+  window.setTimeout(() => {
+    editReviewContent.focus();
+  }, 50);
+}
+
+function closeEditReviewModal() {
+  if (!editReviewModal) {
+    return;
+  }
+
+  editReviewModal.classList.remove("visible");
+
+  editingReviewId = null;
+
+  editReviewContent.value = "";
+
+  updateEditReviewCharacterCounter();
+}
+
+function setupReviewEditButtons() {
+  document.querySelectorAll(".edit-review").forEach((button) => {
+    button.addEventListener("click", () => {
+      openEditReviewModal(button);
+    });
+  });
+}
+
+/* =====================================================
    CRITIQUES DU PROFIL
    ===================================================== */
 
@@ -240,10 +375,11 @@ function renderProfileReviews(reviews) {
       <div class="empty-state">
         <strong>Ton carnet est encore vide.</strong>
         <br /><br />
-        Retourne sur l’accueil pour écrire ta première microcritique.
+        Retourne sur l’accueil pour ajouter ta première note
+        ou écrire ta première microcritique.
         <br /><br />
         <a class="button-primary" href="index.html">
-          Écrire une critique
+          Ajouter à mon carnet
         </a>
       </div>
     `;
@@ -255,7 +391,8 @@ function renderProfileReviews(reviews) {
     .map((review, index) =>
       createMovieCard(review, index, {
         author: username,
-        canDelete: true
+        canDelete: true,
+        canEdit: true
       })
     )
     .join("");
@@ -265,7 +402,7 @@ function renderProfileReviews(reviews) {
       const reviewId = button.dataset.reviewId;
 
       const confirmation = confirm(
-        "Veux-tu vraiment supprimer cette microcritique ? Cette action est définitive."
+        "Veux-tu vraiment supprimer cette entrée de ton carnet ? Cette action est définitive."
       );
 
       if (!confirmation) {
@@ -288,6 +425,8 @@ function renderProfileReviews(reviews) {
       }
     });
   });
+
+  setupReviewEditButtons();
 }
 
 /* =====================================================
@@ -388,6 +527,7 @@ function renderWishlistMovies(items) {
     .map(({ wishlist_item_id, movie }) => {
       const title = movie.title || "Film sans titre";
       const releaseYear = movie.release_year || "—";
+
       const director =
         movie.director || "Réalisation non renseignée";
 
@@ -672,6 +812,7 @@ async function createMovieList(event) {
 
   const title = listTitleInput.value.trim();
   const description = listDescriptionInput.value.trim();
+
   const isPublic = listVisibilityInput.value === "public";
 
   if (title.length < 2) {
@@ -723,7 +864,8 @@ async function loadMyProfilePage() {
       <div class="empty-state">
         <strong>Connecte-toi pour accéder à ton espace personnel.</strong>
         <br /><br />
-        Tes critiques, tes listes et tes futurs favoris seront rassemblés ici.
+        Tes notes, tes critiques, tes listes et tes futurs favoris
+        seront rassemblés ici.
       </div>
     `;
 
@@ -770,6 +912,10 @@ async function loadMyProfilePage() {
   }
 }
 
+/* =====================================================
+   ÉVÉNEMENTS
+   ===================================================== */
+
 function setupProfilePage() {
   openListFormButton.addEventListener("click", showListForm);
 
@@ -782,6 +928,72 @@ function setupProfilePage() {
 
     if (file) {
       uploadProfileAvatar(file);
+    }
+  });
+
+  closeEditReviewModalButton.addEventListener(
+    "click",
+    closeEditReviewModal
+  );
+
+  cancelEditReviewButton.addEventListener(
+    "click",
+    closeEditReviewModal
+  );
+
+  editReviewContent.addEventListener(
+    "input",
+    updateEditReviewCharacterCounter
+  );
+
+  editReviewModal.addEventListener("click", (event) => {
+    if (event.target === editReviewModal) {
+      closeEditReviewModal();
+    }
+  });
+
+  editReviewForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    if (!editingReviewId) {
+      return;
+    }
+
+    const content = editReviewContent.value.trim();
+
+    saveEditReviewButton.disabled = true;
+    saveEditReviewButton.textContent = "Enregistrement…";
+
+    try {
+      /*
+        updateReviewContent ne modifie que reviews.content.
+        La note reste exactement la même.
+      */
+      await updateReviewContent(editingReviewId, content);
+
+      closeEditReviewModal();
+
+      await loadMyProfilePage();
+    } catch (error) {
+      console.error(
+        "Erreur de modification de la microcritique :",
+        error
+      );
+
+      alert(
+        `Impossible d’enregistrer tes mots : ${error.message}`
+      );
+    } finally {
+      saveEditReviewButton.disabled = false;
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key === "Escape" &&
+      editReviewModal.classList.contains("visible")
+    ) {
+      closeEditReviewModal();
     }
   });
 }
