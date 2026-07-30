@@ -530,12 +530,25 @@ function createMovieCard(review, index, options = {}) {
     Si l'on arrive depuis « Répondre » sur l'accueil,
     la discussion ciblée est ouverte automatiquement.
   */
-  if (
-    isCompactFilmReview &&
-    window.location.hash === `#review-${review.id}`
-  ) {
-    openedReviewCommentIds.add(review.id);
-  }
+
+if (
+  isCompactFilmReview &&
+  window.location.hash === `#review-${review.id}`
+) {
+  openedReviewCommentIds.add(review.id);
+
+  /*
+    Le hash sert uniquement à ouvrir la discussion une fois
+    lors de l'arrivée depuis l'accueil. On le retire ensuite
+    pour que le bouton « Fermer » puisse réellement refermer
+    la conversation.
+  */
+  const cleanUrl =
+    window.location.pathname + window.location.search;
+
+  window.history.replaceState({}, "", cleanUrl);
+}
+
 
   const reviewContent = String(review.content || "").trim();
 
