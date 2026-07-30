@@ -3002,3 +3002,201 @@ footer {
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
+
+
+/* =====================================================
+   RÉPONSES AUX MICROCRITIQUES
+   ===================================================== */
+
+.review-comment-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  color: var(--grey);
+  background: transparent;
+  border: none;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.review-comment-toggle:hover,
+.review-comment-toggle.is-open {
+  color: var(--red);
+}
+
+.review-comment-toggle span {
+  min-width: 12px;
+  font-size: 0.68rem;
+  text-align: center;
+}
+
+.review-comments-panel {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+}
+
+.review-comments-list {
+  display: grid;
+  gap: 10px;
+}
+
+.review-comments-empty {
+  margin: 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+}
+
+.review-comment {
+  padding: 11px 12px;
+  background: rgba(244, 228, 223, 0.52);
+  border-radius: 8px;
+}
+
+.review-comment-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.review-comment-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.review-comment-author:hover strong {
+  color: var(--red);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.review-comment-author strong {
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-comment-avatar {
+  display: block;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 auto;
+  border: 1px solid var(--cream);
+  border-radius: 50%;
+  background: var(--cream);
+  object-fit: cover;
+}
+
+.review-comment-avatar-placeholder {
+  display: grid;
+  color: var(--cream);
+  background: var(--deep-red);
+  font-family: Arial, sans-serif;
+  font-size: 0.62rem;
+  font-weight: bold;
+  place-items: center;
+}
+
+.review-comment p {
+  margin: 8px 0 0 32px;
+  color: var(--ink);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.delete-review-comment {
+  padding: 0;
+  color: var(--grey);
+  background: transparent;
+  border: none;
+  font-family: Arial, sans-serif;
+  font-size: 0.67rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.delete-review-comment:hover {
+  color: var(--red);
+}
+
+.review-comment-form {
+  margin-top: 13px;
+}
+
+.review-comment-input {
+  width: 100%;
+  min-height: 75px;
+  padding: 10px;
+  resize: vertical;
+  font-size: 0.86rem;
+}
+
+.review-comment-form-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 7px;
+}
+
+.review-comment-counter {
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+}
+
+.review-comment-counter.limit-reached {
+  color: var(--red);
+  font-weight: bold;
+}
+
+.review-comment-submit {
+  color: var(--deep-red);
+  font-size: 0.76rem;
+}
+
+.review-comments-login {
+  margin: 13px 0 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+}
+
+.review-comment-login {
+  padding: 0;
+  color: var(--deep-red);
+  background: transparent;
+  border: none;
+  font-family: Arial, sans-serif;
+  font-size: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.review-comment-login:hover {
+  color: var(--red);
+}
+
+@media (max-width: 650px) {
+  .review-comment p {
+    margin-left: 0;
+  }
+
+  .review-comment-form-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
