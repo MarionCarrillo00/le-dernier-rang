@@ -94,6 +94,11 @@ function renderCast(cast) {
   `;
 }
 
+/*
+  Récupère les listes personnalisées de l'utilisatrice.
+  La wishlist système (« À voir ») est volontairement exclue
+  car elle dispose de son propre bouton sur la fiche film.
+*/
 async function getMyListsForMovie(movieId) {
   if (!currentUser || !movieId) {
     return [];
@@ -106,9 +111,11 @@ async function getMyListsForMovie(movieId) {
       title,
       description,
       is_public,
+      list_type,
       created_at
     `)
     .eq("user_id", currentUser.id)
+    .eq("list_type", "custom")
     .order("created_at", { ascending: false });
 
   if (listsError) {
@@ -139,6 +146,166 @@ async function getMyListsForMovie(movieId) {
     ...list,
     contains_movie: movieListIds.has(list.id)
   }));
+}
+
+/*
+  Vérifie si le film est déjà présent dans la wishlist « À voir »
+  de l'utilisatrice connectée.
+*/
+async function getWishlistStatusForMovie(movieId) {
+  if (!currentUser || !movieId) {
+    return false;
+  }
+
+  const { data: wishlist, error: wishlistError } =
+    await supabaseClient
+      .from("movie_lists")
+      .select("id")
+      .eq("user_id", currentUser.id)
+      .eq("list_type", "wishlist")
+      .maybeSingle();
+
+  if (wishlistError) {
+    throw wishlistError;
+  }
+
+  if (!wishlist) {
+    return false;
+  }
+
+  const { data: wishlistItem, error: itemError } =
+    await supabaseClient
+      .from("movie_list_items")
+      .select("id")
+      .eq("list_id", wishlist.id)
+      .eq("movie_id", movieId)
+      .maybeSingle();
+
+  if (itemError) {
+    throw itemError;
+  }
+
+  return Boolean(wishlistItem);
+}
+
+/*
+  Récupère la wishlist de l'utilisatrice ou la crée
+  automatiquement lors du premier ajout.
+*/
+async function getOrCreateWishlist() {
+  if (!currentUser) {
+    throw new Error("AUTH_REQUIRED");
+  }
+
+  const { data: existingWishlist, error: searchError } =
+    await supabaseClient
+      .from("movie_lists")
+      .select("id, title, list_type")
+      .eq("user_id", currentUser.id)
+      .eq("list_type", "wishlist")
+      .maybeSingle();
+
+  if (searchError) {
+    throw searchError;
+  }
+
+  if (existingWishlist) {
+    return existingWishlist;
+  }
+
+  const { data: createdWishlist, error: createError } =
+    await supabaseClient
+      .from("movie_lists")
+      .insert({
+        user_id: currentUser.id,
+        title: "À voir",
+        description:
+          "Les films que je garde pour une prochaine séance.",
+        is_public: false,
+        list_type: "wishlist"
+      })
+      .select("id, title, list_type")
+      .single();
+
+  /*
+    Cas rare : deux onglets ou deux clics simultanés.
+    L'index unique créé en BDD protège l'unicité de la wishlist.
+    On relit simplement la wishlist qui vient d'être créée.
+  */
+  if (createError?.code === "23505") {
+    const { data: concurrentWishlist, error: retryError } =
+      await supabaseClient
+        .from("movie_lists")
+        .select("id, title, list_type")
+        .eq("user_id", currentUser.id)
+        .eq("list_type", "wishlist")
+        .maybeSingle();
+
+    if (retryError) {
+      throw retryError;
+    }
+
+    if (concurrentWishlist) {
+      return concurrentWishlist;
+    }
+  }
+
+  if (createError) {
+    throw createError;
+  }
+
+  return createdWishlist;
+}
+
+/*
+  Ajoute ou retire un film de la wishlist « À voir ».
+  Retourne true si le film est désormais dans la wishlist,
+  false s'il vient d'en être retiré.
+*/
+async function toggleWishlistMovie(movieId) {
+  const wishlist = await getOrCreateWishlist();
+
+  const { data: existingItem, error: searchError } =
+    await supabaseClient
+      .from("movie_list_items")
+      .select("id")
+      .eq("list_id", wishlist.id)
+      .eq("movie_id", movieId)
+      .maybeSingle();
+
+  if (searchError) {
+    throw searchError;
+  }
+
+  if (existingItem) {
+    const { error: deleteError } = await supabaseClient
+      .from("movie_list_items")
+      .delete()
+      .eq("id", existingItem.id);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    return false;
+  }
+
+  const { error: insertError } = await supabaseClient
+    .from("movie_list_items")
+    .insert({
+      list_id: wishlist.id,
+      movie_id: movieId
+    });
+
+  if (insertError?.code === "23505") {
+    return true;
+  }
+
+  if (insertError) {
+    throw insertError;
+  }
+
+  return true;
 }
 
 function renderListPanel(lists) {
@@ -246,7 +413,13 @@ function buildWriteReviewLink(tmdbId) {
   return `index.html?writeTmdb=${encodeURIComponent(tmdbId)}`;
 }
 
-function renderFilmPage(movie, tmdbDetails, reviews, lists = []) {
+function renderFilmPage(
+  movie,
+  tmdbDetails,
+  reviews,
+  lists = [],
+  isInWishlist = false
+) {
   const title = tmdbDetails?.title || movie.title || "Film sans titre";
 
   const releaseYear =
@@ -366,27 +539,33 @@ function renderFilmPage(movie, tmdbDetails, reviews, lists = []) {
             filmExistsInCatalog
               ? `
                 <button
-                  class="button-secondary"
+                  class="button-secondary wishlist-button ${
+                    isInWishlist ? "is-in-wishlist" : ""
+                  }"
                   type="button"
-                  id="toggleListPanelButton"
+                  id="wishlistButton"
                 >
                   ${
-                    listPanelOpen
-                      ? "Fermer mes listes"
-                      : "+ Ajouter à une liste"
+                    isInWishlist
+                      ? "♥ Dans ma liste À voir"
+                      : "+ Ajouter à ma liste À voir"
                   }
                 </button>
               `
-              : `
-                <button
-                  class="button-secondary"
-                  type="button"
-                  id="toggleListPanelButton"
-                >
-                  + Ajouter à une liste
-                </button>
-              `
+              : ""
           }
+
+          <button
+            class="button-secondary"
+            type="button"
+            id="toggleListPanelButton"
+          >
+            ${
+              listPanelOpen
+                ? "Fermer mes listes"
+                : "+ Ajouter à une liste"
+            }
+          </button>
         </div>
 
         <div class="film-list-area">
@@ -484,6 +663,48 @@ function setupFilmLikeButtons() {
 }
 
 function setupListButtons() {
+  const wishlistButton = document.getElementById("wishlistButton");
+
+  if (wishlistButton) {
+    wishlistButton.addEventListener("click", async () => {
+      if (!currentUser) {
+        setAuthMode("login");
+        openAuthModal();
+
+        showAuthMessage(
+          "Connecte-toi ou crée un compte pour ajouter un film à ta liste À voir.",
+          "error"
+        );
+
+        return;
+      }
+
+      if (!currentFilmMovie?.id) {
+        alert(
+          "Ce film doit d’abord être ajouté au catalogue avant de pouvoir rejoindre ta liste À voir."
+        );
+
+        return;
+      }
+
+      wishlistButton.disabled = true;
+      wishlistButton.textContent = "Mise à jour…";
+
+      try {
+        await toggleWishlistMovie(currentFilmMovie.id);
+        await initialiseFilmPage();
+      } catch (error) {
+        console.error("Erreur de gestion de la wishlist :", error);
+
+        alert(
+          `Impossible de modifier ta liste À voir : ${error.message}`
+        );
+
+        wishlistButton.disabled = false;
+      }
+    });
+  }
+
   const toggleListPanelButton = document.getElementById(
     "toggleListPanelButton"
   );
@@ -665,6 +886,7 @@ async function initialiseFilmPage() {
         renderFilmError(
           "Ce film n’existe pas ou n’est plus disponible."
         );
+
         return;
       }
 
@@ -708,17 +930,27 @@ async function initialiseFilmPage() {
 
     currentFilmMovie = movie;
 
-    const [reviews, lists] = await Promise.all([
+    const [reviews, lists, isInWishlist] = await Promise.all([
       movie.id
         ? getReviewsByMovieId(movie.id)
         : Promise.resolve([]),
 
       currentUser && movie.id
         ? getMyListsForMovie(movie.id)
-        : Promise.resolve([])
+        : Promise.resolve([]),
+
+      currentUser && movie.id
+        ? getWishlistStatusForMovie(movie.id)
+        : Promise.resolve(false)
     ]);
 
-    renderFilmPage(movie, tmdbDetails, reviews, lists);
+    renderFilmPage(
+      movie,
+      tmdbDetails,
+      reviews,
+      lists,
+      isInWishlist
+    );
   } catch (error) {
     console.error("Erreur de chargement de la fiche film :", error);
 
