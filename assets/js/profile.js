@@ -346,12 +346,14 @@ function openEditReviewModal(button) {
     ? "Modifier mes mots"
     : "Ajouter quelques mots";
 
-  editReviewMovieTitle.textContent = movieTitle;
 
-  editReviewRating.textContent =
-    `${stars(rating)} · ${rating}/5`;
+editReviewMovieTitle.textContent = movieTitle;
 
-  editReviewContent.value = currentContent;
+editReviewRating.innerHTML =
+  `${stars(rating)} <span>· ${rating}/5</span>`;
+
+editReviewContent.value = currentContent;
+
 
   saveEditReviewButton.textContent = hasExistingContent
     ? "Enregistrer mes modifications"
