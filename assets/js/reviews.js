@@ -38,6 +38,7 @@ let reviewCommentInteractionsReady = false;
 
 function getCommentAuthorInitial(comment) {
   const username = comment.author?.username || "Membre";
+
   return username.charAt(0).toUpperCase() || "?";
 }
 
@@ -197,11 +198,7 @@ function renderReviewCommentButton(review) {
       aria-expanded="${isOpen ? "true" : "false"}"
       title="Voir ou ajouter une réponse"
     >
-      ${
-        isOpen
-          ? "Fermer"
-          : "Répondre"
-      }
+      ${isOpen ? "Fermer" : "Répondre"}
       <span>${commentCount}</span>
     </button>
   `;
@@ -528,9 +525,10 @@ function createMovieCard(review, index, options = {}) {
   const hasLiked = Boolean(review.liked_by_current_user);
 
   const isCompactFilmReview = Boolean(options.compactFilmReview);
-/*
-    Si l'on arrive depuis le lien « Répondre » de l'accueil,
-    on ouvre directement la discussion concernée sur la fiche film.
+
+  /*
+    Si l'on arrive depuis « Répondre » sur l'accueil,
+    la discussion ciblée est ouverte automatiquement.
   */
   if (
     isCompactFilmReview &&
@@ -538,7 +536,7 @@ function createMovieCard(review, index, options = {}) {
   ) {
     openedReviewCommentIds.add(review.id);
   }
-  
+
   const reviewContent = String(review.content || "").trim();
 
   const reviewMarkup = reviewContent
@@ -607,6 +605,29 @@ function createMovieCard(review, index, options = {}) {
 
   const movieUrl = movie.id
     ? `film.html?id=${encodeURIComponent(movie.id)}`
+    : "";
+
+  const commentButton = isCompactFilmReview
+    ? renderReviewCommentButton(review)
+    : "";
+
+  const commentPanel = isCompactFilmReview
+    ? renderReviewCommentSection(review)
+    : "";
+
+  const commentCount = (review.comments || []).length;
+
+  const discussionLink = movieUrl
+    ? `
+      <a
+        class="review-discussion-link"
+        href="${movieUrl}#review-${review.id}"
+        title="Voir les réponses sur la fiche du film"
+      >
+        Répondre
+        <span>${commentCount}</span>
+      </a>
+    `
     : "";
 
   const posterContent = posterUrl
@@ -689,43 +710,16 @@ function createMovieCard(review, index, options = {}) {
       </div>
     `;
 
-
-  const commentButton = isCompactFilmReview
-    ? renderReviewCommentButton(review)
-    : "";
-
-  const commentPanel = isCompactFilmReview
-    ? renderReviewCommentSection(review)
-    : "";
-
-  const commentCount = (review.comments || []).length;
-
-  const discussionLink = movieUrl
-    ? `
-      <a
-        class="review-discussion-link"
-        href="${movieUrl}#review-${review.id}"
-        title="Voir les réponses sur la fiche du film"
-      >
-        Répondre
-        <span>${commentCount}</span>
-      </a>
-    `
-    : "";
-
-
   /*
-    Variante réservée à la fiche d'un film :
-    l'affiche est déjà présente dans le hero de la page.
+    Variante fiche film :
+    sans affiche répétée et avec les réponses ouvertes ici.
   */
   if (isCompactFilmReview) {
     return `
-
-<article
-  class="movie-card movie-card-film-review"
-  id="review-${review.id}"
->
-
+      <article
+        class="movie-card movie-card-film-review"
+        id="review-${review.id}"
+      >
         <div class="movie-content">
           <div class="film-review-header">
             ${authorMarkup}
@@ -771,8 +765,8 @@ function createMovieCard(review, index, options = {}) {
   }
 
   /*
-    Variante classique :
-    utilisée sur l'accueil, les profils et les pages membres.
+    Variante accueil / profil / membre :
+    aucune réponse n'est déroulée dans la grille.
   */
   return `
     <article class="movie-card">
@@ -827,18 +821,12 @@ function createMovieCard(review, index, options = {}) {
         <div class="card-bottom">
           ${authorMarkup}
 
-
-        <div class="card-bottom">
-          ${authorMarkup}
-
           <div class="card-actions">
             ${discussionLink}
             ${editButton}
             ${actionButton}
           </div>
         </div>
-
-
       </div>
     </article>
   `;
