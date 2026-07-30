@@ -81,7 +81,59 @@ function renderPublicListCard(list) {
   `;
 }
 
-async function getPublicListsForMember(userId) {
+function renderMemberWishlistCard(movie) {
+  const title = movie.title || "Film sans titre";
+  const releaseYear = movie.release_year || "—";
+  const director =
+    movie.director || "Réalisation non renseignée";
+
+  const posterMarkup = movie.poster_url
+    ? `
+      <img
+        src="${escapeHTML(movie.poster_url)}"
+        alt="Affiche de ${escapeHTML(title)}"
+        loading="lazy"
+      />
+    `
+    : `
+      <div class="member-wishlist-placeholder">
+        <span>${escapeHTML(String(releaseYear))}</span>
+        <strong>${escapeHTML(title)}</strong>
+      </div>
+    `;
+
+  return `
+    <article class="member-wishlist-movie-card">
+      <a
+        class="member-wishlist-poster-link"
+        href="film.html?id=${encodeURIComponent(movie.id)}"
+        title="Voir la fiche de ${escapeHTML(title)}"
+      >
+        ${posterMarkup}
+      </a>
+
+      <div class="member-wishlist-movie-content">
+        <h3>
+          <a href="film.html?id=${encodeURIComponent(movie.id)}">
+            ${escapeHTML(title)}
+          </a>
+        </h3>
+
+        <p>
+          ${escapeHTML(String(releaseYear))} ·
+          ${escapeHTML(director)}
+        </p>
+      </div>
+    </article>
+  `;
+}
+
+/*
+  Charge les listes publiques d'un membre et distingue :
+  - la wishlist système : list_type = "wishlist"
+  - les collections personnalisées : list_type = "custom"
+*/
+async function getPublicCollectionsForMember(userId) {
   const { data: lists, error } = await supabaseClient
     .from("movie_lists")
     .select(`
@@ -89,6 +141,7 @@ async function getPublicListsForMember(userId) {
       title,
       description,
       is_public,
+      list_type,
       created_at
     `)
     .eq("user_id", userId)
@@ -100,26 +153,76 @@ async function getPublicListsForMember(userId) {
   }
 
   if (!lists || lists.length === 0) {
-    return [];
+    return {
+      wishlist: null,
+      wishlistMovies: [],
+      customLists: [],
+      publicListCount: 0
+    };
   }
 
   const listIds = lists.map((list) => list.id);
 
   const { data: items, error: itemsError } = await supabaseClient
     .from("movie_list_items")
-    .select("list_id")
-    .in("list_id", listIds);
+    .select(`
+      id,
+      list_id,
+      created_at,
+      movies (
+        id,
+        tmdb_id,
+        title,
+        original_title,
+        release_year,
+        director,
+        poster_url,
+        genres
+      )
+    `)
+    .in("list_id", listIds)
+    .order("created_at", { ascending: false });
 
   if (itemsError) {
     throw itemsError;
   }
 
-  return lists.map((list) => ({
+  const itemsByListId = {};
+
+  (items || []).forEach((item) => {
+    if (!itemsByListId[item.list_id]) {
+      itemsByListId[item.list_id] = [];
+    }
+
+    itemsByListId[item.list_id].push(item);
+  });
+
+  const listsWithCount = lists.map((list) => ({
     ...list,
-    movie_count: (items || []).filter(
-      (item) => item.list_id === list.id
-    ).length
+    movie_count: (itemsByListId[list.id] || []).length
   }));
+
+  const wishlist =
+    listsWithCount.find(
+      (list) => list.list_type === "wishlist"
+    ) || null;
+
+  const wishlistMovies = wishlist
+    ? (itemsByListId[wishlist.id] || [])
+        .filter((item) => item.movies)
+        .map((item) => item.movies)
+    : [];
+
+  const customLists = listsWithCount.filter(
+    (list) => list.list_type !== "wishlist"
+  );
+
+  return {
+    wishlist,
+    wishlistMovies,
+    customLists,
+    publicListCount: listsWithCount.length
+  };
 }
 
 async function getPublicReviewsForMember(userId) {
@@ -160,10 +263,67 @@ async function getPublicReviewsForMember(userId) {
   return enrichReviewsWithLikes(reviewsWithAuthors);
 }
 
-function renderMemberPage(profile, reviews, lists) {
+function renderMemberWishlistSection(
+  username,
+  wishlist,
+  wishlistMovies
+) {
+  if (!wishlist || wishlistMovies.length === 0) {
+    return "";
+  }
+
+  const visibleMovies = wishlistMovies.slice(0, 6);
+  const totalMovies = wishlistMovies.length;
+  const movieLabel = totalMovies > 1 ? "films" : "film";
+
+  return `
+    <section class="member-section member-wishlist-section">
+      <div class="section-title member-wishlist-heading">
+        <div>
+          <div class="eyebrow red-eyebrow">Prochaines séances</div>
+
+          <h2>
+            À voir chez ${escapeHTML(username)}
+          </h2>
+        </div>
+
+        <a
+          class="button-secondary"
+          href="liste.html?id=${encodeURIComponent(wishlist.id)}"
+        >
+          Voir la liste
+        </a>
+      </div>
+
+      <div class="member-wishlist-grid">
+        ${visibleMovies.map(renderMemberWishlistCard).join("")}
+      </div>
+
+      ${
+        totalMovies > visibleMovies.length
+          ? `
+            <p class="member-wishlist-more">
+              ${totalMovies} ${movieLabel} attendent leur séance.
+            </p>
+          `
+          : ""
+      }
+    </section>
+  `;
+}
+
+function renderMemberPage(profile, reviews, collections) {
   const username = profile.username || "Membre";
+
   const bio = profile.bio?.trim() ||
     "Ici, quelques films et les traces qu’ils ont laissées.";
+
+  const {
+    wishlist,
+    wishlistMovies,
+    customLists,
+    publicListCount
+  } = collections;
 
   document.title = `${username} — Le dernier rang`;
 
@@ -190,28 +350,37 @@ function renderMemberPage(profile, reviews, lists) {
         </div>
 
         <div class="member-stat">
-          <strong>${lists.length}</strong>
+          <strong>${publicListCount}</strong>
           <small>
-            liste${lists.length > 1 ? "s" : ""} publique${
-              lists.length > 1 ? "s" : ""
+            liste${publicListCount > 1 ? "s" : ""} publique${
+              publicListCount > 1 ? "s" : ""
             }
           </small>
         </div>
       </div>
     </section>
 
+    ${renderMemberWishlistSection(
+      username,
+      wishlist,
+      wishlistMovies
+    )}
+
     <section class="member-section">
       <div class="section-title">
         <div>
           <div class="eyebrow red-eyebrow">Ses listes</div>
-          <h2>Les petites collections de ${escapeHTML(username)}</h2>
+
+          <h2>
+            Les petites collections de ${escapeHTML(username)}
+          </h2>
         </div>
       </div>
 
       <div class="lists-grid">
         ${
-          lists.length
-            ? lists.map(renderPublicListCard).join("")
+          customLists.length
+            ? customLists.map(renderPublicListCard).join("")
             : `
               <div class="empty-state">
                 <strong>Pas encore de liste publique.</strong>
@@ -228,7 +397,10 @@ function renderMemberPage(profile, reviews, lists) {
       <div class="section-title">
         <div>
           <div class="eyebrow red-eyebrow">Son journal</div>
-          <h2>Les microcritiques de ${escapeHTML(username)}</h2>
+
+          <h2>
+            Les microcritiques de ${escapeHTML(username)}
+          </h2>
         </div>
       </div>
 
@@ -309,15 +481,16 @@ async function loadMemberPage() {
       renderMemberError(
         "Ce profil n’existe pas ou n’est plus disponible."
       );
+
       return;
     }
 
-    const [reviews, lists] = await Promise.all([
+    const [reviews, collections] = await Promise.all([
       getPublicReviewsForMember(profile.id),
-      getPublicListsForMember(profile.id)
+      getPublicCollectionsForMember(profile.id)
     ]);
 
-    renderMemberPage(profile, reviews, lists);
+    renderMemberPage(profile, reviews, collections);
   } catch (error) {
     console.error("Erreur de chargement du profil public :", error);
 
