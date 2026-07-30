@@ -206,7 +206,73 @@
     Le dernier rang · Mon carnet de cinéma.
   </footer>
 
-  <!-- MODALE : connexion et inscription -->
+  <!-- MODALE : AJOUT OU ÉDITION D'UNE MICROCRITIQUE -->
+  <div class="modal" id="editReviewModal">
+    <div class="modal-box edit-review-modal-box">
+      <div class="modal-head">
+        <h3 id="editReviewTitle">Ajouter quelques mots</h3>
+
+        <button
+          class="close-button"
+          id="closeEditReviewModal"
+          type="button"
+          aria-label="Fermer"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="edit-review-film-summary">
+        <strong id="editReviewMovieTitle"></strong>
+
+        <p>
+          Note verrouillée :
+          <span id="editReviewRating"></span>
+        </p>
+      </div>
+
+      <form id="editReviewForm">
+        <div class="field">
+          <label for="editReviewContent">
+            Ta microcritique
+          </label>
+
+          <textarea
+            id="editReviewContent"
+            maxlength="140"
+            placeholder="Quelques mots sur ce que le film a laissé derrière lui…"
+          ></textarea>
+
+          <p
+            class="character-counter"
+            id="editReviewCharacterCounter"
+          >
+            0 / 140
+          </p>
+        </div>
+
+        <div class="edit-review-actions">
+          <button
+            class="button-primary"
+            id="saveEditReviewButton"
+            type="submit"
+          >
+            Enregistrer mes mots
+          </button>
+
+          <button
+            class="button-text"
+            id="cancelEditReviewButton"
+            type="button"
+          >
+            Annuler
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODALE : CONNEXION ET INSCRIPTION -->
   <div class="modal" id="authModal">
     <div class="modal-box">
       <div class="modal-head">
