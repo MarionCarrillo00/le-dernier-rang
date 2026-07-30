@@ -5,16 +5,29 @@ function escapeHTML(value) {
   return div.innerHTML;
 }
 
-function stars(rating) {
-  const full = Math.floor(Number(rating));
-  const half = Number(rating) % 1 !== 0;
 
-  return (
-    "★".repeat(full) +
-    (half ? "½" : "") +
-    "☆".repeat(5 - full - (half ? 1 : 0))
-  );
+function stars(rating) {
+  const numericRating = Number(rating || 0);
+  const full = Math.floor(numericRating);
+  const hasHalf = numericRating % 1 !== 0;
+  const empty = 5 - full - (hasHalf ? 1 : 0);
+
+  return `
+    <span
+      class="stars"
+      aria-label="Note : ${numericRating} sur 5"
+    >
+      ${'<span class="star-full">★</span>'.repeat(full)}
+      ${
+        hasHalf
+          ? '<span class="star-half">★</span>'
+          : ""
+      }
+      ${'<span class="star-empty">☆</span>'.repeat(empty)}
+    </span>
+  `;
 }
+
 
 function posterClassFor(index) {
   const posters = [
