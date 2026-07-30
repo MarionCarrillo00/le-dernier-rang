@@ -3274,3 +3274,15 @@ footer {
   -webkit-background-clip: text;
   background-clip: text;
 }
+
+/* =====================================================
+   PROFIL PERSONNEL : ACTIONS DES CRITIQUES
+   ===================================================== */
+
+.card-bottom-own-profile {
+  justify-content: flex-end;
+}
+
+.card-bottom-own-profile .card-actions {
+  margin-left: auto;
+}
