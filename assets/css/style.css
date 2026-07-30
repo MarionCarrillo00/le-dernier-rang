@@ -3484,3 +3484,148 @@ footer {
     align-self: flex-start;
   }
 }
+
+/* =====================================================
+   DEMANDES D'AMITIÉ
+   ===================================================== */
+
+.profile-friend-requests-section {
+  margin: 0 0 46px;
+  padding: 22px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 7px 20px rgba(62, 44, 34, 0.04);
+}
+
+.friend-requests-heading {
+  margin-bottom: 16px;
+}
+
+.friend-requests-heading h2 {
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+}
+
+.friend-requests-list {
+  display: grid;
+  gap: 10px;
+}
+
+.friend-request-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.friend-request-profile {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.friend-request-profile:hover strong {
+  color: var(--red);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.friend-request-avatar {
+  display: block;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border: 2px solid var(--cream);
+  border-radius: 50%;
+  box-shadow: 0 3px 9px rgba(61, 43, 32, 0.12);
+  object-fit: cover;
+}
+
+.friend-request-avatar-placeholder {
+  display: grid;
+  color: var(--cream);
+  background: var(--deep-red);
+  font-family: Arial, sans-serif;
+  font-size: 0.85rem;
+  font-weight: bold;
+  place-items: center;
+}
+
+.friend-request-profile strong,
+.friend-request-profile span {
+  display: block;
+}
+
+.friend-request-profile strong {
+  overflow: hidden;
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-request-profile span {
+  margin-top: 3px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+}
+
+.friend-request-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.friend-request-accept,
+.friend-request-refuse {
+  padding: 8px 11px;
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+}
+
+.friend-request-accept {
+  color: white;
+  background: var(--red);
+  border: 1px solid var(--red);
+}
+
+.friend-request-accept:hover {
+  background: var(--deep-red);
+  border-color: var(--deep-red);
+}
+
+.friend-request-refuse {
+  color: var(--deep-red);
+  background: transparent;
+  border: 1px solid #d9aaa5;
+}
+
+.friend-request-refuse:hover {
+  color: white;
+  background: var(--red);
+  border-color: var(--red);
+}
+
+@media (max-width: 650px) {
+  .friend-request-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .friend-request-actions {
+    width: 100%;
+  }
+
+  .friend-request-accept,
+  .friend-request-refuse {
+    flex: 1;
+  }
+}
