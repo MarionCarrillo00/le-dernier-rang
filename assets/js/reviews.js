@@ -351,18 +351,48 @@ function setupReviewCommentInteractions() {
       ".review-comment-toggle"
     );
 
-    if (toggleButton) {
-      const reviewId = toggleButton.dataset.reviewId;
 
-      if (openedReviewCommentIds.has(reviewId)) {
-        openedReviewCommentIds.delete(reviewId);
-      } else {
-        openedReviewCommentIds.add(reviewId);
-      }
+if (toggleButton) {
+  const reviewId = toggleButton.dataset.reviewId;
+  const isCurrentlyOpen = openedReviewCommentIds.has(reviewId);
 
-      await refreshCurrentReviewView();
-      return;
-    }
+  /*
+    Fermer ne nécessite aucune nouvelle requête Supabase :
+    on replie simplement le panneau déjà affiché.
+  */
+  if (isCurrentlyOpen) {
+    openedReviewCommentIds.delete(reviewId);
+
+    const card = toggleButton.closest(".movie-card");
+    const commentsPanel = card?.querySelector(
+      ".review-comments-panel"
+    );
+
+    commentsPanel?.remove();
+
+    const count = toggleButton.querySelector("span")?.textContent || "0";
+
+    toggleButton.classList.remove("is-open");
+    toggleButton.setAttribute("aria-expanded", "false");
+
+    toggleButton.innerHTML = `
+      Répondre
+      <span>${escapeHTML(count)}</span>
+    `;
+
+    return;
+  }
+
+  /*
+    À l'ouverture, on recharge pour récupérer les réponses
+    les plus récentes et afficher le formulaire correctement.
+  */
+  openedReviewCommentIds.add(reviewId);
+
+  await refreshCurrentReviewView();
+  return;
+}
+
 
     const loginButton = event.target.closest(
       ".review-comment-login"
