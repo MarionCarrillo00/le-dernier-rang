@@ -120,7 +120,12 @@ function createMovieCard(review, index, options = {}) {
     `
     : "";
 
-  const posterMarkup = posterUrl
+
+  const movieUrl = movie.id
+    ? `film.html?id=${encodeURIComponent(movie.id)}`
+    : "";
+
+  const posterContent = posterUrl
     ? `
       <div class="poster poster-image">
         <img
@@ -144,17 +149,19 @@ function createMovieCard(review, index, options = {}) {
       </div>
     `;
 
-  const filmLink = movie.id
+  const posterMarkup = movieUrl
     ? `
       <a
-        class="film-link"
-        href="film.html?id=${encodeURIComponent(movie.id)}"
-        title="Voir la fiche du film"
+        class="movie-poster-link"
+        href="${movieUrl}"
+        title="Voir la fiche de ${escapeHTML(
+          movie.title || "ce film"
+        )}"
       >
-        Fiche
+        ${posterContent}
       </a>
     `
-    : "";
+    : posterContent;
 
   const authorAvatarMarkup = authorAvatarUrl
     ? `
@@ -257,9 +264,24 @@ function createMovieCard(review, index, options = {}) {
       <div class="movie-content">
         <div class="movie-card-heading">
           <div class="movie-card-identification">
-            <h3 class="movie-card-title">
-              ${escapeHTML(movie.title || "Film sans titre")}
-            </h3>
+
+<h3 class="movie-card-title">
+  ${
+    movieUrl
+      ? `
+        <a
+          href="${movieUrl}"
+          title="Voir la fiche de ${escapeHTML(
+            movie.title || "ce film"
+          )}"
+        >
+          ${escapeHTML(movie.title || "Film sans titre")}
+        </a>
+      `
+      : escapeHTML(movie.title || "Film sans titre")
+  }
+</h3>
+
 
             <p class="movie-card-director">
               ${escapeHTML(
@@ -290,11 +312,12 @@ function createMovieCard(review, index, options = {}) {
         <div class="card-bottom">
           ${authorMarkup}
 
-          <div class="card-actions">
-            ${filmLink}
-            ${editButton}
-            ${actionButton}
-          </div>
+
+<div class="card-actions">
+  ${editButton}
+  ${actionButton}
+</div>
+
         </div>
       </div>
     </article>
