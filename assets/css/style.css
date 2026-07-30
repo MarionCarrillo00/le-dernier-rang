@@ -3242,3 +3242,35 @@ footer {
   scroll-margin-top: 100px;
 }
 
+
+/* =====================================================
+   NOTATION : DEMI-ÉTOILES
+   ===================================================== */
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  color: var(--gold);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.star-full {
+  color: var(--gold);
+}
+
+.star-empty {
+  color: var(--gold);
+}
+
+.star-half {
+  display: inline-block;
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    var(--gold) 0 50%,
+    rgba(215, 167, 93, 0.22) 50% 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
