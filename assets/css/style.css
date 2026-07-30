@@ -3486,65 +3486,76 @@ footer {
 }
 
 /* =====================================================
-   DEMANDES D'AMITIÉ
+   DEMANDES D'AMIS — ESPACE PERSONNEL
    ===================================================== */
 
-.profile-friend-requests-section {
+.friend-requests-section {
   margin: 0 0 46px;
-  padding: 22px;
+  padding: 24px;
   background: var(--cream);
   border: 1px solid var(--line);
   border-radius: 14px;
   box-shadow: 0 7px 20px rgba(62, 44, 34, 0.04);
 }
 
+.friend-requests-section[hidden] {
+  display: none !important;
+}
+
 .friend-requests-heading {
-  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+  margin-bottom: 18px;
 }
 
 .friend-requests-heading h2 {
   font-size: clamp(1.8rem, 3vw, 2.5rem);
 }
 
-.friend-requests-list {
+.friend-requests-count {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  color: white;
+  background: var(--red);
+  border-radius: 50%;
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: bold;
+  place-items: center;
+}
+
+.friend-requests-grid {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .friend-request-card {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 18px;
-  padding: 12px;
+  gap: 14px;
+  padding: 14px;
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 11px;
 }
 
-.friend-request-profile {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  min-width: 0;
-  color: var(--ink);
+.friend-request-profile-link {
+  display: block;
+  flex: 0 0 auto;
   text-decoration: none;
-}
-
-.friend-request-profile:hover strong {
-  color: var(--red);
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 .friend-request-avatar {
   display: block;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
   border: 2px solid var(--cream);
   border-radius: 50%;
-  box-shadow: 0 3px 9px rgba(61, 43, 32, 0.12);
+  box-shadow: 0 4px 10px rgba(61, 43, 32, 0.14);
   object-fit: cover;
 }
 
@@ -3553,48 +3564,63 @@ footer {
   color: var(--cream);
   background: var(--deep-red);
   font-family: Arial, sans-serif;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: bold;
   place-items: center;
 }
 
-.friend-request-profile strong,
-.friend-request-profile span {
-  display: block;
+.friend-request-content {
+  min-width: 0;
+  flex: 1;
 }
 
-.friend-request-profile strong {
-  overflow: hidden;
+.friend-request-content p {
+  margin: 0;
+  color: var(--ink);
   font-size: 1rem;
+  line-height: 1.4;
+}
+
+.friend-request-username {
+  color: var(--deep-red);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.friend-request-username:hover {
+  color: var(--red);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.friend-request-content small {
+  display: block;
+  margin-top: 5px;
+  overflow: hidden;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.73rem;
+  line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.friend-request-profile span {
-  margin-top: 3px;
-  color: var(--grey);
-  font-family: Arial, sans-serif;
-  font-size: 0.72rem;
-}
-
 .friend-request-actions {
   display: flex;
-  flex: 0 0 auto;
-  gap: 8px;
-}
-
-.friend-request-accept,
-.friend-request-refuse {
-  padding: 8px 11px;
-  border-radius: 999px;
-  font-family: Arial, sans-serif;
-  font-size: 0.72rem;
+  align-items: center;
+  gap: 9px;
+  margin-top: 11px;
 }
 
 .friend-request-accept {
+  padding: 8px 12px;
   color: white;
   background: var(--red);
   border: 1px solid var(--red);
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  transition: 0.2s ease;
 }
 
 .friend-request-accept:hover {
@@ -3603,29 +3629,47 @@ footer {
 }
 
 .friend-request-refuse {
-  color: var(--deep-red);
+  padding: 8px 4px;
+  color: var(--grey);
   background: transparent;
-  border: 1px solid #d9aaa5;
+  border: none;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .friend-request-refuse:hover {
-  color: white;
-  background: var(--red);
-  border-color: var(--red);
+  color: var(--red);
 }
 
+/* =====================================================
+   RESPONSIVE — DEMANDES D'AMIS
+   ===================================================== */
+
 @media (max-width: 650px) {
+  .friend-requests-section {
+    padding: 18px;
+  }
+
+  .friend-requests-heading {
+    align-items: flex-start;
+  }
+
   .friend-request-card {
     align-items: flex-start;
-    flex-direction: column;
+  }
+
+  .friend-request-avatar {
+    width: 46px;
+    height: 46px;
   }
 
   .friend-request-actions {
     width: 100%;
   }
 
-  .friend-request-accept,
-  .friend-request-refuse {
+  .friend-request-accept {
     flex: 1;
   }
 }
