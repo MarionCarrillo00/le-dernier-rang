@@ -2771,3 +2771,23 @@ footer {
   }
 }
 
+/* =====================================================
+   PAGE PUBLIQUE : WISHLIST « À VOIR »
+   ===================================================== */
+
+.wishlist-hero-card {
+  background:
+    linear-gradient(
+      120deg,
+      rgba(31, 19, 18, 0.94),
+      rgba(125, 41, 41, 0.76)
+    ),
+    url("https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1600&q=80")
+    center / cover;
+}
+
+.wishlist-hero-card .list-hero-meta span:first-child {
+  color: #f3d8aa;
+  font-weight: bold;
+}
+
