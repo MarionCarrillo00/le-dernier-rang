@@ -4,6 +4,8 @@ const reviewTotal = document.getElementById("reviewTotal");
 const profileTitle = document.getElementById("profileTitle");
 const profileSubtitle = document.getElementById("profileSubtitle");
 
+const myWishlistGrid = document.getElementById("myWishlistGrid");
+
 const myListsGrid = document.getElementById("myListsGrid");
 const listForm = document.getElementById("listForm");
 
@@ -289,9 +291,205 @@ function renderProfileReviews(reviews) {
 }
 
 /* =====================================================
-   LISTES
+   WISHLIST : À VOIR
    ===================================================== */
 
+/*
+  Recherche la liste système de l'utilisatrice :
+  list_type = "wishlist".
+*/
+async function getMyWishlist() {
+  if (!currentUser) {
+    return null;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("movie_lists")
+    .select("id, title, description, is_public, list_type")
+    .eq("user_id", currentUser.id)
+    .eq("list_type", "wishlist")
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+/*
+  Récupère les films de la wishlist « À voir ».
+  La liste n'est créée qu'au premier ajout effectué depuis
+  une fiche film : son absence est donc un état normal.
+*/
+async function getMyWishlistMovies() {
+  const wishlist = await getMyWishlist();
+
+  if (!wishlist) {
+    return [];
+  }
+
+  const { data, error } = await supabaseClient
+    .from("movie_list_items")
+    .select(`
+      id,
+      created_at,
+      movies (
+        id,
+        tmdb_id,
+        title,
+        original_title,
+        release_year,
+        director,
+        poster_url,
+        genres
+      )
+    `)
+    .eq("list_id", wishlist.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data || [])
+    .filter((item) => item.movies)
+    .map((item) => ({
+      wishlist_item_id: item.id,
+      added_at: item.created_at,
+      movie: item.movies
+    }));
+}
+
+function renderWishlistMovies(items) {
+  if (!currentUser) {
+    myWishlistGrid.innerHTML = "";
+    return;
+  }
+
+  if (!items.length) {
+    myWishlistGrid.innerHTML = `
+      <div class="empty-state wishlist-empty-state">
+        <strong>Ta liste À voir attend sa première séance.</strong>
+        <br /><br />
+        Explore les fiches films et ajoute ceux que tu veux garder
+        pour plus tard.
+        <br /><br />
+        <a class="button-primary" href="index.html#critiques">
+          Découvrir les microcritiques
+        </a>
+      </div>
+    `;
+
+    return;
+  }
+
+  myWishlistGrid.innerHTML = items
+    .map(({ wishlist_item_id, movie }) => {
+      const title = movie.title || "Film sans titre";
+      const releaseYear = movie.release_year || "—";
+      const director =
+        movie.director || "Réalisation non renseignée";
+
+      const posterMarkup = movie.poster_url
+        ? `
+          <img
+            src="${escapeHTML(movie.poster_url)}"
+            alt="Affiche de ${escapeHTML(title)}"
+            loading="lazy"
+          />
+        `
+        : `
+          <div class="wishlist-poster-placeholder">
+            <span>${escapeHTML(String(releaseYear))}</span>
+            <strong>${escapeHTML(title)}</strong>
+          </div>
+        `;
+
+      return `
+        <article class="wishlist-movie-card">
+          <a
+            class="wishlist-poster-link"
+            href="film.html?id=${encodeURIComponent(movie.id)}"
+            title="Voir la fiche de ${escapeHTML(title)}"
+          >
+            ${posterMarkup}
+          </a>
+
+          <div class="wishlist-movie-content">
+            <h3>
+              <a
+                href="film.html?id=${encodeURIComponent(movie.id)}"
+              >
+                ${escapeHTML(title)}
+              </a>
+            </h3>
+
+            <p>
+              ${escapeHTML(String(releaseYear))} ·
+              ${escapeHTML(director)}
+            </p>
+
+            <button
+              class="button-text wishlist-remove-button"
+              type="button"
+              data-wishlist-item-id="${wishlist_item_id}"
+              title="Retirer ${escapeHTML(title)} de ma liste À voir"
+            >
+              Retirer
+            </button>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+
+  document
+    .querySelectorAll(".wishlist-remove-button")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        const wishlistItemId = button.dataset.wishlistItemId;
+
+        button.disabled = true;
+        button.textContent = "Retrait…";
+
+        try {
+          const { error } = await supabaseClient
+            .from("movie_list_items")
+            .delete()
+            .eq("id", wishlistItemId);
+
+          if (error) {
+            throw error;
+          }
+
+          await loadMyProfilePage();
+        } catch (error) {
+          console.error(
+            "Erreur de retrait du film de la wishlist :",
+            error
+          );
+
+          alert(
+            `Impossible de retirer ce film de ta liste À voir : ${error.message}`
+          );
+
+          button.disabled = false;
+          button.textContent = "Retirer";
+        }
+      });
+    });
+}
+
+/* =====================================================
+   LISTES PERSONNALISÉES
+   ===================================================== */
+
+/*
+  Charge uniquement les listes créées manuellement.
+  La wishlist « À voir » est exclue car elle est affichée
+  dans sa propre section au-dessus.
+*/
 async function getMyMovieLists() {
   if (!currentUser) {
     return [];
@@ -304,9 +502,11 @@ async function getMyMovieLists() {
       title,
       description,
       is_public,
+      list_type,
       created_at
     `)
     .eq("user_id", currentUser.id)
+    .eq("list_type", "custom")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -493,7 +693,8 @@ async function createMovieList(event) {
         user_id: currentUser.id,
         title,
         description: description || null,
-        is_public: isPublic
+        is_public: isPublic,
+        list_type: "custom"
       });
 
     if (error) {
@@ -526,6 +727,7 @@ async function loadMyProfilePage() {
       </div>
     `;
 
+    myWishlistGrid.innerHTML = "";
     myListsGrid.innerHTML = "";
 
     reviewTotal.textContent = "0";
@@ -544,13 +746,28 @@ async function loadMyProfilePage() {
 
   openListFormButton.hidden = false;
 
-  const [reviews, lists] = await Promise.all([
-    getMyReviews(currentUser.id),
-    getMyMovieLists()
-  ]);
+  try {
+    const [reviews, wishlistMovies, lists] = await Promise.all([
+      getMyReviews(currentUser.id),
+      getMyWishlistMovies(),
+      getMyMovieLists()
+    ]);
 
-  renderProfileReviews(reviews);
-  renderMovieLists(lists);
+    renderProfileReviews(reviews);
+    renderWishlistMovies(wishlistMovies);
+    renderMovieLists(lists);
+  } catch (error) {
+    console.error(
+      "Erreur de chargement de l’espace personnel :",
+      error
+    );
+
+    myWishlistGrid.innerHTML = `
+      <div class="empty-state">
+        Impossible de charger ta liste À voir pour le moment.
+      </div>
+    `;
+  }
 }
 
 function setupProfilePage() {
