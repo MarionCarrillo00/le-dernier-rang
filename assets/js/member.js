@@ -221,7 +221,7 @@ async function getPublicCollectionsForMember(userId) {
     wishlist,
     wishlistMovies,
     customLists,
-    publicListCount: listsWithCount.length
+    publicListCount: customLists.length
   };
 }
 
