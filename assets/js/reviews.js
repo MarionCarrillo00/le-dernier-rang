@@ -5,7 +5,6 @@ function escapeHTML(value) {
   return div.innerHTML;
 }
 
-
 function stars(rating) {
   const numericRating = Number(rating || 0);
   const full = Math.floor(numericRating);
@@ -28,7 +27,6 @@ function stars(rating) {
   `;
 }
 
-
 function posterClassFor(index) {
   const posters = [
     "poster-1",
@@ -40,6 +38,193 @@ function posterClassFor(index) {
   ];
 
   return posters[index % posters.length];
+}
+
+/* =====================================================
+   LISTE DES LIKES
+   ===================================================== */
+
+let reviewLikesModalReady = false;
+
+function ensureReviewLikesModal() {
+  if (document.getElementById("reviewLikesModal")) {
+    return;
+  }
+
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
+      <div class="modal" id="reviewLikesModal">
+        <div class="modal-box review-likes-modal-box">
+          <div class="modal-head">
+            <h3 id="reviewLikesModalTitle">Aimé par</h3>
+
+            <button
+              class="close-button"
+              id="closeReviewLikesModal"
+              type="button"
+              aria-label="Fermer"
+            >
+              ×
+            </button>
+          </div>
+
+          <div
+            class="review-likes-list"
+            id="reviewLikesList"
+          ></div>
+        </div>
+      </div>
+    `
+  );
+}
+
+function closeReviewLikesModal() {
+  document
+    .getElementById("reviewLikesModal")
+    ?.classList.remove("visible");
+}
+
+function renderReviewLikePerson(profile) {
+  const username = profile.username || "Membre";
+  const avatarUrl = profile.avatar_url || "";
+
+  const avatarMarkup = avatarUrl
+    ? `
+      <img
+        class="review-like-avatar"
+        src="${escapeHTML(avatarUrl)}"
+        alt="Photo de profil de ${escapeHTML(username)}"
+        loading="lazy"
+      />
+    `
+    : `
+      <span
+        class="review-like-avatar review-like-avatar-placeholder"
+        aria-hidden="true"
+      >
+        ${escapeHTML(username.charAt(0).toUpperCase() || "?")}
+      </span>
+    `;
+
+  return `
+    <a
+      class="review-like-person"
+      href="membre.html?id=${encodeURIComponent(profile.id)}"
+      title="Voir le profil de ${escapeHTML(username)}"
+    >
+      ${avatarMarkup}
+      <span>${escapeHTML(username)}</span>
+    </a>
+  `;
+}
+
+async function openReviewLikesModal(reviewId) {
+  ensureReviewLikesModal();
+
+  const modal = document.getElementById("reviewLikesModal");
+  const title = document.getElementById("reviewLikesModalTitle");
+  const list = document.getElementById("reviewLikesList");
+
+  modal.classList.add("visible");
+
+  title.textContent = "Chargement des likes…";
+
+  list.innerHTML = `
+    <p class="review-likes-message">
+      Un instant…
+    </p>
+  `;
+
+  try {
+    const { data: likes, error } = await supabaseClient
+      .from("review_likes")
+      .select("user_id")
+      .eq("review_id", reviewId);
+
+    if (error) {
+      throw error;
+    }
+
+    const userIds = (likes || []).map((like) => like.user_id);
+
+    if (!userIds.length) {
+      title.textContent = "Personne n’a encore aimé";
+
+      list.innerHTML = `
+        <p class="review-likes-message">
+          Cette entrée attend encore son premier petit cœur.
+        </p>
+      `;
+
+      return;
+    }
+
+    const profilesById = await getProfilesByUserIds(userIds);
+
+    const profiles = userIds
+      .map((userId) => profilesById[userId])
+      .filter(Boolean);
+
+    title.textContent =
+      `Aimé par ${profiles.length} personne${
+        profiles.length > 1 ? "s" : ""
+      }`;
+
+    list.innerHTML = profiles.length
+      ? profiles.map(renderReviewLikePerson).join("")
+      : `
+        <p class="review-likes-message">
+          Impossible d’afficher les profils associés à ces likes.
+        </p>
+      `;
+  } catch (error) {
+    console.error(
+      "Erreur de chargement de la liste des likes :",
+      error
+    );
+
+    title.textContent = "Likes";
+
+    list.innerHTML = `
+      <p class="review-likes-message">
+        Impossible de charger la liste des personnes ayant aimé cette entrée.
+      </p>
+    `;
+  }
+}
+
+function setupReviewLikesModalInteractions() {
+  if (reviewLikesModalReady) {
+    return;
+  }
+
+  reviewLikesModalReady = true;
+
+  document.addEventListener("click", (event) => {
+    const countButton = event.target.closest(".review-like-count");
+
+    if (countButton) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      openReviewLikesModal(countButton.dataset.reviewId);
+      return;
+    }
+
+    if (
+      event.target.id === "closeReviewLikesModal" ||
+      event.target.id === "reviewLikesModal"
+    ) {
+      closeReviewLikesModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeReviewLikesModal();
+    }
+  });
 }
 
 /* =====================================================
@@ -364,48 +549,47 @@ function setupReviewCommentInteractions() {
       ".review-comment-toggle"
     );
 
+    if (toggleButton) {
+      const reviewId = toggleButton.dataset.reviewId;
+      const isCurrentlyOpen = openedReviewCommentIds.has(reviewId);
 
-if (toggleButton) {
-  const reviewId = toggleButton.dataset.reviewId;
-  const isCurrentlyOpen = openedReviewCommentIds.has(reviewId);
+      /*
+        Ferme instantanément sans recharger toutes les données.
+      */
+      if (isCurrentlyOpen) {
+        openedReviewCommentIds.delete(reviewId);
 
-  /*
-    Fermer ne nécessite aucune nouvelle requête Supabase :
-    on replie simplement le panneau déjà affiché.
-  */
-  if (isCurrentlyOpen) {
-    openedReviewCommentIds.delete(reviewId);
+        const card = toggleButton.closest(".movie-card");
 
-    const card = toggleButton.closest(".movie-card");
-    const commentsPanel = card?.querySelector(
-      ".review-comments-panel"
-    );
+        const commentsPanel = card?.querySelector(
+          ".review-comments-panel"
+        );
 
-    commentsPanel?.remove();
+        commentsPanel?.remove();
 
-    const count = toggleButton.querySelector("span")?.textContent || "0";
+        const count =
+          toggleButton.querySelector("span")?.textContent || "0";
 
-    toggleButton.classList.remove("is-open");
-    toggleButton.setAttribute("aria-expanded", "false");
+        toggleButton.classList.remove("is-open");
 
-    toggleButton.innerHTML = `
-      Répondre
-      <span>${escapeHTML(count)}</span>
-    `;
+        toggleButton.setAttribute("aria-expanded", "false");
 
-    return;
-  }
+        toggleButton.innerHTML = `
+          Répondre
+          <span>${escapeHTML(count)}</span>
+        `;
 
-  /*
-    À l'ouverture, on recharge pour récupérer les réponses
-    les plus récentes et afficher le formulaire correctement.
-  */
-  openedReviewCommentIds.add(reviewId);
+        return;
+      }
 
-  await refreshCurrentReviewView();
-  return;
-}
+      /*
+        À l'ouverture, recharge les commentaires actualisés.
+      */
+      openedReviewCommentIds.add(reviewId);
 
+      await refreshCurrentReviewView();
+      return;
+    }
 
     const loginButton = event.target.closest(
       ".review-comment-login"
@@ -570,28 +754,20 @@ function createMovieCard(review, index, options = {}) {
   const isCompactFilmReview = Boolean(options.compactFilmReview);
 
   /*
-    Si l'on arrive depuis « Répondre » sur l'accueil,
-    la discussion ciblée est ouverte automatiquement.
+    Arrivée depuis le lien « Répondre » de l'accueil :
+    ouvre automatiquement la bonne discussion sur film.html.
   */
+  if (
+    isCompactFilmReview &&
+    window.location.hash === `#review-${review.id}`
+  ) {
+    openedReviewCommentIds.add(review.id);
 
-if (
-  isCompactFilmReview &&
-  window.location.hash === `#review-${review.id}`
-) {
-  openedReviewCommentIds.add(review.id);
+    const cleanUrl =
+      window.location.pathname + window.location.search;
 
-  /*
-    Le hash sert uniquement à ouvrir la discussion une fois
-    lors de l'arrivée depuis l'accueil. On le retire ensuite
-    pour que le bouton « Fermer » puisse réellement refermer
-    la conversation.
-  */
-  const cleanUrl =
-    window.location.pathname + window.location.search;
-
-  window.history.replaceState({}, "", cleanUrl);
-}
-
+    window.history.replaceState({}, "", cleanUrl);
+  }
 
   const reviewContent = String(review.content || "").trim();
 
@@ -619,16 +795,27 @@ if (
       </button>
     `
     : `
-      <button
-        class="favorite ${hasLiked ? "liked" : ""}"
-        type="button"
-        data-review-id="${review.id}"
-        title="${hasLiked ? "Retirer mon like" : "J’aime cette entrée"}"
-        aria-label="${hasLiked ? "Retirer mon like" : "J’aime cette entrée"}"
-      >
-        ${hasLiked ? "♥" : "♡"}
-        <span class="like-count">${likeCount}</span>
-      </button>
+      <div class="review-like-actions">
+        <button
+          class="favorite ${hasLiked ? "liked" : ""}"
+          type="button"
+          data-review-id="${review.id}"
+          title="${hasLiked ? "Retirer mon like" : "J’aime cette entrée"}"
+          aria-label="${hasLiked ? "Retirer mon like" : "J’aime cette entrée"}"
+        >
+          ${hasLiked ? "♥" : "♡"}
+        </button>
+
+        <button
+          class="review-like-count"
+          type="button"
+          data-review-id="${review.id}"
+          title="Voir les personnes ayant aimé cette entrée"
+          aria-label="Voir les personnes ayant aimé cette entrée"
+        >
+          ${likeCount}
+        </button>
+      </div>
     `;
 
   const editButton = options.canEdit
@@ -685,10 +872,9 @@ if (
       </a>
     `
     : "";
-  
+
   const shouldShowAuthor = !options.hideAuthor;
   const shouldShowDiscussionLink = !options.hideDiscussionLink;
-
 
   const posterContent = posterUrl
     ? `
@@ -772,7 +958,7 @@ if (
 
   /*
     Variante fiche film :
-    sans affiche répétée et avec les réponses ouvertes ici.
+    sans affiche répétée, réponses affichées uniquement ici.
   */
   if (isCompactFilmReview) {
     return `
@@ -826,7 +1012,7 @@ if (
 
   /*
     Variante accueil / profil / membre :
-    aucune réponse n'est déroulée dans la grille.
+    aucune conversation déroulée dans la grille.
   */
   return `
     <article class="movie-card">
@@ -878,27 +1064,25 @@ if (
             .join("")}
         </div>
 
+        <div class="card-bottom ${
+          shouldShowAuthor ? "" : "card-bottom-own-profile"
+        }">
+          ${
+            shouldShowAuthor
+              ? authorMarkup
+              : ""
+          }
 
-<div class="card-bottom ${
-  shouldShowAuthor ? "" : "card-bottom-own-profile"
-}">
-  ${
-    shouldShowAuthor
-      ? authorMarkup
-      : ""
-  }
-
-  <div class="card-actions">
-    ${
-      shouldShowDiscussionLink
-        ? discussionLink
-        : ""
-    }
-    ${editButton}
-    ${actionButton}
-  </div>
-</div>
-
+          <div class="card-actions">
+            ${
+              shouldShowDiscussionLink
+                ? discussionLink
+                : ""
+            }
+            ${editButton}
+            ${actionButton}
+          </div>
+        </div>
       </div>
     </article>
   `;
@@ -1341,7 +1525,8 @@ async function deleteReview(reviewId) {
 }
 
 /* =====================================================
-   INITIALISATION DES INTERACTIONS DE RÉPONSES
+   INITIALISATION
    ===================================================== */
 
 setupReviewCommentInteractions();
+setupReviewLikesModalInteractions();
