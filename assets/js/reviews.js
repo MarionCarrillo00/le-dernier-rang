@@ -528,7 +528,17 @@ function createMovieCard(review, index, options = {}) {
   const hasLiked = Boolean(review.liked_by_current_user);
 
   const isCompactFilmReview = Boolean(options.compactFilmReview);
-
+/*
+    Si l'on arrive depuis le lien « Répondre » de l'accueil,
+    on ouvre directement la discussion concernée sur la fiche film.
+  */
+  if (
+    isCompactFilmReview &&
+    window.location.hash === `#review-${review.id}`
+  ) {
+    openedReviewCommentIds.add(review.id);
+  }
+  
   const reviewContent = String(review.content || "").trim();
 
   const reviewMarkup = reviewContent
@@ -679,8 +689,30 @@ function createMovieCard(review, index, options = {}) {
       </div>
     `;
 
-  const commentButton = renderReviewCommentButton(review);
-  const commentPanel = renderReviewCommentSection(review);
+
+  const commentButton = isCompactFilmReview
+    ? renderReviewCommentButton(review)
+    : "";
+
+  const commentPanel = isCompactFilmReview
+    ? renderReviewCommentSection(review)
+    : "";
+
+  const commentCount = (review.comments || []).length;
+
+  const discussionLink = movieUrl
+    ? `
+      <a
+        class="review-discussion-link"
+        href="${movieUrl}#review-${review.id}"
+        title="Voir les réponses sur la fiche du film"
+      >
+        Répondre
+        <span>${commentCount}</span>
+      </a>
+    `
+    : "";
+
 
   /*
     Variante réservée à la fiche d'un film :
@@ -688,7 +720,12 @@ function createMovieCard(review, index, options = {}) {
   */
   if (isCompactFilmReview) {
     return `
-      <article class="movie-card movie-card-film-review">
+
+<article
+  class="movie-card movie-card-film-review"
+  id="review-${review.id}"
+>
+
         <div class="movie-content">
           <div class="film-review-header">
             ${authorMarkup}
@@ -790,14 +827,18 @@ function createMovieCard(review, index, options = {}) {
         <div class="card-bottom">
           ${authorMarkup}
 
+
+        <div class="card-bottom">
+          ${authorMarkup}
+
           <div class="card-actions">
-            ${commentButton}
+            ${discussionLink}
             ${editButton}
             ${actionButton}
           </div>
         </div>
 
-        ${commentPanel}
+
       </div>
     </article>
   `;
