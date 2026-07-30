@@ -123,6 +123,7 @@ function displaySelectedTmdbMovie(movie) {
 
   document.getElementById("title").value = movie.title || "";
   document.getElementById("year").value = movie.release_year || "";
+
   document.getElementById("director").value =
     movie.director || "Réalisateur·rice non précisé·e";
 
@@ -188,7 +189,7 @@ async function selectTmdbMovie(movie) {
     displaySelectedTmdbMovie(selectedTmdbMovie);
 
     showTmdbSearchMessage(
-      "Film sélectionné. Tu peux maintenant attribuer ta note et écrire ta microcritique."
+      "Film sélectionné. Tu peux maintenant lui attribuer une note, avec ou sans microcritique."
     );
   } catch (error) {
     console.error("Erreur de récupération des détails TMDB :", error);
@@ -339,12 +340,12 @@ async function openReviewModalWithTmdbMovie(tmdbId) {
     tmdbSearchInput.value = tmdbMovie.title || "";
 
     showTmdbSearchMessage(
-      "Film sélectionné. Tu peux maintenant attribuer ta note et écrire ta microcritique."
+      "Film sélectionné. Tu peux maintenant ajouter une note, avec ou sans texte."
     );
 
     removeWriteTmdbFromUrl();
 
-    reviewInput.focus();
+    document.getElementById("rating").focus();
   } catch (error) {
     console.error(
       "Erreur de préchargement du film depuis la fiche :",
@@ -404,11 +405,6 @@ function openFilmFromHomeTmdb(movie) {
 }
 
 function writeReviewFromHomeTmdb(movie) {
-  /*
-    L'URL permet de garder le même comportement,
-    qu'on soit déjà connectée ou non.
-    Après connexion, le film sera préchargé.
-  */
   window.location.href =
     `index.html?writeTmdb=${encodeURIComponent(movie.tmdb_id)}`;
 }
@@ -473,7 +469,7 @@ function displayHomeTmdbResults(results) {
 
     writeButton.type = "button";
     writeButton.className = "home-tmdb-write-button";
-    writeButton.textContent = "Écrire";
+    writeButton.textContent = "Ajouter";
 
     writeButton.addEventListener("click", () => {
       writeReviewFromHomeTmdb(movie);
@@ -517,10 +513,6 @@ async function searchTmdbFromHome(query) {
       throw error;
     }
 
-    /*
-      Ignore une réponse devenue obsolète si une nouvelle
-      recherche a été lancée pendant son chargement.
-    */
     if (lastHomeTmdbQuery !== cleanQuery) {
       return;
     }
@@ -543,10 +535,6 @@ async function searchTmdbFromHome(query) {
 function handleHomeSearchInput() {
   const query = searchInput.value.trim();
 
-  /*
-    Le filtre habituel reste immédiat :
-    il agit seulement sur les critiques existantes.
-  */
   renderHomeReviews();
 
   clearTimeout(homeTmdbSearchTimeout);
@@ -557,10 +545,6 @@ function handleHomeSearchInput() {
     return;
   }
 
-  /*
-    Attend 450 ms après la frappe pour ne pas envoyer
-    une recherche TMDB à chaque caractère.
-  */
   homeTmdbSearchTimeout = setTimeout(() => {
     searchTmdbFromHome(query);
   }, 450);
@@ -592,7 +576,7 @@ function renderHomeReviews() {
     const searchableText = [
       movie.title,
       movie.director,
-      review.content,
+      review.content || "",
       review.author,
       ...genres
     ]
@@ -603,7 +587,7 @@ function renderHomeReviews() {
   });
 
   movieCount.textContent =
-    `· ${filteredReviews.length} critique${
+    `· ${filteredReviews.length} entrée${
       filteredReviews.length > 1 ? "s" : ""
     }`;
 
@@ -670,7 +654,7 @@ function openReviewModal() {
     openAuthModal();
 
     showAuthMessage(
-      "Connecte-toi ou crée un compte avant de publier une critique.",
+      "Connecte-toi ou crée un compte avant d’ajouter un film à ton carnet.",
       "error"
     );
 
@@ -743,14 +727,16 @@ function setupHome() {
     );
 
     submitButton.disabled = true;
-    submitButton.textContent = "Publication…";
+    submitButton.textContent = "Ajout…";
 
     try {
       if (!selectedTmdbMovie) {
         throw new Error(
-          "Choisis un film dans les résultats TMDB avant de publier."
+          "Choisis un film dans les résultats TMDB avant d’ajouter une note."
         );
       }
+
+      const content = reviewInput.value.trim();
 
       const payload = {
         title: document.getElementById("title").value.trim(),
@@ -759,7 +745,12 @@ function setupHome() {
         director: document.getElementById("director").value,
         genre: document.getElementById("genre").value,
         rating: document.getElementById("rating").value,
-        content: reviewInput.value.trim(),
+
+        /*
+          Le texte est volontairement null quand aucun mot
+          n'est ajouté : la note seule est une entrée valide.
+        */
+        content: content || null,
 
         tags: document
           .getElementById("tags")
@@ -801,14 +792,18 @@ function setupHome() {
         .querySelector("#critiques")
         .scrollIntoView({ behavior: "smooth" });
 
-      alert("Ta microcritique est publiée sur Le dernier rang. ✨");
+      alert(
+        content
+          ? "Ta microcritique est publiée sur Le dernier rang. ✨"
+          : "Ta note est ajoutée à ton carnet. ✨"
+      );
     } catch (error) {
       console.error(error);
 
-      alert(`Impossible de publier : ${error.message}`);
+      alert(`Impossible d’ajouter ce film à ton carnet : ${error.message}`);
     } finally {
       submitButton.disabled = false;
-      submitButton.textContent = "Publier la critique";
+      submitButton.textContent = "Ajouter à mon carnet";
     }
   });
 
