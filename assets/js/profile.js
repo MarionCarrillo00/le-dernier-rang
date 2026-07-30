@@ -28,6 +28,22 @@ const listVisibilityInput = document.getElementById(
 );
 
 /* =====================================================
+   DEMANDES D'AMIS
+   ===================================================== */
+
+const friendRequestsSection = document.getElementById(
+  "friendRequestsSection"
+);
+
+const friendRequestsGrid = document.getElementById(
+  "friendRequestsGrid"
+);
+
+const friendRequestsCount = document.getElementById(
+  "friendRequestsCount"
+);
+
+/* =====================================================
    MODALE D'ÉDITION DES MICROCRITIQUES
    ===================================================== */
 
@@ -473,6 +489,282 @@ function renderProfileReviews(reviews) {
 }
 
 /* =====================================================
+   DEMANDES D'AMIS
+   ===================================================== */
+
+async function getIncomingFriendRequests() {
+  if (!currentUser) {
+    return [];
+  }
+
+  const { data: friendships, error } = await supabaseClient
+    .from("friendships")
+    .select(`
+      id,
+      requester_id,
+      recipient_id,
+      status,
+      created_at
+    `)
+    .eq("recipient_id", currentUser.id)
+    .eq("status", "pending")
+    .order("created_at", {
+      ascending: false
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  if (!friendships || friendships.length === 0) {
+    return [];
+  }
+
+  const requesterIds = friendships.map(
+    (friendship) => friendship.requester_id
+  );
+
+  const { data: profiles, error: profilesError } =
+    await supabaseClient
+      .from("profiles")
+      .select(`
+        id,
+        username,
+        avatar_url,
+        bio
+      `)
+      .in("id", requesterIds);
+
+  if (profilesError) {
+    throw profilesError;
+  }
+
+  const profilesById = Object.fromEntries(
+    (profiles || []).map((profile) => [
+      profile.id,
+      profile
+    ])
+  );
+
+  return friendships.map((friendship) => ({
+    ...friendship,
+    requester: profilesById[friendship.requester_id] || null
+  }));
+}
+
+function getFriendRequestInitial(profile) {
+  const username = profile?.username || "Membre";
+
+  return username.charAt(0).toUpperCase() || "?";
+}
+
+function renderFriendRequestAvatar(profile) {
+  const username = profile?.username || "Membre";
+
+  if (profile?.avatar_url) {
+    return `
+      <img
+        class="friend-request-avatar"
+        src="${escapeHTML(profile.avatar_url)}"
+        alt="Photo de profil de ${escapeHTML(username)}"
+        loading="lazy"
+      />
+    `;
+  }
+
+  return `
+    <div
+      class="friend-request-avatar friend-request-avatar-placeholder"
+      aria-hidden="true"
+    >
+      ${escapeHTML(getFriendRequestInitial(profile))}
+    </div>
+  `;
+}
+
+function renderFriendRequests(requests) {
+  if (
+    !friendRequestsSection ||
+    !friendRequestsGrid ||
+    !friendRequestsCount
+  ) {
+    return;
+  }
+
+  if (!currentUser || requests.length === 0) {
+    friendRequestsSection.hidden = true;
+    friendRequestsGrid.innerHTML = "";
+    friendRequestsCount.textContent = "0";
+
+    return;
+  }
+
+  friendRequestsSection.hidden = false;
+  friendRequestsCount.textContent = String(requests.length);
+
+  friendRequestsGrid.innerHTML = requests
+    .map((request) => {
+      const profile = request.requester;
+
+      const username =
+        profile?.username || "Un membre";
+
+      const profileUrl =
+        `membre.html?id=${encodeURIComponent(request.requester_id)}`;
+
+      return `
+        <article class="friend-request-card">
+          <a
+            class="friend-request-profile-link"
+            href="${profileUrl}"
+            title="Voir le profil de ${escapeHTML(username)}"
+          >
+            ${renderFriendRequestAvatar(profile)}
+          </a>
+
+          <div class="friend-request-content">
+            <p>
+              <a
+                href="${profileUrl}"
+                class="friend-request-username"
+              >
+                ${escapeHTML(username)}
+              </a>
+              <span>souhaite devenir ton ami·e.</span>
+            </p>
+
+            ${
+              profile?.bio?.trim()
+                ? `
+                  <small>
+                    ${escapeHTML(profile.bio.trim())}
+                  </small>
+                `
+                : ""
+            }
+
+            <div class="friend-request-actions">
+              <button
+                class="button-primary friend-request-accept"
+                type="button"
+                data-friend-request-action="accept"
+                data-friendship-id="${request.id}"
+              >
+                Accepter
+              </button>
+
+              <button
+                class="button-text friend-request-refuse"
+                type="button"
+                data-friend-request-action="refuse"
+                data-friendship-id="${request.id}"
+              >
+                Refuser
+              </button>
+            </div>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+
+  setupFriendRequestButtons();
+}
+
+async function acceptIncomingFriendRequest(friendshipId) {
+  if (!currentUser) {
+    throw new Error(
+      "Tu dois être connectée pour accepter une demande d’amis."
+    );
+  }
+
+  const { error } = await supabaseClient
+    .from("friendships")
+    .update({
+      status: "accepted",
+      accepted_at: new Date().toISOString()
+    })
+    .eq("id", friendshipId)
+    .eq("recipient_id", currentUser.id)
+    .eq("status", "pending");
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function refuseIncomingFriendRequest(friendshipId) {
+  if (!currentUser) {
+    throw new Error(
+      "Tu dois être connectée pour refuser une demande d’amis."
+    );
+  }
+
+  const { error } = await supabaseClient
+    .from("friendships")
+    .delete()
+    .eq("id", friendshipId)
+    .eq("recipient_id", currentUser.id)
+    .eq("status", "pending");
+
+  if (error) {
+    throw error;
+  }
+}
+
+function setupFriendRequestButtons() {
+  document
+    .querySelectorAll("[data-friend-request-action]")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        const action = button.dataset.friendRequestAction;
+
+        const friendshipId = button.dataset.friendshipId;
+
+        if (!friendshipId) {
+          return;
+        }
+
+        const originalText = button.textContent;
+
+        button.disabled = true;
+
+        if (action === "accept") {
+          button.textContent = "Acceptation…";
+        }
+
+        if (action === "refuse") {
+          button.textContent = "Refus…";
+        }
+
+        try {
+          if (action === "accept") {
+            await acceptIncomingFriendRequest(friendshipId);
+          }
+
+          if (action === "refuse") {
+            await refuseIncomingFriendRequest(friendshipId);
+          }
+
+          await loadMyProfilePage();
+        } catch (error) {
+          console.error(
+            "Erreur de traitement de la demande d’amis :",
+            error
+          );
+
+          alert(
+            `Impossible de mettre à jour cette demande : ${error.message}`
+          );
+
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      });
+    });
+}
+
+/* =====================================================
    WISHLIST : À VOIR
    ===================================================== */
 
@@ -789,6 +1081,7 @@ function renderMovieLists(lists) {
 
           <div class="movie-list-card-bottom">
             <span>${list.movie_count} ${movieLabel}</span>
+
             <span>
               ${
                 list.is_public
@@ -929,6 +1222,18 @@ async function loadMyProfilePage() {
       myListsGrid.innerHTML = "";
     }
 
+    if (friendRequestsSection) {
+      friendRequestsSection.hidden = true;
+    }
+
+    if (friendRequestsGrid) {
+      friendRequestsGrid.innerHTML = "";
+    }
+
+    if (friendRequestsCount) {
+      friendRequestsCount.textContent = "0";
+    }
+
     if (reviewTotal) {
       reviewTotal.textContent = "0";
     }
@@ -959,15 +1264,22 @@ async function loadMyProfilePage() {
   }
 
   try {
-    const [reviews, wishlistMovies, lists] = await Promise.all([
+    const [
+      reviews,
+      wishlistMovies,
+      lists,
+      incomingFriendRequests
+    ] = await Promise.all([
       getMyReviews(currentUser.id),
       getMyWishlistMovies(),
-      getMyMovieLists()
+      getMyMovieLists(),
+      getIncomingFriendRequests()
     ]);
 
     renderProfileReviews(reviews);
     renderWishlistMovies(wishlistMovies);
     renderMovieLists(lists);
+    renderFriendRequests(incomingFriendRequests);
   } catch (error) {
     console.error(
       "Erreur de chargement de l’espace personnel :",
@@ -996,6 +1308,10 @@ async function loadMyProfilePage() {
           Impossible de charger tes listes pour le moment.
         </div>
       `;
+    }
+
+    if (friendRequestsSection) {
+      friendRequestsSection.hidden = true;
     }
   }
 }
@@ -1041,7 +1357,8 @@ function setupProfilePage() {
     cancelEditReviewButton &&
     editReviewContent &&
     editReviewModal &&
-    editReviewForm
+    editReviewForm &&
+    saveEditReviewButton
   ) {
     closeEditReviewModalButton.addEventListener(
       "click",
