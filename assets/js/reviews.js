@@ -51,12 +51,30 @@ function createMovieCard(review, index, options = {}) {
   const likeCount = Number(review.like_count || 0);
   const hasLiked = Boolean(review.liked_by_current_user);
 
+  /*
+    Une entrée peut désormais être une note seule :
+    le texte de critique est donc facultatif.
+  */
+  const reviewContent = String(review.content || "").trim();
+
+  const reviewMarkup = reviewContent
+    ? `
+      <p class="review">
+        “${escapeHTML(reviewContent)}”
+      </p>
+    `
+    : `
+      <p class="review review-note-only">
+        Note seule
+      </p>
+    `;
+
   const actionButton = options.canDelete
     ? `
       <button
         class="delete-review"
         data-review-id="${review.id}"
-        title="Supprimer cette critique"
+        title="Supprimer cette entrée"
       >
         Supprimer
       </button>
@@ -65,8 +83,8 @@ function createMovieCard(review, index, options = {}) {
       <button
         class="favorite ${hasLiked ? "liked" : ""}"
         data-review-id="${review.id}"
-        title="${hasLiked ? "Retirer mon like" : "J’aime cette critique"}"
-        aria-label="${hasLiked ? "Retirer mon like" : "J’aime cette critique"}"
+        title="${hasLiked ? "Retirer mon like" : "J’aime cette entrée"}"
+        aria-label="${hasLiked ? "Retirer mon like" : "J’aime cette entrée"}"
       >
         ${hasLiked ? "♥" : "♡"}
         <span class="like-count">${likeCount}</span>
@@ -174,7 +192,7 @@ function createMovieCard(review, index, options = {}) {
           </span>
         </div>
 
-        <p class="review">“${escapeHTML(review.content)}”</p>
+        ${reviewMarkup}
 
         <div class="tags">
           <span class="tag">${escapeHTML(primaryGenre)}</span>
@@ -200,6 +218,10 @@ function createMovieCard(review, index, options = {}) {
     </article>
   `;
 }
+
+/* =====================================================
+   PROFILS DES AUTEURS
+   ===================================================== */
 
 async function getProfilesByUserIds(userIds) {
   const uniqueUserIds = [
@@ -233,6 +255,10 @@ function addAuthorsToReviews(reviews, profilesById) {
       profilesById[review.user_id]?.avatar_url || ""
   }));
 }
+
+/* =====================================================
+   LIKES
+   ===================================================== */
 
 async function enrichReviewsWithLikes(reviews) {
   if (!reviews || reviews.length === 0) {
@@ -273,7 +299,7 @@ async function enrichReviewsWithLikes(reviews) {
 
 async function toggleReviewLike(reviewId) {
   if (!currentUser) {
-    throw new Error("Connecte-toi pour aimer une microcritique.");
+    throw new Error("Connecte-toi pour aimer une entrée du carnet.");
   }
 
   const { data: existingLike, error: searchError } =
@@ -314,6 +340,10 @@ async function toggleReviewLike(reviewId) {
 
   return true;
 }
+
+/* =====================================================
+   LECTURE DES NOTES ET MICROCRITIQUES
+   ===================================================== */
 
 async function getPublicReviews() {
   const { data: reviews, error } = await supabaseClient
@@ -392,7 +422,7 @@ async function getMyReviews(userId) {
 }
 
 /*
-  Récupère toutes les critiques publiques d’un film.
+  Récupère toutes les entrées publiques d’un film.
   Utilisée sur film.html par film.js.
 */
 async function getReviewsByMovieId(movieId) {
@@ -438,9 +468,15 @@ async function getReviewsByMovieId(movieId) {
   return enrichReviewsWithLikes(reviewsWithAuthors);
 }
 
+/* =====================================================
+   PUBLICATION
+   ===================================================== */
+
 async function publishReview(payload) {
   if (!currentUser) {
-    throw new Error("Tu dois être connectée pour publier une critique.");
+    throw new Error(
+      "Tu dois être connectée pour ajouter une note ou une microcritique."
+    );
   }
 
   const {
@@ -537,19 +573,25 @@ async function publishReview(payload) {
     }
   }
 
+  /*
+    Une chaîne vide devient null :
+    elle représente une note seule dans la base.
+  */
+  const reviewContent = String(content || "").trim() || null;
+
   const { error: reviewError } = await supabaseClient
     .from("reviews")
     .insert({
       user_id: currentUser.id,
       movie_id: movieId,
       rating: Number(rating),
-      content,
+      content: reviewContent,
       is_published: true
     });
 
   if (reviewError?.code === "23505") {
     throw new Error(
-      "Tu as déjà publié une microcritique pour ce film."
+      "Tu as déjà ajouté une note ou une microcritique pour ce film."
     );
   }
 
@@ -557,6 +599,10 @@ async function publishReview(payload) {
     throw reviewError;
   }
 }
+
+/* =====================================================
+   SUPPRESSION
+   ===================================================== */
 
 async function deleteReview(reviewId) {
   const { error } = await supabaseClient
