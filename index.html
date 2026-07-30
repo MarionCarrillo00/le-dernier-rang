@@ -26,26 +26,24 @@
         Connexion
       </button>
 
+      <div class="user-menu" id="userMenu" hidden>
+        <img
+          id="navAvatar"
+          class="nav-avatar"
+          alt=""
+          hidden
+        />
 
-<div class="user-menu" id="userMenu" hidden>
-  <img
-    id="navAvatar"
-    class="nav-avatar"
-    alt=""
-    hidden
-  />
+        <span id="userGreeting"></span>
 
-  <span id="userGreeting"></span>
+        <a class="profile-link" href="profil.html">
+          Mon espace
+        </a>
 
-  <a class="profile-link" href="profil.html">
-    Mon espace
-  </a>
-
-  <button class="logout-button" id="logoutButton">
-    Déconnexion
-  </button>
-</div>
-
+        <button class="logout-button" id="logoutButton">
+          Déconnexion
+        </button>
+      </div>
     </div>
   </nav>
 
@@ -85,22 +83,20 @@
       </div>
 
       <div class="controls">
+        <div class="search-box">
+          <input
+            id="searchInput"
+            type="search"
+            autocomplete="off"
+            placeholder="Chercher un film, un réalisateur, une émotion…"
+          />
 
-<div class="search-box">
-  <input
-    id="searchInput"
-    type="search"
-    autocomplete="off"
-    placeholder="Chercher un film, un réalisateur, une émotion…"
-  />
-
-  <div
-    class="home-tmdb-results"
-    id="homeTmdbResults"
-    aria-live="polite"
-  ></div>
-</div>
-
+          <div
+            class="home-tmdb-results"
+            id="homeTmdbResults"
+            aria-live="polite"
+          ></div>
+        </div>
 
         <div class="filters" id="filters">
           <button class="filter active" data-genre="Tous">
@@ -152,11 +148,11 @@
     et beaucoup trop d’émotions devant les génériques.
   </footer>
 
-  <!-- MODALE : publication d'une critique -->
+  <!-- MODALE : publication d'une critique ou d'une note -->
   <div class="modal" id="reviewModal">
     <div class="modal-box">
       <div class="modal-head">
-        <h3>Nouvelle critique</h3>
+        <h3>Ajouter à mon carnet</h3>
 
         <button class="close-button" id="closeModal" aria-label="Fermer">
           ×
@@ -188,7 +184,8 @@
           </div>
 
           <p class="form-note">
-            Choisis un résultat pour récupérer automatiquement les informations du film.
+            Choisis un résultat pour récupérer automatiquement les informations
+            du film.
           </p>
 
           <div
@@ -232,7 +229,7 @@
         <input id="director" type="hidden" />
         <input id="genre" type="hidden" />
 
-        <!-- Informations que l'utilisatrice renseigne elle-même -->
+        <!-- Informations renseignées par le membre -->
         <div class="form-grid">
           <div class="field">
             <label for="rating">Note *</label>
@@ -261,23 +258,25 @@
           </div>
 
           <div class="field full">
-            <label for="review">Ta microcritique *</label>
-<textarea
-  id="review"
-  required
-  maxlength="140"
-  placeholder="Quelques mots sur ce que tu as ressenti…"
-></textarea>
+            <label for="review">
+              Quelques mots sur le film
+              <span class="optional-label">(facultatif)</span>
+            </label>
 
-<p class="character-counter" id="reviewCharacterCounter">
-  0 / 140
-</p>
+            <textarea
+              id="review"
+              maxlength="140"
+              placeholder="Une image, une émotion, une phrase… ou simplement une note."
+            ></textarea>
 
+            <p class="character-counter" id="reviewCharacterCounter">
+              0 / 140
+            </p>
           </div>
         </div>
 
         <button class="button-primary" type="submit">
-          Publier la critique
+          Ajouter à mon carnet
         </button>
       </form>
     </div>
@@ -360,7 +359,8 @@
         </button>
 
         <p class="form-note" id="authNote">
-          Connecte-toi pour publier une microcritique et retrouver tes films.
+          Connecte-toi pour publier une note ou une microcritique
+          et retrouver tes films.
         </p>
       </form>
     </div>
