@@ -52,12 +52,18 @@ function renderMemberAvatar(profile) {
    AMITIÉS
    ===================================================== */
 
+
 async function getFriendshipWithMember(memberId) {
   if (!currentUser || !memberId || currentUser.id === memberId) {
     return null;
   }
 
-  const { data, error } = await supabaseClient
+  /*
+    On récupère toutes les relations du membre connecté :
+    les règles RLS autorisent cette lecture pour les demandes
+    envoyées et reçues.
+  */
+  const { data: friendships, error } = await supabaseClient
     .from("friendships")
     .select(`
       id,
@@ -68,16 +74,30 @@ async function getFriendshipWithMember(memberId) {
       accepted_at
     `)
     .or(
-      `and(requester_id.eq.${currentUser.id},recipient_id.eq.${memberId}),and(requester_id.eq.${memberId},recipient_id.eq.${currentUser.id})`
-    )
-    .maybeSingle();
+      `requester_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`
+    );
 
   if (error) {
     throw error;
   }
 
-  return data;
+  /*
+    On conserve uniquement la relation avec le profil consulté,
+    quel que soit le sens de la demande.
+  */
+  return (friendships || []).find(
+    (friendship) =>
+      (
+        friendship.requester_id === currentUser.id &&
+        friendship.recipient_id === memberId
+      ) ||
+      (
+        friendship.requester_id === memberId &&
+        friendship.recipient_id === currentUser.id
+      )
+  ) || null;
 }
+
 
 function getFriendshipState(memberId, friendship) {
   if (!currentUser || currentUser.id === memberId) {
