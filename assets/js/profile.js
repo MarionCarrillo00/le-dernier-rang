@@ -389,11 +389,15 @@ function renderProfileReviews(reviews) {
 
   myReviewsGrid.innerHTML = reviews
     .map((review, index) =>
-      createMovieCard(review, index, {
-        author: username,
-        canDelete: true,
-        canEdit: true
-      })
+
+createMovieCard(review, index, {
+  author: username,
+  canDelete: true,
+  canEdit: true,
+  hideAuthor: true,
+  hideDiscussionLink: true
+})
+
     )
     .join("");
 
