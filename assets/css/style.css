@@ -2708,3 +2708,66 @@ footer {
   line-height: 1.4;
 }
 
+/* =====================================================
+   ÉDITION D'UNE NOTE / MICROCRITIQUE
+   ===================================================== */
+
+.edit-review {
+  padding: 0;
+  color: var(--deep-red);
+  background: transparent;
+  border: none;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.edit-review:hover {
+  color: var(--red);
+}
+
+.edit-review-modal-box {
+  width: min(560px, 100%);
+}
+
+.edit-review-film-summary {
+  margin: 0 0 22px;
+  padding: 14px 16px;
+  background: #f4e4df;
+  border-left: 3px solid var(--gold);
+  border-radius: 0 8px 8px 0;
+}
+
+.edit-review-film-summary strong {
+  display: block;
+  color: var(--ink);
+  font-size: 1.12rem;
+}
+
+.edit-review-film-summary p {
+  margin: 7px 0 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.76rem;
+}
+
+.edit-review-film-summary span {
+  color: var(--gold);
+  font-size: 0.88rem;
+  letter-spacing: 1px;
+}
+
+.edit-review-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+@media (max-width: 650px) {
+  .edit-review-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
