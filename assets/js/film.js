@@ -221,7 +221,7 @@ async function getOrCreateWishlist() {
         title: "À voir",
         description:
           "Les films que je garde pour une prochaine séance.",
-        is_public: false,
+        is_public: true,
         list_type: "wishlist"
       })
       .select("id, title, list_type")
