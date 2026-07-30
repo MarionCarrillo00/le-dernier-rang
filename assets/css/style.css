@@ -3673,3 +3673,391 @@ footer {
     flex: 1;
   }
 }
+
+/* =====================================================
+   CORRECTION PROFIL.HTML
+   Correspondance entre les nouvelles classes HTML
+   et la direction artistique existante.
+   ===================================================== */
+
+/* -----------------------------------------------------
+   NAVIGATION
+   profil.html utilise .nav-links, pas .menu.
+   ----------------------------------------------------- */
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 15px;
+  min-width: 0;
+}
+
+.nav-links > a:not(.button-primary) {
+  color: var(--ink);
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.nav-links > a:not(.button-primary):hover {
+  color: var(--red);
+}
+
+.user-menu-profile-link {
+  color: var(--deep-red);
+  font-family: Arial, sans-serif;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.user-menu-profile-link.active {
+  font-weight: bold;
+}
+
+/* -----------------------------------------------------
+   HERO : ESPACE PERSONNEL
+   profil.html utilise .profile-hero-card.
+   ----------------------------------------------------- */
+
+.profile-hero-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+  margin-bottom: 46px;
+  padding: 36px;
+  color: white;
+  background:
+    linear-gradient(
+      120deg,
+      rgba(31, 19, 18, 0.91),
+      rgba(113, 35, 36, 0.72)
+    ),
+    url("https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1600&q=80")
+    center / cover;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+.profile-hero-identity {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-width: 0;
+}
+
+.profile-hero-copy {
+  min-width: 0;
+}
+
+.profile-hero-card .red-eyebrow {
+  color: #f3d8aa;
+}
+
+.profile-hero-card h1 {
+  margin: 0 0 12px;
+  color: white;
+  font-size: clamp(2.8rem, 5vw, 4.8rem);
+}
+
+.profile-hero-card p {
+  max-width: 620px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 1.04rem;
+  line-height: 1.6;
+}
+
+.profile-hero-card .profile-stat {
+  flex: 0 0 auto;
+}
+
+.profile-stat strong {
+  display: block;
+  color: var(--red);
+  font-size: 2.4rem;
+}
+
+/* -----------------------------------------------------
+   AVATAR : ESPACE PERSONNEL
+   ----------------------------------------------------- */
+
+.profile-avatar-editor {
+  width: 118px;
+  flex: 0 0 118px;
+  text-align: center;
+}
+
+.profile-avatar-large,
+.profile-avatar-placeholder {
+  width: 104px;
+  height: 104px;
+  margin: 0 auto 10px;
+  border: 3px solid rgba(255, 255, 255, 0.76);
+  border-radius: 50%;
+  box-shadow: 0 8px 20px rgba(20, 13, 12, 0.22);
+}
+
+.profile-avatar-large {
+  display: block;
+  background: var(--cream);
+  object-fit: cover;
+}
+
+.profile-avatar-placeholder {
+  display: grid;
+  color: var(--cream);
+  background: rgba(255, 255, 255, 0.16);
+  font-family: Arial, sans-serif;
+  font-size: 2.25rem;
+  font-weight: bold;
+  place-items: center;
+}
+
+.profile-avatar-upload-label {
+  display: inline-block;
+  padding: 7px 9px;
+  color: white;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-size: 0.67rem;
+  transition: 0.2s ease;
+}
+
+.profile-avatar-upload-label:hover {
+  color: var(--deep-red);
+  background: var(--cream);
+  border-color: var(--cream);
+}
+
+.profile-avatar-large[hidden],
+.profile-avatar-placeholder[hidden] {
+  display: none !important;
+}
+
+/* -----------------------------------------------------
+   FORMULAIRES
+   profil.html utilise .form-field, pas .field.
+   ----------------------------------------------------- */
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.form-field label {
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: bold;
+}
+
+/* -----------------------------------------------------
+   LAYOUT WISHLIST + LISTES
+   profil.html utilise .profile-collections-layout,
+   alors que le CSS utilisait .profile-content-layout.
+   ----------------------------------------------------- */
+
+.profile-collections-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  align-items: start;
+  gap: 46px;
+  margin-top: 52px;
+}
+
+.profile-collections-layout .profile-lists-section {
+  min-width: 0;
+}
+
+.profile-collections-layout .profile-wishlist-section {
+  position: sticky;
+  top: 96px;
+  margin: 0;
+  padding: 0 22px 0 0;
+  border-right: 1px solid var(--line);
+}
+
+/* Évite que la section des critiques reste trop proche
+   des collections quand la grille se termine. */
+.profile-reviews-section {
+  margin-top: 78px;
+}
+
+/* -----------------------------------------------------
+   MODALE D'ÉDITION
+   profil.html utilise modal-overlay / modal-content.
+   ----------------------------------------------------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  place-items: center;
+  padding: 20px;
+  background: rgba(25, 18, 17, 0.62);
+}
+
+.modal-overlay.visible {
+  display: grid;
+}
+
+.modal-content {
+  position: relative;
+  width: min(620px, 100%);
+  max-height: 92vh;
+  padding: 32px;
+  overflow-y: auto;
+  background: var(--cream);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.edit-review-modal-content {
+  width: min(560px, 100%);
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  padding: 4px 10px;
+  color: var(--grey);
+  background: transparent;
+  border: none;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: var(--red);
+}
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.edit-review-movie-title {
+  margin: 0 0 7px;
+  color: var(--ink);
+  font-size: 1.08rem;
+  font-weight: bold;
+}
+
+.edit-review-rating {
+  margin: 0 0 22px;
+  color: var(--gold);
+  font-family: Arial, sans-serif;
+  font-size: 0.82rem;
+}
+
+/* -----------------------------------------------------
+   RESPONSIVE
+   ----------------------------------------------------- */
+
+@media (max-width: 950px) {
+  .profile-collections-layout {
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .profile-collections-layout .profile-wishlist-section {
+    padding-right: 18px;
+  }
+}
+
+@media (max-width: 750px) {
+  .profile-hero-card {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 25px;
+  }
+
+  .profile-hero-identity {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profile-avatar-editor {
+    width: auto;
+    text-align: left;
+  }
+
+  .profile-avatar-large,
+  .profile-avatar-placeholder {
+    display: inline-grid;
+    width: 92px;
+    height: 92px;
+    margin: 0;
+  }
+
+  .profile-collections-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 42px;
+    margin-top: 40px;
+  }
+
+  .profile-collections-layout .profile-wishlist-section {
+    position: static;
+    width: 100%;
+    padding: 0 0 28px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .wishlist-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (max-width: 650px) {
+  .navbar {
+    flex-wrap: wrap;
+  }
+
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    width: 100%;
+    gap: 9px;
+  }
+
+  .nav-links > a:not(.button-primary) {
+    display: none;
+  }
+
+  .nav-links .user-menu-profile-link {
+    display: inline;
+  }
+
+  .nav-links .button-primary {
+    padding: 10px 13px;
+    font-size: 0.82rem;
+  }
+
+  .profile-hero-card h1 {
+    font-size: 2.8rem;
+  }
+
+  .modal-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 500px) {
+  .wishlist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
