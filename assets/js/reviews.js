@@ -29,7 +29,6 @@ function posterClassFor(index) {
   return posters[index % posters.length];
 }
 
-
 function createMovieCard(review, index, options = {}) {
   const movie = review.movies || {};
   const genres = movie.genres || [];
@@ -157,12 +156,18 @@ function createMovieCard(review, index, options = {}) {
       ${posterMarkup}
 
       <div class="movie-content">
-        <div class="movie-meta">
-          <span>
-            ${escapeHTML(
-              movie.director || "Réalisateur·rice non précisé·e"
-            )}
-          </span>
+        <div class="movie-card-heading">
+          <div class="movie-card-identification">
+            <h3 class="movie-card-title">
+              ${escapeHTML(movie.title || "Film sans titre")}
+            </h3>
+
+            <p class="movie-card-director">
+              ${escapeHTML(
+                movie.director || "Réalisateur·rice non précisé·e"
+              )}
+            </p>
+          </div>
 
           <span class="rating" title="${review.rating}/5">
             ${stars(review.rating)}
@@ -195,7 +200,6 @@ function createMovieCard(review, index, options = {}) {
     </article>
   `;
 }
-
 
 async function getProfilesByUserIds(userIds) {
   const uniqueUserIds = [
