@@ -3286,3 +3286,101 @@ footer {
 .card-bottom-own-profile .card-actions {
   margin-left: auto;
 }
+
+/* =====================================================
+   LISTE DES LIKES
+   ===================================================== */
+
+.review-like-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.review-like-actions .favorite {
+  flex: 0 0 auto;
+}
+
+.review-like-count {
+  min-width: 18px;
+  padding: 0;
+  color: var(--grey);
+  background: transparent;
+  border: none;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.review-like-count:hover {
+  color: var(--red);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.review-likes-modal-box {
+  width: min(430px, 100%);
+}
+
+.review-likes-list {
+  display: grid;
+  gap: 10px;
+}
+
+.review-likes-message {
+  margin: 0;
+  padding: 12px 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.review-like-person {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: #f4e4df;
+  border-radius: 9px;
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+
+.review-like-person:hover {
+  color: var(--deep-red);
+  background: #f0dcd5;
+  transform: translateX(2px);
+}
+
+.review-like-avatar {
+  display: block;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border: 2px solid var(--cream);
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(61, 43, 32, 0.1);
+  object-fit: cover;
+}
+
+.review-like-avatar-placeholder {
+  display: grid;
+  color: var(--cream);
+  background: var(--deep-red);
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: bold;
+  place-items: center;
+}
+
+.review-like-person span {
+  overflow: hidden;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: bold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
