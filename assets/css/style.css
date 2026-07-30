@@ -2689,3 +2689,9 @@ footer {
   }
 }
 
+
+.optional-label {
+  color: var(--grey);
+  font-weight: normal;
+}
+
