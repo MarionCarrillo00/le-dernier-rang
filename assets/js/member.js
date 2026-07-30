@@ -505,3 +505,4 @@ document.addEventListener("authChanged", () => {
 });
 
 loadMemberPage();
+ 
