@@ -83,6 +83,162 @@ async function getListOwnerName(userId) {
   return data.username;
 }
 
+function getListMovieLabel(count) {
+  return count > 1 ? "films" : "film";
+}
+
+function renderStandardListPage(list, ownerName, movies, isOwner) {
+  const movieCount = movies.length;
+  const movieLabel = getListMovieLabel(movieCount);
+
+  return `
+    <section class="list-hero-card">
+      <div>
+        <div class="eyebrow red-eyebrow">
+          ${list.is_public ? "Liste publique" : "Liste privée"}
+        </div>
+
+        <h1>${escapeHTML(list.title)}</h1>
+
+        <p class="list-description">
+          ${
+            list.description
+              ? escapeHTML(list.description)
+              : "Une collection de films à garder tout près de soi."
+          }
+        </p>
+
+        <div class="list-hero-meta">
+          <span>Par ${escapeHTML(ownerName)}</span>
+          <span>${movieCount} ${movieLabel}</span>
+          <span>
+            ${
+              list.is_public
+                ? "Visible par tous"
+                : "Visible uniquement par moi"
+            }
+          </span>
+        </div>
+      </div>
+
+      ${
+        isOwner
+          ? `
+            <a class="button-secondary" href="profil.html">
+              Gérer mes listes
+            </a>
+          `
+          : ""
+      }
+    </section>
+
+    <section class="list-movies-section">
+      <div class="section-title">
+        <div>
+          <div class="eyebrow red-eyebrow">La sélection</div>
+          <h2>Les films de cette liste</h2>
+        </div>
+      </div>
+
+      <div class="list-movies-grid">
+        ${
+          movies.length
+            ? movies.map(renderListMovieCard).join("")
+            : `
+              <div class="empty-state">
+                <strong>Cette liste est encore vide.</strong>
+                <br /><br />
+                ${
+                  isOwner
+                    ? "Ouvre une fiche film et ajoute-y un premier titre."
+                    : "Sa créatrice n’y a pas encore ajouté de film."
+                }
+              </div>
+            `
+        }
+      </div>
+    </section>
+  `;
+}
+
+function renderWishlistPage(list, ownerName, movies, isOwner) {
+  const movieCount = movies.length;
+  const movieLabel = getListMovieLabel(movieCount);
+
+  return `
+    <section class="list-hero-card wishlist-hero-card">
+      <div>
+        <div class="eyebrow red-eyebrow">
+          Prochaines séances
+        </div>
+
+        <h1>
+          Les prochaines séances de ${escapeHTML(ownerName)}
+        </h1>
+
+        <p class="list-description">
+          ${
+            list.description
+              ? escapeHTML(list.description)
+              : `Les films que ${escapeHTML(
+                  ownerName
+                )} garde précieusement pour une prochaine séance.`
+          }
+        </p>
+
+        <div class="list-hero-meta">
+          <span>${movieCount} ${movieLabel} attendent leur séance</span>
+          <span>Liste publique</span>
+        </div>
+      </div>
+
+      ${
+        isOwner
+          ? `
+            <a class="button-secondary" href="profil.html">
+              Gérer ma liste À voir
+            </a>
+          `
+          : ""
+      }
+    </section>
+
+    <section class="list-movies-section">
+      <div class="section-title">
+        <div>
+          <div class="eyebrow red-eyebrow">À découvrir</div>
+          <h2>Les films qui attendent leur séance</h2>
+        </div>
+      </div>
+
+      <div class="list-movies-grid">
+        ${
+          movies.length
+            ? movies.map(renderListMovieCard).join("")
+            : `
+              <div class="empty-state">
+                <strong>Cette liste À voir est encore vide.</strong>
+                <br /><br />
+                ${
+                  isOwner
+                    ? `
+                      Ouvre une fiche film et clique sur
+                      « Ajouter à ma liste À voir ».
+                    `
+                    : `
+                      ${escapeHTML(
+                        ownerName
+                      )} n’a pas encore ajouté de film à ses prochaines séances.
+                    `
+                }
+              </div>
+            `
+        }
+      </div>
+    </section>
+  `;
+}
+
 async function loadListPage() {
   const listId = getListIdFromUrl();
 
@@ -100,6 +256,7 @@ async function loadListPage() {
         title,
         description,
         is_public,
+        list_type,
         created_at
       `)
       .eq("id", listId)
@@ -110,8 +267,8 @@ async function loadListPage() {
     }
 
     /*
-      Une liste privée renvoie null pour les autres personnes,
-      grâce aux règles RLS créées dans Supabase.
+      Une liste privée renvoie null aux autres membres
+      grâce aux règles RLS Supabase.
     */
     if (!list) {
       renderListError(
@@ -140,84 +297,24 @@ async function loadListPage() {
       throw itemsError;
     }
 
-    const ownerName = await getListOwnerName(list.user_id);
+    const [ownerName] = await Promise.all([
+      getListOwnerName(list.user_id)
+    ]);
 
     const movies = (items || [])
       .map((item) => item.movies)
       .filter(Boolean);
 
     const isOwner = currentUser?.id === list.user_id;
+    const isWishlist = list.list_type === "wishlist";
 
-    document.title = `${list.title} — Le dernier rang`;
+    document.title = isWishlist
+      ? `Les prochaines séances de ${ownerName} — Le dernier rang`
+      : `${list.title} — Le dernier rang`;
 
-    listPageContent.innerHTML = `
-      <section class="list-hero-card">
-        <div>
-          <div class="eyebrow red-eyebrow">
-            ${list.is_public ? "Liste publique" : "Liste privée"}
-          </div>
-
-          <h1>${escapeHTML(list.title)}</h1>
-
-          <p class="list-description">
-            ${
-              list.description
-                ? escapeHTML(list.description)
-                : "Une collection de films à garder tout près de soi."
-            }
-          </p>
-
-          <div class="list-hero-meta">
-            <span>Par ${escapeHTML(ownerName)}</span>
-            <span>${movies.length} film${movies.length > 1 ? "s" : ""}</span>
-            <span>
-              ${
-                list.is_public
-                  ? "Visible par tous"
-                  : "Visible uniquement par moi"
-              }
-            </span>
-          </div>
-        </div>
-
-        ${
-          isOwner
-            ? `
-              <a class="button-secondary" href="profil.html">
-                Gérer mes listes
-              </a>
-            `
-            : ""
-        }
-      </section>
-
-      <section class="list-movies-section">
-        <div class="section-title">
-          <div>
-            <div class="eyebrow red-eyebrow">La sélection</div>
-            <h2>Les films de cette liste</h2>
-          </div>
-        </div>
-
-        <div class="list-movies-grid">
-          ${
-            movies.length
-              ? movies.map(renderListMovieCard).join("")
-              : `
-                <div class="empty-state">
-                  <strong>Cette liste est encore vide.</strong>
-                  <br /><br />
-                  ${
-                    isOwner
-                      ? "Ouvre une fiche film et ajoute-y un premier titre."
-                      : "Sa créatrice n’y a pas encore ajouté de film."
-                  }
-                </div>
-              `
-          }
-        </div>
-      </section>
-    `;
+    listPageContent.innerHTML = isWishlist
+      ? renderWishlistPage(list, ownerName, movies, isOwner)
+      : renderStandardListPage(list, ownerName, movies, isOwner);
   } catch (error) {
     console.error("Erreur de chargement de la liste :", error);
 
