@@ -3384,3 +3384,103 @@ footer {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* =====================================================
+   AMITIÉS
+   ===================================================== */
+
+.member-hero-aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.friendship-button {
+  color: white;
+  background: var(--red);
+  border-color: var(--red);
+  border-radius: 999px;
+}
+
+.friendship-button:hover {
+  color: white;
+  background: var(--deep-red);
+  border-color: var(--deep-red);
+}
+
+.friendship-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  color: var(--ink);
+  background: var(--cream);
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+}
+
+.friendship-status-pending {
+  color: var(--grey);
+}
+
+.friendship-status-accepted {
+  color: #176239;
+  background: #e3f4e9;
+}
+
+.friendship-status button {
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: none;
+  font-family: Arial, sans-serif;
+  font-size: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.friendship-status-incoming {
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 235px;
+  color: var(--deep-red);
+  background: #f4e4df;
+  border-radius: 10px;
+}
+
+.friendship-status-incoming > div {
+  display: flex;
+  gap: 7px;
+}
+
+.friendship-accept-button,
+.friendship-refuse-button {
+  padding: 6px 9px !important;
+  border-radius: 999px !important;
+  font-size: 0.68rem !important;
+  text-decoration: none !important;
+}
+
+.friendship-accept-button {
+  color: white !important;
+  background: var(--red) !important;
+  border: 1px solid var(--red) !important;
+}
+
+.friendship-refuse-button {
+  color: var(--deep-red) !important;
+  border: 1px solid #d9aaa5 !important;
+}
+
+@media (max-width: 750px) {
+  .member-hero-aside {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .friendship-status {
+    align-self: flex-start;
+  }
+}
