@@ -567,27 +567,15 @@ function getPrimaryGenre(review) {
 }
 
 function renderHomeReviews() {
-  const search = searchInput.value.toLowerCase().trim();
 
   const filteredReviews = allHomeReviews().filter((review) => {
-    const movie = review.movies || {};
-    const genres = movie.genres || [];
     const primaryGenre = getPrimaryGenre(review);
-
     const matchesGenre =
       selectedGenre === "Tous" || primaryGenre === selectedGenre;
 
-    const searchableText = [
-      movie.title,
-      movie.director,
-      review.content || "",
-      review.author,
-      ...genres
-    ]
-      .join(" ")
-      .toLowerCase();
+    
+return matchesGenre;
 
-    return matchesGenre && searchableText.includes(search);
   });
 
   movieCount.textContent =
@@ -778,7 +766,6 @@ function setupHome() {
       closeReviewModal();
 
       selectedGenre = "Tous";
-      searchInput.value = "";
 
       clearHomeTmdbResults();
       lastHomeTmdbQuery = "";
