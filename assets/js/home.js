@@ -532,10 +532,9 @@ async function searchTmdbFromHome(query) {
   }
 }
 
+
 function handleHomeSearchInput() {
   const query = searchInput.value.trim();
-
-  renderHomeReviews();
 
   clearTimeout(homeTmdbSearchTimeout);
 
@@ -545,10 +544,15 @@ function handleHomeSearchInput() {
     return;
   }
 
+  /*
+    La barre de recherche est désormais réservée à TMDB :
+    elle ne filtre plus les microcritiques affichées.
+  */
   homeTmdbSearchTimeout = setTimeout(() => {
     searchTmdbFromHome(query);
   }, 450);
 }
+
 
 /* ---------------------------------
    Accueil et affichage des critiques
