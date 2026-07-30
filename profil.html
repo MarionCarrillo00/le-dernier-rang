@@ -1,74 +1,132 @@
 
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <head>
+    <meta charset="UTF-8" />
 
-  <title>Mon espace — Le dernier rang</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
 
-  <link rel="stylesheet" href="assets/css/style.css" />
-</head>
+    <meta
+      name="description"
+      content="Mon espace personnel sur Le dernier rang."
+    />
 
-<body>
-  <nav class="navbar">
-    <a href="index.html" class="logo">Le dernier rang</a>
+    <title>Mon espace — Le dernier rang</title>
 
-    <div class="menu">
-      <a href="index.html#critiques">Microcritiques</a>
-      <a href="index.html#a-propos">À propos</a>
+    <link
+      rel="stylesheet"
+      href="assets/css/style.css"
+    />
+  </head>
 
-      <a class="button-primary" href="index.html">
-        Écrire une critique
-      </a>
+  <body>
+    <!-- =================================================
+         NAVIGATION
+         ================================================= -->
 
-      <button class="login-button" id="authButton">
-        Connexion
-      </button>
-
-      <div class="user-menu" id="userMenu" hidden>
-        <img
-          id="navAvatar"
-          class="nav-avatar"
-          alt=""
-          hidden
-        />
-
-        <span id="userGreeting"></span>
-
-        <a class="profile-link active-profile-link" href="profil.html">
-          Mon espace
+    <header class="site-header">
+      <nav class="navbar">
+        <a
+          class="logo"
+          href="index.html"
+          aria-label="Le dernier rang — Accueil"
+        >
+          Le dernier rang
         </a>
 
-        <button class="logout-button" id="logoutButton">
-          Déconnexion
-        </button>
-      </div>
-    </div>
-  </nav>
+        <div class="nav-links">
+          <a href="index.html#critiques">Microcritiques</a>
+          <a href="index.html#a-propos">À propos</a>
 
-  <main class="profile-page">
-    <section class="profile-header">
-      <div class="profile-intro">
-        <!-- Photo de profil -->
-        <div class="avatar-editor">
-          <img
-            id="profileAvatar"
-            class="profile-avatar"
-            alt="Photo de profil"
-            hidden
-          />
+          <a
+            class="button-primary nav-write-button"
+            href="index.html"
+          >
+            Écrire une critique
+          </a>
+
+          <button
+            id="authButton"
+            class="button-secondary"
+            type="button"
+          >
+            Connexion
+          </button>
 
           <div
-            class="profile-avatar-placeholder"
-            id="profileAvatarPlaceholder"
-            aria-hidden="true"
+            id="userMenu"
+            class="user-menu"
+            hidden
           >
-            ?
-          </div>
+            <img
+              id="navAvatar"
+              class="nav-avatar"
+              src=""
+              alt=""
+              hidden
+            />
 
-          <label class="avatar-upload-button" for="avatarInput">
-            Choisir une photo
+            <span
+              id="userGreeting"
+              class="user-greeting"
+            ></span>
+
+            <a
+              class="user-menu-profile-link active"
+              href="profil.html"
+            >
+              Mon espace
+            </a>
+
+            <button
+              id="logoutButton"
+              class="button-text logout-button"
+              type="button"
+            >
+              Déconnexion
+            </button>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- =================================================
+         CONTENU PRINCIPAL
+         ================================================= -->
+
+    <main class="profile-page">
+      <!-- =============================================
+           HERO DU PROFIL
+           ============================================= -->
+
+      <section class="profile-hero-card">
+        <div class="profile-hero-identity">
+          <div class="profile-avatar-editor">
+            <img
+              id="profileAvatar"
+              class="profile-avatar-large"
+              src=""
+              alt=""
+              hidden
+            />
+
+            <div
+              id="profileAvatarPlaceholder"
+              class="profile-avatar-large profile-avatar-placeholder"
+              aria-hidden="true"
+            >
+              ?
+            </div>
+
+            <label
+              class="profile-avatar-upload-label"
+              for="avatarInput"
+            >
+              Choisir une photo
+            </label>
 
             <input
               id="avatarInput"
@@ -76,115 +134,178 @@
               accept="image/jpeg,image/png,image/webp"
               hidden
             />
-          </label>
 
-          <p
-            class="avatar-status"
-            id="avatarStatus"
-            aria-live="polite"
-          ></p>
-        </div>
+            <p
+              id="avatarStatus"
+              class="avatar-status"
+              aria-live="polite"
+            ></p>
+          </div>
 
-        <!-- Présentation du profil -->
-        <div>
-          <div class="eyebrow red-eyebrow">Mon espace</div>
+          <div class="profile-hero-copy">
+            <div class="eyebrow red-eyebrow">
+              Mon espace
+            </div>
 
-          <h1 id="profileTitle">Mon carnet de cinéma</h1>
+            <h1 id="profileTitle">
+              Mon carnet de cinéma
+            </h1>
 
-          <p id="profileSubtitle">
-            Tes films, tes mots, les traces que les séances ont laissées.
-          </p>
-        </div>
-      </div>
-
-      <div class="profile-stat">
-        <span id="reviewTotal">0</span>
-        <small>microcritique</small>
-      </div>
-    </section>
-
-    <!-- CONTENU : WISHLIST LATÉRALE + CONTENU PRINCIPAL -->
-    <div class="profile-content-layout">
-      <!-- À VOIR / WISHLIST -->
-      <aside class="profile-wishlist-section">
-        <div class="section-title">
-          <div>
-            <div class="eyebrow red-eyebrow">Prochaines séances</div>
-            <h2>À voir</h2>
+            <p id="profileSubtitle">
+              Tes films, tes mots, les traces que les séances ont laissées.
+            </p>
           </div>
         </div>
 
-        <div class="wishlist-grid" id="myWishlistGrid"></div>
-      </aside>
+        <div class="profile-stat">
+          <strong id="reviewTotal">0</strong>
+          <small>microcritique</small>
+        </div>
+      </section>
 
-      <div class="profile-main-column">
-        
-<!-- DEMANDES D'AMITIÉ -->
-<section
-  class="profile-friend-requests-section"
-  id="friendRequestsSection"
-  hidden
-></section>
+      <!-- =============================================
+           DEMANDES D'AMIS
+           Cachée automatiquement s'il n'y a aucune
+           demande en attente.
+           ============================================= -->
 
-        <!-- MES LISTES -->
-        <section class="profile-lists-section">
+      <section
+        id="friendRequestsSection"
+        class="friend-requests-section"
+        hidden
+      >
+        <div class="section-title friend-requests-heading">
+          <div>
+            <div class="eyebrow red-eyebrow">
+              Mon cercle
+            </div>
+
+            <h2>Demandes d’amis</h2>
+          </div>
+
+          <span
+            id="friendRequestsCount"
+            class="friend-requests-count"
+            aria-label="Nombre de demandes d’amis en attente"
+          >
+            0
+          </span>
+        </div>
+
+        <div
+          id="friendRequestsGrid"
+          class="friend-requests-grid"
+        ></div>
+      </section>
+
+      <!-- =============================================
+           WISHLIST + LISTES
+           ============================================= -->
+
+      <div class="profile-collections-layout">
+        <section class="profile-wishlist-section">
           <div class="section-title">
             <div>
-              <div class="eyebrow red-eyebrow">Mes listes</div>
+              <div class="eyebrow red-eyebrow">
+                Prochaines séances
+              </div>
+
+              <h2>À voir</h2>
+            </div>
+          </div>
+
+          <div
+            id="myWishlistGrid"
+            class="wishlist-grid"
+          ></div>
+        </section>
+
+        <section class="profile-lists-section">
+          <div class="section-title profile-lists-heading">
+            <div>
+              <div class="eyebrow red-eyebrow">
+                Mes listes
+              </div>
+
               <h2>Mes petites collections</h2>
             </div>
 
             <button
-              class="button-primary"
               id="openListFormButton"
+              class="button-primary"
               type="button"
+              hidden
             >
               Créer une liste
             </button>
           </div>
 
-          <form id="listForm" class="list-form" hidden>
-            <div class="form-grid">
-              <div class="field">
-                <label for="listTitle">Titre de la liste *</label>
+          <!-- Formulaire de création de liste -->
+          <form
+            id="listForm"
+            class="list-form"
+            hidden
+          >
+            <div class="form-field">
+              <label for="listTitle">
+                Titre de la liste
+              </label>
 
-                <input
-                  id="listTitle"
-                  required
-                  minlength="2"
-                  maxlength="80"
-                  placeholder="Ex. Films pour les jours de pluie"
-                />
-              </div>
+              <input
+                id="listTitle"
+                name="title"
+                type="text"
+                minlength="2"
+                maxlength="80"
+                placeholder="Ex. Les films de pluie"
+                required
+              />
+            </div>
 
-              <div class="field">
-                <label for="listVisibility">Visibilité *</label>
+            <div class="form-field">
+              <label for="listVisibility">
+                Visibilité
+              </label>
 
-                <select id="listVisibility">
-                  <option value="public">Publique</option>
-                  <option value="private">Privée</option>
-                </select>
-              </div>
+              <select
+                id="listVisibility"
+                name="visibility"
+              >
+                <option value="public">
+                  Publique — visible par tous
+                </option>
 
-              <div class="field full">
-                <label for="listDescription">Description</label>
+                <option value="private">
+                  Privée — visible uniquement par moi
+                </option>
+              </select>
+            </div>
 
-                <textarea
-                  id="listDescription"
-                  maxlength="280"
-                  placeholder="Quelques mots sur l’esprit de cette liste…"
-                ></textarea>
-              </div>
+            <div class="form-field">
+              <label for="listDescription">
+                Quelques mots <span>(facultatif)</span>
+              </label>
+
+              <textarea
+                id="listDescription"
+                name="description"
+                maxlength="280"
+                rows="3"
+                placeholder="Ce que ces films ont en commun…"
+              ></textarea>
             </div>
 
             <div class="list-form-actions">
-              <button class="button-primary" type="submit">
+              <button
+                class="button-primary"
+                type="submit"
+              >
                 Créer ma liste
               </button>
 
               <button
-                class="button-text"
                 id="cancelListFormButton"
+                class="button-text"
                 type="button"
               >
                 Annuler
@@ -192,183 +313,259 @@
             </div>
           </form>
 
-          <div class="lists-grid" id="myListsGrid"></div>
+          <div
+            id="myListsGrid"
+            class="lists-grid"
+          ></div>
         </section>
+      </div>
 
-        <!-- MES CRITIQUES -->
-        <section class="profile-reviews-section">
-          <div class="section-title">
-            <div>
-              <div class="eyebrow red-eyebrow">Mon journal</div>
-              <h2>Mes critiques publiées</h2>
+      <!-- =============================================
+           JOURNAL / CRITIQUES
+           ============================================= -->
+
+      <section class="profile-reviews-section">
+        <div class="section-title">
+          <div>
+            <div class="eyebrow red-eyebrow">
+              Mon journal
+            </div>
+
+            <h2>Mes critiques publiées</h2>
+          </div>
+        </div>
+
+        <div
+          id="myReviewsGrid"
+          class="movies-grid profile-reviews-grid"
+        >
+          <div class="empty-state">
+            Chargement de ton carnet…
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- =================================================
+         FOOTER
+         ================================================= -->
+
+    <footer class="site-footer">
+      <p>
+        Le dernier rang · Les films que l’on garde près de soi.
+      </p>
+    </footer>
+
+    <!-- =================================================
+         MODALE : ÉDITION D'UNE MICROCRITIQUE
+         ================================================= -->
+
+    <div
+      id="editReviewModal"
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="editReviewTitle"
+    >
+      <div class="modal-content edit-review-modal-content">
+        <button
+          id="closeEditReviewModal"
+          class="modal-close"
+          type="button"
+          aria-label="Fermer la fenêtre"
+        >
+          ×
+        </button>
+
+        <div class="eyebrow red-eyebrow">
+          Mon journal
+        </div>
+
+        <h2 id="editReviewTitle">
+          Modifier mes mots
+        </h2>
+
+        <p
+          id="editReviewMovieTitle"
+          class="edit-review-movie-title"
+        ></p>
+
+        <p
+          id="editReviewRating"
+          class="edit-review-rating"
+        ></p>
+
+        <form id="editReviewForm">
+          <div class="form-field">
+            <label for="editReviewContent">
+              Ma microcritique
+            </label>
+
+            <textarea
+              id="editReviewContent"
+              maxlength="140"
+              rows="5"
+              placeholder="Quelques mots sur ce film…"
+            ></textarea>
+
+            <div class="character-counter-wrap">
+              <span
+                id="editReviewCharacterCounter"
+                class="character-counter"
+              >
+                0 / 140
+              </span>
             </div>
           </div>
 
-          <div class="movies-grid" id="myReviewsGrid"></div>
-        </section>
+          <div class="modal-actions">
+            <button
+              id="saveEditReviewButton"
+              class="button-primary"
+              type="submit"
+            >
+              Enregistrer mes modifications
+            </button>
+
+            <button
+              id="cancelEditReviewButton"
+              class="button-text"
+              type="button"
+            >
+              Annuler
+            </button>
+          </div>
+        </form>
       </div>
     </div>
-  </main>
 
-  <footer>
-    Le dernier rang · Mon carnet de cinéma.
-  </footer>
+    <!-- =================================================
+         MODALE : AUTHENTIFICATION
+         ================================================= -->
 
-  <!-- MODALE : AJOUT OU ÉDITION D'UNE MICROCRITIQUE -->
-  <div class="modal" id="editReviewModal">
-    <div class="modal-box edit-review-modal-box">
-      <div class="modal-head">
-        <h3 id="editReviewTitle">Ajouter quelques mots</h3>
-
+    <div
+      id="authModal"
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="authModalTitle"
+    >
+      <div class="modal-content auth-modal-content">
         <button
-          class="close-button"
-          id="closeEditReviewModal"
+          class="modal-close"
           type="button"
-          aria-label="Fermer"
+          aria-label="Fermer la fenêtre"
+          data-close-auth-modal
         >
           ×
         </button>
-      </div>
 
-      <div class="edit-review-film-summary">
-        <strong id="editReviewMovieTitle"></strong>
-
-        <p>
-          Note verrouillée :
-          <span id="editReviewRating"></span>
-        </p>
-      </div>
-
-      <form id="editReviewForm">
-        <div class="field">
-          <label for="editReviewContent">
-            Ta microcritique
-          </label>
-
-          <textarea
-            id="editReviewContent"
-            maxlength="140"
-            placeholder="Quelques mots sur ce que le film a laissé derrière lui…"
-          ></textarea>
-
-          <p
-            class="character-counter"
-            id="editReviewCharacterCounter"
-          >
-            0 / 140
-          </p>
-        </div>
-
-        <div class="edit-review-actions">
+        <div class="auth-tabs">
           <button
-            class="button-primary"
-            id="saveEditReviewButton"
-            type="submit"
-          >
-            Enregistrer mes mots
-          </button>
-
-          <button
-            class="button-text"
-            id="cancelEditReviewButton"
+            class="auth-tab active"
             type="button"
+            data-auth-tab="login"
           >
-            Annuler
+            Connexion
+          </button>
+
+          <button
+            class="auth-tab"
+            type="button"
+            data-auth-tab="signup"
+          >
+            Inscription
           </button>
         </div>
-      </form>
-    </div>
-  </div>
 
-  <!-- MODALE : CONNEXION ET INSCRIPTION -->
-  <div class="modal" id="authModal">
-    <div class="modal-box">
-      <div class="modal-head">
-        <h3 id="authTitle">Bienvenue</h3>
+        <h2 id="authModalTitle">
+          Heureuse de te revoir.
+        </h2>
 
-        <button
-          class="close-button"
-          id="closeAuthModal"
-          aria-label="Fermer"
-        >
-          ×
-        </button>
-      </div>
+        <p class="auth-intro">
+          Entre dans ton carnet et retrouve les films qui comptent.
+        </p>
 
-      <div class="auth-tabs">
-        <button
-          class="auth-tab active"
-          type="button"
+        <p
+          id="authMessage"
+          class="auth-message"
+          aria-live="polite"
+        ></p>
+
+        <form
+          id="authForm"
           data-auth-mode="login"
         >
-          Se connecter
-        </button>
+          <div
+            id="usernameField"
+            class="form-field"
+            hidden
+          >
+            <label for="authUsername">
+              Pseudo
+            </label>
 
-        <button
-          class="auth-tab"
-          type="button"
-          data-auth-mode="signup"
-        >
-          Créer un compte
-        </button>
+            <input
+              id="authUsername"
+              type="text"
+              minlength="3"
+              maxlength="30"
+              autocomplete="username"
+              placeholder="Ton nom de cinéma"
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="authEmail">
+              Adresse e-mail
+            </label>
+
+            <input
+              id="authEmail"
+              type="email"
+              autocomplete="email"
+              required
+              placeholder="toi@exemple.fr"
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="authPassword">
+              Mot de passe
+            </label>
+
+            <input
+              id="authPassword"
+              type="password"
+              minlength="6"
+              autocomplete="current-password"
+              required
+              placeholder="6 caractères minimum"
+            />
+          </div>
+
+          <button
+            id="authSubmitButton"
+            class="button-primary auth-submit-button"
+            type="submit"
+          >
+            Se connecter
+          </button>
+        </form>
       </div>
-
-      <div class="status-message" id="authMessage"></div>
-
-      <form id="authForm">
-        <div class="field" id="usernameField" hidden>
-          <label for="username">Pseudo *</label>
-
-          <input
-            id="username"
-            minlength="3"
-            maxlength="30"
-            placeholder="Ex. marioncinephile"
-          />
-        </div>
-
-        <div class="field">
-          <label for="authEmail">Adresse e-mail *</label>
-
-          <input
-            id="authEmail"
-            type="email"
-            required
-            autocomplete="email"
-            placeholder="vous@exemple.fr"
-          />
-        </div>
-
-        <div class="field">
-          <label for="authPassword">Mot de passe *</label>
-
-          <input
-            id="authPassword"
-            type="password"
-            required
-            minlength="6"
-            autocomplete="current-password"
-            placeholder="Au moins 6 caractères"
-          />
-        </div>
-
-        <button class="button-primary" type="submit" id="authSubmitButton">
-          Se connecter
-        </button>
-
-        <p class="form-note" id="authNote">
-          Connecte-toi pour accéder à ton espace personnel.
-        </p>
-      </form>
     </div>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- =================================================
+         SCRIPTS
+         L'ordre est essentiel.
+         ================================================= -->
 
-  <script src="assets/js/config.js"></script>
-  <script src="assets/js/supabase-client.js"></script>
-  <script src="assets/js/auth.js"></script>
-  <script src="assets/js/reviews.js"></script>
-  <script src="assets/js/profile.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/reviews.js"></script>
+    <script src="assets/js/profile.js"></script>
+  </body>
 </html>
