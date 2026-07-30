@@ -52,8 +52,8 @@ function createMovieCard(review, index, options = {}) {
   const hasLiked = Boolean(review.liked_by_current_user);
 
   /*
-    Une entrée peut désormais être une note seule :
-    le texte de critique est donc facultatif.
+    Le texte est facultatif :
+    une entrée peut être une note seule.
   */
   const reviewContent = String(review.content || "").trim();
 
@@ -73,6 +73,7 @@ function createMovieCard(review, index, options = {}) {
     ? `
       <button
         class="delete-review"
+        type="button"
         data-review-id="${review.id}"
         title="Supprimer cette entrée"
       >
@@ -82,6 +83,7 @@ function createMovieCard(review, index, options = {}) {
     : `
       <button
         class="favorite ${hasLiked ? "liked" : ""}"
+        type="button"
         data-review-id="${review.id}"
         title="${hasLiked ? "Retirer mon like" : "J’aime cette entrée"}"
         aria-label="${hasLiked ? "Retirer mon like" : "J’aime cette entrée"}"
@@ -90,6 +92,38 @@ function createMovieCard(review, index, options = {}) {
         <span class="like-count">${likeCount}</span>
       </button>
     `;
+
+  /*
+    Ce bouton est uniquement affiché dans le profil personnel,
+    grâce à l'option canEdit: true.
+  */
+  const editButton = options.canEdit
+    ? `
+      <button
+        class="edit-review"
+        type="button"
+        data-review-id="${review.id}"
+        data-review-content="${escapeHTML(reviewContent)}"
+        data-review-title="${escapeHTML(
+          movie.title || "Film sans titre"
+        )}"
+        data-review-rating="${escapeHTML(
+          String(review.rating || "")
+        )}"
+        title="${
+          reviewContent
+            ? "Modifier mes mots"
+            : "Ajouter quelques mots"
+        }"
+      >
+        ${
+          reviewContent
+            ? "Modifier mes mots"
+            : "Ajouter quelques mots"
+        }
+      </button>
+    `
+    : "";
 
   const posterMarkup = posterUrl
     ? `
@@ -211,6 +245,7 @@ function createMovieCard(review, index, options = {}) {
 
           <div class="card-actions">
             ${filmLink}
+            ${editButton}
             ${actionButton}
           </div>
         </div>
@@ -598,6 +633,54 @@ async function publishReview(payload) {
   if (reviewError) {
     throw reviewError;
   }
+}
+
+/* =====================================================
+   ÉDITION DU TEXTE UNIQUEMENT
+   ===================================================== */
+
+/*
+  Modifie exclusivement reviews.content.
+
+  La note, le film associé et l'auteur ne font pas partie
+  de la requête update : ils restent donc inchangés.
+*/
+async function updateReviewContent(reviewId, content) {
+  if (!currentUser) {
+    throw new Error(
+      "Tu dois être connectée pour modifier tes mots."
+    );
+  }
+
+  const cleanContent = String(content || "").trim();
+
+  if (!cleanContent) {
+    throw new Error(
+      "Ajoute quelques mots avant d’enregistrer."
+    );
+  }
+
+  if (cleanContent.length > 140) {
+    throw new Error(
+      "Ta microcritique ne peut pas dépasser 140 caractères."
+    );
+  }
+
+  const { data, error } = await supabaseClient
+    .from("reviews")
+    .update({
+      content: cleanContent
+    })
+    .eq("id", reviewId)
+    .eq("user_id", currentUser.id)
+    .select("id, content, rating")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
 }
 
 /* =====================================================
