@@ -2324,11 +2324,16 @@ footer {
   }
 }
 
+
 .movie-card-heading {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+}
+
+.movie-card-identification {
+  min-width: 0;
 }
 
 .movie-card-title {
@@ -2346,3 +2351,9 @@ footer {
   font-family: Arial, sans-serif;
   font-size: 0.72rem;
 }
+
+.movie-card-heading .rating {
+  flex: 0 0 auto;
+  padding-top: 2px;
+}
+
