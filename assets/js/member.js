@@ -48,6 +48,249 @@ function renderMemberAvatar(profile) {
   `;
 }
 
+/* =====================================================
+   AMITIÉS
+   ===================================================== */
+
+async function getFriendshipWithMember(memberId) {
+  if (!currentUser || !memberId || currentUser.id === memberId) {
+    return null;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("friendships")
+    .select(`
+      id,
+      requester_id,
+      recipient_id,
+      status,
+      created_at,
+      accepted_at
+    `)
+    .or(
+      `and(requester_id.eq.${currentUser.id},recipient_id.eq.${memberId}),and(requester_id.eq.${memberId},recipient_id.eq.${currentUser.id})`
+    )
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+function getFriendshipState(memberId, friendship) {
+  if (!currentUser || currentUser.id === memberId) {
+    return "self";
+  }
+
+  if (!friendship) {
+    return "none";
+  }
+
+  if (friendship.status === "accepted") {
+    return "accepted";
+  }
+
+  if (friendship.requester_id === currentUser.id) {
+    return "outgoing";
+  }
+
+  return "incoming";
+}
+
+function renderFriendshipAction(memberId, friendship) {
+  const state = getFriendshipState(memberId, friendship);
+
+  if (state === "self") {
+    return "";
+  }
+
+  if (!currentUser) {
+    return `
+      <button
+        class="button-secondary friendship-button"
+        type="button"
+        data-friendship-action="login"
+      >
+        Ajouter comme ami·e
+      </button>
+    `;
+  }
+
+  if (state === "none") {
+    return `
+      <button
+        class="button-secondary friendship-button"
+        type="button"
+        data-friendship-action="send"
+        data-member-id="${memberId}"
+      >
+        Ajouter comme ami·e
+      </button>
+    `;
+  }
+
+  if (state === "outgoing") {
+    return `
+      <div class="friendship-status friendship-status-pending">
+        <span>Demande envoyée</span>
+
+        <button
+          type="button"
+          data-friendship-action="cancel"
+          data-friendship-id="${friendship.id}"
+        >
+          Annuler
+        </button>
+      </div>
+    `;
+  }
+
+  if (state === "incoming") {
+    return `
+      <div class="friendship-status friendship-status-incoming">
+        <span>Souhaite devenir ami·e</span>
+
+        <div>
+          <button
+            class="friendship-accept-button"
+            type="button"
+            data-friendship-action="accept"
+            data-friendship-id="${friendship.id}"
+          >
+            Accepter
+          </button>
+
+          <button
+            class="friendship-refuse-button"
+            type="button"
+            data-friendship-action="refuse"
+            data-friendship-id="${friendship.id}"
+          >
+            Refuser
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="friendship-status friendship-status-accepted">
+      <span>Vous êtes ami·es</span>
+
+      <button
+        type="button"
+        data-friendship-action="remove"
+        data-friendship-id="${friendship.id}"
+      >
+        Retirer
+      </button>
+    </div>
+  `;
+}
+
+async function sendFriendshipRequest(memberId) {
+  if (!currentUser) {
+    throw new Error("AUTH_REQUIRED");
+  }
+
+  const { error } = await supabaseClient
+    .from("friendships")
+    .insert({
+      requester_id: currentUser.id,
+      recipient_id: memberId,
+      status: "pending"
+    });
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function acceptFriendshipRequest(friendshipId) {
+  const { error } = await supabaseClient
+    .from("friendships")
+    .update({
+      status: "accepted",
+      accepted_at: new Date().toISOString()
+    })
+    .eq("id", friendshipId);
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function deleteFriendship(friendshipId) {
+  const { error } = await supabaseClient
+    .from("friendships")
+    .delete()
+    .eq("id", friendshipId);
+
+  if (error) {
+    throw error;
+  }
+}
+
+function setupFriendshipButtons() {
+  document
+    .querySelectorAll("[data-friendship-action]")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        const action = button.dataset.friendshipAction;
+
+        if (action === "login") {
+          setAuthMode("login");
+          openAuthModal();
+
+          showAuthMessage(
+            "Connecte-toi ou crée un compte pour ajouter des ami·es.",
+            "error"
+          );
+
+          return;
+        }
+
+        button.disabled = true;
+
+        try {
+          if (action === "send") {
+            await sendFriendshipRequest(button.dataset.memberId);
+          }
+
+          if (action === "accept") {
+            await acceptFriendshipRequest(
+              button.dataset.friendshipId
+            );
+          }
+
+          if (
+            action === "cancel" ||
+            action === "refuse" ||
+            action === "remove"
+          ) {
+            await deleteFriendship(button.dataset.friendshipId);
+          }
+
+          await loadMemberPage();
+        } catch (error) {
+          console.error("Erreur de gestion de l’amitié :", error);
+
+          alert(
+            `Impossible de mettre à jour cette relation : ${error.message}`
+          );
+
+          button.disabled = false;
+        }
+      });
+    });
+}
+
+/* =====================================================
+   LISTES PUBLIQUES
+   ===================================================== */
+
 function renderPublicListCard(list) {
   const movieCount = Number(list.movie_count || 0);
   const label = movieCount > 1 ? "films" : "film";
@@ -84,6 +327,7 @@ function renderPublicListCard(list) {
 function renderMemberWishlistCard(movie) {
   const title = movie.title || "Film sans titre";
   const releaseYear = movie.release_year || "—";
+
   const director =
     movie.director || "Réalisation non renseignée";
 
@@ -128,11 +372,6 @@ function renderMemberWishlistCard(movie) {
   `;
 }
 
-/*
-  Charge les listes publiques d'un membre et distingue :
-  - la wishlist système : list_type = "wishlist"
-  - les collections personnalisées : list_type = "custom"
-*/
 async function getPublicCollectionsForMember(userId) {
   const { data: lists, error } = await supabaseClient
     .from("movie_lists")
@@ -260,7 +499,7 @@ async function getPublicReviewsForMember(userId) {
     profilesById
   );
 
-  return enrichReviewsWithLikes(reviewsWithAuthors);
+  return enrichReviews(reviewsWithAuthors);
 }
 
 function renderMemberWishlistSection(
@@ -282,9 +521,7 @@ function renderMemberWishlistSection(
         <div>
           <div class="eyebrow red-eyebrow">Prochaines séances</div>
 
-          <h2>
-            À voir chez ${escapeHTML(username)}
-          </h2>
+          <h2>À voir chez ${escapeHTML(username)}</h2>
         </div>
 
         <a
@@ -312,7 +549,16 @@ function renderMemberWishlistSection(
   `;
 }
 
-function renderMemberPage(profile, reviews, collections) {
+/* =====================================================
+   RENDU DU PROFIL PUBLIC
+   ===================================================== */
+
+function renderMemberPage(
+  profile,
+  reviews,
+  collections,
+  friendship
+) {
   const username = profile.username || "Membre";
 
   const bio = profile.bio?.trim() ||
@@ -341,21 +587,25 @@ function renderMemberPage(profile, reviews, collections) {
         </div>
       </div>
 
-      <div class="member-statistics">
-        <div class="member-stat">
-          <strong>${reviews.length}</strong>
-          <small>
-            microcritique${reviews.length > 1 ? "s" : ""}
-          </small>
-        </div>
+      <div class="member-hero-aside">
+        ${renderFriendshipAction(profile.id, friendship)}
 
-        <div class="member-stat">
-          <strong>${publicListCount}</strong>
-          <small>
-            liste${publicListCount > 1 ? "s" : ""} publique${
-              publicListCount > 1 ? "s" : ""
-            }
-          </small>
+        <div class="member-statistics">
+          <div class="member-stat">
+            <strong>${reviews.length}</strong>
+            <small>
+              microcritique${reviews.length > 1 ? "s" : ""}
+            </small>
+          </div>
+
+          <div class="member-stat">
+            <strong>${publicListCount}</strong>
+            <small>
+              liste${publicListCount > 1 ? "s" : ""} publique${
+                publicListCount > 1 ? "s" : ""
+              }
+            </small>
+          </div>
         </div>
       </div>
     </section>
@@ -425,6 +675,7 @@ function renderMemberPage(profile, reviews, collections) {
   `;
 
   setupMemberLikeButtons();
+  setupFriendshipButtons();
 }
 
 function setupMemberLikeButtons() {
@@ -458,6 +709,10 @@ function setupMemberLikeButtons() {
   });
 }
 
+/* =====================================================
+   CHARGEMENT
+   ===================================================== */
+
 async function loadMemberPage() {
   const memberId = getMemberIdFromUrl();
 
@@ -485,12 +740,18 @@ async function loadMemberPage() {
       return;
     }
 
-    const [reviews, collections] = await Promise.all([
+    const [reviews, collections, friendship] = await Promise.all([
       getPublicReviewsForMember(profile.id),
-      getPublicCollectionsForMember(profile.id)
+      getPublicCollectionsForMember(profile.id),
+      getFriendshipWithMember(profile.id)
     ]);
 
-    renderMemberPage(profile, reviews, collections);
+    renderMemberPage(
+      profile,
+      reviews,
+      collections,
+      friendship
+    );
   } catch (error) {
     console.error("Erreur de chargement du profil public :", error);
 
@@ -505,4 +766,3 @@ document.addEventListener("authChanged", () => {
 });
 
 loadMemberPage();
- 
