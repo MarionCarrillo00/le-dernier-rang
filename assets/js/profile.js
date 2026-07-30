@@ -104,6 +104,10 @@ function getAvatarInitial() {
 }
 
 function showAvatarStatus(message, type = "") {
+  if (!avatarStatus) {
+    return;
+  }
+
   avatarStatus.textContent = message;
   avatarStatus.className = "avatar-status";
 
@@ -113,6 +117,13 @@ function showAvatarStatus(message, type = "") {
 }
 
 function renderProfileAvatar() {
+  if (
+    !profileAvatar ||
+    !profileAvatarPlaceholder
+  ) {
+    return;
+  }
+
   if (!currentUser) {
     profileAvatar.hidden = true;
     profileAvatar.removeAttribute("src");
@@ -127,12 +138,9 @@ function renderProfileAvatar() {
   const avatarUrl = currentProfile?.avatar_url;
 
   if (avatarUrl) {
-    /*
-      Le paramètre ?v= évite que le navigateur conserve
-      une ancienne photo après un nouveau téléversement.
-    */
     profileAvatar.src = `${avatarUrl}?v=${Date.now()}`;
-    profileAvatar.alt = `Photo de profil de ${getCurrentUsername()}`;
+    profileAvatar.alt =
+      `Photo de profil de ${getCurrentUsername()}`;
 
     profileAvatar.hidden = false;
     profileAvatarPlaceholder.hidden = true;
@@ -146,7 +154,7 @@ function renderProfileAvatar() {
 }
 
 async function uploadProfileAvatar(file) {
-  if (!currentUser) {
+  if (!currentUser || !file) {
     return;
   }
 
@@ -176,10 +184,6 @@ async function uploadProfileAvatar(file) {
 
   showAvatarStatus("Téléversement de la photo…");
 
-  /*
-    Une seule photo par membre :
-    avatars/<id_utilisateur>/avatar
-  */
   const filePath = `${currentUser.id}/avatar`;
 
   try {
@@ -249,12 +253,27 @@ async function uploadProfileAvatar(file) {
    ===================================================== */
 
 function showListForm() {
+  if (
+    !listForm ||
+    !openListFormButton ||
+    !listTitleInput
+  ) {
+    return;
+  }
+
   listForm.hidden = false;
   openListFormButton.hidden = true;
   listTitleInput.focus();
 }
 
 function hideListForm() {
+  if (
+    !listForm ||
+    !openListFormButton
+  ) {
+    return;
+  }
+
   listForm.hidden = true;
   openListFormButton.hidden = false;
   listForm.reset();
@@ -282,12 +301,23 @@ function updateEditReviewCharacterCounter() {
 }
 
 function openEditReviewModal(button) {
+  if (
+    !editReviewModal ||
+    !editReviewContent ||
+    !editReviewTitle ||
+    !editReviewMovieTitle ||
+    !editReviewRating ||
+    !saveEditReviewButton
+  ) {
+    return;
+  }
+
   editingReviewId = button.dataset.reviewId;
 
   const movieTitle =
     button.dataset.reviewTitle || "Film sans titre";
 
-  const rating = button.dataset.reviewRating || "—";
+  const rating = Number(button.dataset.reviewRating) || 0;
 
   const currentContent =
     button.dataset.reviewContent || "";
@@ -302,11 +332,6 @@ function openEditReviewModal(button) {
 
   editReviewMovieTitle.textContent = movieTitle;
 
-  /*
-    La note est ici uniquement informative.
-    Aucun champ de sélection n'est proposé :
-    elle ne peut pas être modifiée via cette modale.
-  */
   editReviewRating.textContent =
     `${stars(rating)} · ${rating}/5`;
 
@@ -334,7 +359,9 @@ function closeEditReviewModal() {
 
   editingReviewId = null;
 
-  editReviewContent.value = "";
+  if (editReviewContent) {
+    editReviewContent.value = "";
+  }
 
   updateEditReviewCharacterCounter();
 }
@@ -354,21 +381,35 @@ function setupReviewEditButtons() {
 function renderProfileReviews(reviews) {
   const username = getCurrentUsername();
 
-  profileTitle.textContent = `Le carnet de ${username}`;
+  if (profileTitle) {
+    profileTitle.textContent = `Le carnet de ${username}`;
+  }
 
-  profileSubtitle.textContent =
-    "Tes films, tes mots, les traces que les séances ont laissées.";
+  if (profileSubtitle) {
+    profileSubtitle.textContent =
+      "Tes films, tes mots, les traces que les séances ont laissées.";
+  }
 
-  reviewTotal.textContent = reviews.length;
+  if (reviewTotal) {
+    reviewTotal.textContent = reviews.length;
+  }
 
-  const label =
-    reviews.length > 1
-      ? "microcritiques"
-      : "microcritique";
+  const profileStatLabel = document.querySelector(
+    ".profile-stat small"
+  );
 
-  document.querySelector(".profile-stat small").textContent = label;
+  if (profileStatLabel) {
+    profileStatLabel.textContent =
+      reviews.length > 1
+        ? "microcritiques"
+        : "microcritique";
+  }
 
   renderProfileAvatar();
+
+  if (!myReviewsGrid) {
+    return;
+  }
 
   if (reviews.length === 0) {
     myReviewsGrid.innerHTML = `
@@ -389,15 +430,13 @@ function renderProfileReviews(reviews) {
 
   myReviewsGrid.innerHTML = reviews
     .map((review, index) =>
-
-createMovieCard(review, index, {
-  author: username,
-  canDelete: true,
-  canEdit: true,
-  hideAuthor: true,
-  hideDiscussionLink: true
-})
-
+      createMovieCard(review, index, {
+        author: username,
+        canDelete: true,
+        canEdit: true,
+        hideAuthor: true,
+        hideDiscussionLink: true
+      })
     )
     .join("");
 
@@ -437,10 +476,6 @@ createMovieCard(review, index, {
    WISHLIST : À VOIR
    ===================================================== */
 
-/*
-  Recherche la liste système de l'utilisatrice :
-  list_type = "wishlist".
-*/
 async function getMyWishlist() {
   if (!currentUser) {
     return null;
@@ -460,11 +495,6 @@ async function getMyWishlist() {
   return data;
 }
 
-/*
-  Récupère les films de la wishlist « À voir ».
-  La liste n'est créée qu'au premier ajout effectué depuis
-  une fiche film : son absence est donc un état normal.
-*/
 async function getMyWishlistMovies() {
   const wishlist = await getMyWishlist();
 
@@ -489,7 +519,9 @@ async function getMyWishlistMovies() {
       )
     `)
     .eq("list_id", wishlist.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", {
+      ascending: false
+    });
 
   if (error) {
     throw error;
@@ -505,6 +537,10 @@ async function getMyWishlistMovies() {
 }
 
 function renderWishlistMovies(items) {
+  if (!myWishlistGrid) {
+    return;
+  }
+
   if (!currentUser) {
     myWishlistGrid.innerHTML = "";
     return;
@@ -562,9 +598,7 @@ function renderWishlistMovies(items) {
 
           <div class="wishlist-movie-content">
             <h3>
-              <a
-                href="film.html?id=${encodeURIComponent(movie.id)}"
-              >
+              <a href="film.html?id=${encodeURIComponent(movie.id)}">
                 ${escapeHTML(title)}
               </a>
             </h3>
@@ -592,7 +626,8 @@ function renderWishlistMovies(items) {
     .querySelectorAll(".wishlist-remove-button")
     .forEach((button) => {
       button.addEventListener("click", async () => {
-        const wishlistItemId = button.dataset.wishlistItemId;
+        const wishlistItemId =
+          button.dataset.wishlistItemId;
 
         button.disabled = true;
         button.textContent = "Retrait…";
@@ -629,16 +664,16 @@ function renderWishlistMovies(items) {
    LISTES PERSONNALISÉES
    ===================================================== */
 
-/*
-  Charge uniquement les listes créées manuellement.
-  La wishlist « À voir » est exclue car elle est affichée
-  dans sa propre section au-dessus.
-*/
 async function getMyMovieLists() {
   if (!currentUser) {
     return [];
   }
 
+  /*
+    "custom" = nouvelles listes personnalisées.
+    null = compatibilité avec les listes créées avant
+    l'ajout de la colonne list_type.
+  */
   const { data: lists, error } = await supabaseClient
     .from("movie_lists")
     .select(`
@@ -650,12 +685,13 @@ async function getMyMovieLists() {
       created_at
     `)
     .eq("user_id", currentUser.id)
-    .eq("list_type", "custom")
-    .order("created_at", { ascending: false });
+    .or("list_type.eq.custom,list_type.is.null")
+    .order("created_at", {
+      ascending: false
+    });
 
   if (error) {
-    console.error("Erreur de chargement des listes :", error.message);
-    return [];
+    throw error;
   }
 
   if (!lists || lists.length === 0) {
@@ -670,10 +706,7 @@ async function getMyMovieLists() {
     .in("list_id", listIds);
 
   if (itemsError) {
-    console.error(
-      "Erreur de chargement des films des listes :",
-      itemsError.message
-    );
+    throw itemsError;
   }
 
   return lists.map((list) => ({
@@ -685,6 +718,10 @@ async function getMyMovieLists() {
 }
 
 function renderMovieLists(lists) {
+  if (!myListsGrid) {
+    return;
+  }
+
   if (!currentUser) {
     myListsGrid.innerHTML = "";
     return;
@@ -751,10 +788,7 @@ function renderMovieLists(lists) {
           </p>
 
           <div class="movie-list-card-bottom">
-            <span>
-              ${list.movie_count} ${movieLabel}
-            </span>
-
+            <span>${list.movie_count} ${movieLabel}</span>
             <span>
               ${
                 list.is_public
@@ -796,9 +830,14 @@ function renderMovieLists(lists) {
 
         await loadMyProfilePage();
       } catch (error) {
-        console.error("Erreur de suppression de liste :", error);
+        console.error(
+          "Erreur de suppression de liste :",
+          error
+        );
 
-        alert(`Impossible de supprimer la liste : ${error.message}`);
+        alert(
+          `Impossible de supprimer la liste : ${error.message}`
+        );
 
         button.disabled = false;
         button.textContent = "Supprimer";
@@ -810,7 +849,7 @@ function renderMovieLists(lists) {
 async function createMovieList(event) {
   event.preventDefault();
 
-  if (!currentUser) {
+  if (!currentUser || !listForm) {
     return;
   }
 
@@ -820,7 +859,9 @@ async function createMovieList(event) {
   const isPublic = listVisibilityInput.value === "public";
 
   if (title.length < 2) {
-    alert("Le titre de la liste doit contenir au moins 2 caractères.");
+    alert(
+      "Le titre de la liste doit contenir au moins 2 caractères."
+    );
     return;
   }
 
@@ -849,9 +890,14 @@ async function createMovieList(event) {
     hideListForm();
     await loadMyProfilePage();
   } catch (error) {
-    console.error("Erreur de création de liste :", error);
+    console.error(
+      "Erreur de création de liste :",
+      error
+    );
 
-    alert(`Impossible de créer la liste : ${error.message}`);
+    alert(
+      `Impossible de créer la liste : ${error.message}`
+    );
   } finally {
     submitButton.disabled = false;
     submitButton.textContent = "Créer ma liste";
@@ -864,33 +910,53 @@ async function createMovieList(event) {
 
 async function loadMyProfilePage() {
   if (!currentUser) {
-    myReviewsGrid.innerHTML = `
-      <div class="empty-state">
-        <strong>Connecte-toi pour accéder à ton espace personnel.</strong>
-        <br /><br />
-        Tes notes, tes critiques, tes listes et tes futurs favoris
-        seront rassemblés ici.
-      </div>
-    `;
+    if (myReviewsGrid) {
+      myReviewsGrid.innerHTML = `
+        <div class="empty-state">
+          <strong>Connecte-toi pour accéder à ton espace personnel.</strong>
+          <br /><br />
+          Tes notes, tes critiques, tes listes et tes futurs favoris
+          seront rassemblés ici.
+        </div>
+      `;
+    }
 
-    myWishlistGrid.innerHTML = "";
-    myListsGrid.innerHTML = "";
+    if (myWishlistGrid) {
+      myWishlistGrid.innerHTML = "";
+    }
 
-    reviewTotal.textContent = "0";
-    profileTitle.textContent = "Mon carnet de cinéma";
+    if (myListsGrid) {
+      myListsGrid.innerHTML = "";
+    }
 
-    profileSubtitle.textContent =
-      "Tes films, tes mots, les traces que les séances ont laissées.";
+    if (reviewTotal) {
+      reviewTotal.textContent = "0";
+    }
 
-    openListFormButton.hidden = true;
-    listForm.hidden = true;
+    if (profileTitle) {
+      profileTitle.textContent = "Mon carnet de cinéma";
+    }
+
+    if (profileSubtitle) {
+      profileSubtitle.textContent =
+        "Tes films, tes mots, les traces que les séances ont laissées.";
+    }
+
+    if (openListFormButton) {
+      openListFormButton.hidden = true;
+    }
+
+    if (listForm) {
+      listForm.hidden = true;
+    }
 
     renderProfileAvatar();
-
     return;
   }
 
-  openListFormButton.hidden = false;
+  if (openListFormButton) {
+    openListFormButton.hidden = false;
+  }
 
   try {
     const [reviews, wishlistMovies, lists] = await Promise.all([
@@ -908,11 +974,29 @@ async function loadMyProfilePage() {
       error
     );
 
-    myWishlistGrid.innerHTML = `
-      <div class="empty-state">
-        Impossible de charger ta liste À voir pour le moment.
-      </div>
-    `;
+    if (myReviewsGrid) {
+      myReviewsGrid.innerHTML = `
+        <div class="empty-state">
+          Impossible de charger ton carnet pour le moment.
+        </div>
+      `;
+    }
+
+    if (myWishlistGrid) {
+      myWishlistGrid.innerHTML = `
+        <div class="empty-state">
+          Impossible de charger ta liste À voir pour le moment.
+        </div>
+      `;
+    }
+
+    if (myListsGrid) {
+      myListsGrid.innerHTML = `
+        <div class="empty-state">
+          Impossible de charger tes listes pour le moment.
+        </div>
+      `;
+    }
   }
 }
 
@@ -921,85 +1005,105 @@ async function loadMyProfilePage() {
    ===================================================== */
 
 function setupProfilePage() {
-  openListFormButton.addEventListener("click", showListForm);
+  if (
+    openListFormButton &&
+    listForm &&
+    cancelListFormButton
+  ) {
+    openListFormButton.addEventListener(
+      "click",
+      showListForm
+    );
 
-  cancelListFormButton.addEventListener("click", hideListForm);
+    cancelListFormButton.addEventListener(
+      "click",
+      hideListForm
+    );
 
-  listForm.addEventListener("submit", createMovieList);
+    listForm.addEventListener(
+      "submit",
+      createMovieList
+    );
+  }
 
-  avatarInput.addEventListener("change", () => {
-    const file = avatarInput.files?.[0];
+  if (avatarInput) {
+    avatarInput.addEventListener("change", () => {
+      const file = avatarInput.files?.[0];
 
-    if (file) {
-      uploadProfileAvatar(file);
-    }
-  });
+      if (file) {
+        uploadProfileAvatar(file);
+      }
+    });
+  }
 
-  closeEditReviewModalButton.addEventListener(
-    "click",
-    closeEditReviewModal
-  );
+  if (
+    closeEditReviewModalButton &&
+    cancelEditReviewButton &&
+    editReviewContent &&
+    editReviewModal &&
+    editReviewForm
+  ) {
+    closeEditReviewModalButton.addEventListener(
+      "click",
+      closeEditReviewModal
+    );
 
-  cancelEditReviewButton.addEventListener(
-    "click",
-    closeEditReviewModal
-  );
+    cancelEditReviewButton.addEventListener(
+      "click",
+      closeEditReviewModal
+    );
 
-  editReviewContent.addEventListener(
-    "input",
-    updateEditReviewCharacterCounter
-  );
+    editReviewContent.addEventListener(
+      "input",
+      updateEditReviewCharacterCounter
+    );
 
-  editReviewModal.addEventListener("click", (event) => {
-    if (event.target === editReviewModal) {
-      closeEditReviewModal();
-    }
-  });
+    editReviewModal.addEventListener("click", (event) => {
+      if (event.target === editReviewModal) {
+        closeEditReviewModal();
+      }
+    });
 
-  editReviewForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+    editReviewForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-    if (!editingReviewId) {
-      return;
-    }
+      if (!editingReviewId) {
+        return;
+      }
 
-    const content = editReviewContent.value.trim();
+      const content = editReviewContent.value.trim();
 
-    saveEditReviewButton.disabled = true;
-    saveEditReviewButton.textContent = "Enregistrement…";
+      saveEditReviewButton.disabled = true;
+      saveEditReviewButton.textContent = "Enregistrement…";
 
-    try {
-      /*
-        updateReviewContent ne modifie que reviews.content.
-        La note reste exactement la même.
-      */
-      await updateReviewContent(editingReviewId, content);
+      try {
+        await updateReviewContent(editingReviewId, content);
 
-      closeEditReviewModal();
+        closeEditReviewModal();
+        await loadMyProfilePage();
+      } catch (error) {
+        console.error(
+          "Erreur de modification de la microcritique :",
+          error
+        );
 
-      await loadMyProfilePage();
-    } catch (error) {
-      console.error(
-        "Erreur de modification de la microcritique :",
-        error
-      );
+        alert(
+          `Impossible d’enregistrer tes mots : ${error.message}`
+        );
+      } finally {
+        saveEditReviewButton.disabled = false;
+      }
+    });
 
-      alert(
-        `Impossible d’enregistrer tes mots : ${error.message}`
-      );
-    } finally {
-      saveEditReviewButton.disabled = false;
-    }
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (
-      event.key === "Escape" &&
-      editReviewModal.classList.contains("visible")
-    ) {
-      closeEditReviewModal();
-    }
-  });
+    document.addEventListener("keydown", (event) => {
+      if (
+        event.key === "Escape" &&
+        editReviewModal.classList.contains("visible")
+      ) {
+        closeEditReviewModal();
+      }
+    });
+  }
 }
 
 document.addEventListener("authChanged", () => {
