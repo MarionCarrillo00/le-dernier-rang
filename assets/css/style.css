@@ -2695,3 +2695,15 @@ footer {
   font-weight: normal;
 }
 
+.review-note-only {
+  display: block;
+  padding: 10px 12px;
+  color: var(--grey);
+  background: rgba(215, 167, 93, 0.12);
+  border-left: 2px solid var(--gold);
+  border-radius: 0 6px 6px 0;
+  font-family: Arial, sans-serif;
+  font-size: 0.76rem;
+  font-style: normal;
+}
+
