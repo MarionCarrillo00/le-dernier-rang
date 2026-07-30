@@ -29,6 +29,7 @@ function posterClassFor(index) {
   return posters[index % posters.length];
 }
 
+
 function createMovieCard(review, index, options = {}) {
   const movie = review.movies || {};
   const genres = movie.genres || [];
@@ -51,10 +52,8 @@ function createMovieCard(review, index, options = {}) {
   const likeCount = Number(review.like_count || 0);
   const hasLiked = Boolean(review.liked_by_current_user);
 
-  /*
-    Le texte est facultatif :
-    une entrée peut être une note seule.
-  */
+  const isCompactFilmReview = Boolean(options.compactFilmReview);
+
   const reviewContent = String(review.content || "").trim();
 
   const reviewMarkup = reviewContent
@@ -93,10 +92,6 @@ function createMovieCard(review, index, options = {}) {
       </button>
     `;
 
-  /*
-    Ce bouton est uniquement affiché dans le profil personnel,
-    grâce à l'option canEdit: true.
-  */
   const editButton = options.canEdit
     ? `
       <button
@@ -203,6 +198,58 @@ function createMovieCard(review, index, options = {}) {
       </div>
     `;
 
+  /*
+    Variante réservée à la fiche d'un film :
+    l'affiche est déjà présente dans le hero de la page.
+  */
+  if (isCompactFilmReview) {
+    return `
+      <article class="movie-card movie-card-film-review">
+        <div class="movie-content">
+          <div class="film-review-header">
+            ${authorMarkup}
+
+            <span class="rating" title="${review.rating}/5">
+              ${stars(review.rating)}
+            </span>
+          </div>
+
+          ${reviewMarkup}
+
+          <div class="tags">
+            <span class="tag">${escapeHTML(primaryGenre)}</span>
+
+            ${genres
+              .filter((genre) => genre !== primaryGenre)
+              .map(
+                (genre) =>
+                  `<span class="tag">${escapeHTML(genre)}</span>`
+              )
+              .join("")}
+          </div>
+
+          <div class="card-bottom">
+            <span class="film-review-meta">
+              ${
+                reviewContent
+                  ? "Microcritique"
+                  : "Note ajoutée au carnet"
+              }
+            </span>
+
+            <div class="card-actions">
+              ${actionButton}
+            </div>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  /*
+    Variante classique :
+    utilisée sur l'accueil, les profils et les pages membres.
+  */
   return `
     <article class="movie-card">
       ${posterMarkup}
@@ -253,6 +300,7 @@ function createMovieCard(review, index, options = {}) {
     </article>
   `;
 }
+
 
 /* =====================================================
    PROFILS DES AUTEURS
