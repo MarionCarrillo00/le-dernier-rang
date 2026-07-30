@@ -2971,3 +2971,34 @@ footer {
     margin-left: 0;
   }
 }
+
+/* =====================================================
+   LIENS DE FICHE FILM SUR LES CARTES
+   ===================================================== */
+
+.movie-poster-link {
+  display: block;
+  flex: 0 0 auto;
+  color: inherit;
+  text-decoration: none;
+}
+
+.movie-poster-link:hover .poster-image img {
+  transform: scale(1.035);
+}
+
+.movie-card .poster.poster-image img {
+  transition: transform 0.25s ease;
+}
+
+.movie-card-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.movie-card-title a:hover {
+  color: var(--red);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
