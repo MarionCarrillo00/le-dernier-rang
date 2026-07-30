@@ -94,6 +94,10 @@ function renderCast(cast) {
   `;
 }
 
+/* =====================================================
+   LISTES PERSONNALISÉES
+   ===================================================== */
+
 /*
   Récupère les listes personnalisées de l'utilisatrice.
   La wishlist système (« À voir ») est volontairement exclue
@@ -148,10 +152,10 @@ async function getMyListsForMovie(movieId) {
   }));
 }
 
-/*
-  Vérifie si le film est déjà présent dans la wishlist « À voir »
-  de l'utilisatrice connectée.
-*/
+/* =====================================================
+   WISHLIST : À VOIR
+   ===================================================== */
+
 async function getWishlistStatusForMovie(movieId) {
   if (!currentUser || !movieId) {
     return false;
@@ -188,10 +192,6 @@ async function getWishlistStatusForMovie(movieId) {
   return Boolean(wishlistItem);
 }
 
-/*
-  Récupère la wishlist de l'utilisatrice ou la crée
-  automatiquement lors du premier ajout.
-*/
 async function getOrCreateWishlist() {
   if (!currentUser) {
     throw new Error("AUTH_REQUIRED");
@@ -228,9 +228,7 @@ async function getOrCreateWishlist() {
       .single();
 
   /*
-    Cas rare : deux onglets ou deux clics simultanés.
-    L'index unique créé en BDD protège l'unicité de la wishlist.
-    On relit simplement la wishlist qui vient d'être créée.
+    Protection en cas de création simultanée dans plusieurs onglets.
   */
   if (createError?.code === "23505") {
     const { data: concurrentWishlist, error: retryError } =
@@ -257,11 +255,6 @@ async function getOrCreateWishlist() {
   return createdWishlist;
 }
 
-/*
-  Ajoute ou retire un film de la wishlist « À voir ».
-  Retourne true si le film est désormais dans la wishlist,
-  false s'il vient d'en être retiré.
-*/
 async function toggleWishlistMovie(movieId) {
   const wishlist = await getOrCreateWishlist();
 
@@ -308,6 +301,145 @@ async function toggleWishlistMovie(movieId) {
   return true;
 }
 
+/*
+  Garantit qu'un film ouvert directement depuis TMDB existe
+  bien dans le catalogue Supabase avant d'être ajouté à « À voir ».
+
+  Ainsi, il n'est plus nécessaire de publier une microcritique
+  avant de sauvegarder un film dans la wishlist.
+*/
+async function ensureCurrentFilmInCatalog() {
+  if (!currentUser) {
+    throw new Error("AUTH_REQUIRED");
+  }
+
+  if (!currentFilmMovie) {
+    throw new Error("Le film en cours est introuvable.");
+  }
+
+  /*
+    Film déjà présent dans le catalogue.
+  */
+  if (currentFilmMovie.id) {
+    return currentFilmMovie;
+  }
+
+  const tmdbId =
+    currentFilmMovie.tmdb_id ||
+    currentTmdbMovieId;
+
+  if (!tmdbId) {
+    throw new Error(
+      "Ce film ne possède pas d’identifiant TMDB exploitable."
+    );
+  }
+
+  /*
+    Vérification : le film peut avoir été créé entre-temps
+    par une autre personne ou dans un autre onglet.
+  */
+  const { data: existingMovie, error: searchError } =
+    await supabaseClient
+      .from("movies")
+      .select(`
+        id,
+        tmdb_id,
+        title,
+        original_title,
+        release_year,
+        director,
+        poster_url,
+        overview,
+        genres
+      `)
+      .eq("tmdb_id", tmdbId)
+      .maybeSingle();
+
+  if (searchError) {
+    throw searchError;
+  }
+
+  if (existingMovie) {
+    currentFilmMovie = existingMovie;
+    return existingMovie;
+  }
+
+  /*
+    Première création du film dans le catalogue, sans critique.
+  */
+  const movieData = {
+    tmdb_id: tmdbId,
+    title: currentFilmMovie.title || "Film sans titre",
+    original_title: currentFilmMovie.original_title || "",
+    release_year: currentFilmMovie.release_year || null,
+    director: currentFilmMovie.director || "",
+    poster_url: currentFilmMovie.poster_url || null,
+    overview: currentFilmMovie.overview || "",
+    genres: currentFilmMovie.genres || [],
+    created_by: currentUser.id
+  };
+
+  const { data: createdMovie, error: createError } =
+    await supabaseClient
+      .from("movies")
+      .insert(movieData)
+      .select(`
+        id,
+        tmdb_id,
+        title,
+        original_title,
+        release_year,
+        director,
+        poster_url,
+        overview,
+        genres
+      `)
+      .single();
+
+  /*
+    Gestion d'un éventuel doublon TMDB créé simultanément.
+  */
+  if (createError?.code === "23505") {
+    const { data: concurrentMovie, error: retryError } =
+      await supabaseClient
+        .from("movies")
+        .select(`
+          id,
+          tmdb_id,
+          title,
+          original_title,
+          release_year,
+          director,
+          poster_url,
+          overview,
+          genres
+        `)
+        .eq("tmdb_id", tmdbId)
+        .maybeSingle();
+
+    if (retryError) {
+      throw retryError;
+    }
+
+    if (concurrentMovie) {
+      currentFilmMovie = concurrentMovie;
+      return concurrentMovie;
+    }
+  }
+
+  if (createError) {
+    throw createError;
+  }
+
+  currentFilmMovie = createdMovie;
+
+  return createdMovie;
+}
+
+/* =====================================================
+   PANNEAU DES LISTES
+   ===================================================== */
+
 function renderListPanel(lists) {
   if (!listPanelOpen) {
     return "";
@@ -335,7 +467,9 @@ function renderListPanel(lists) {
     return `
       <div class="film-list-panel">
         <p>
-          Publie une première microcritique pour ajouter ce film à tes listes.
+          Ajoute d’abord ce film à ta liste À voir ou publie une
+          microcritique pour pouvoir le ranger dans tes collections
+          personnelles.
         </p>
       </div>
     `;
@@ -412,6 +546,10 @@ function buildWriteReviewLink(tmdbId) {
 
   return `index.html?writeTmdb=${encodeURIComponent(tmdbId)}`;
 }
+
+/* =====================================================
+   RENDU DE LA FICHE FILM
+   ===================================================== */
 
 function renderFilmPage(
   movie,
@@ -536,7 +674,7 @@ function renderFilmPage(
           }
 
           ${
-            filmExistsInCatalog
+            filmExistsInCatalog || tmdbId
               ? `
                 <button
                   class="button-secondary wishlist-button ${
@@ -628,6 +766,10 @@ function renderFilmPage(
   setupListButtons();
 }
 
+/* =====================================================
+   INTERACTIONS
+   ===================================================== */
+
 function setupFilmLikeButtons() {
   document.querySelectorAll(".favorite").forEach((button) => {
     button.addEventListener("click", async (event) => {
@@ -679,19 +821,18 @@ function setupListButtons() {
         return;
       }
 
-      if (!currentFilmMovie?.id) {
-        alert(
-          "Ce film doit d’abord être ajouté au catalogue avant de pouvoir rejoindre ta liste À voir."
-        );
-
-        return;
-      }
-
       wishlistButton.disabled = true;
       wishlistButton.textContent = "Mise à jour…";
 
       try {
-        await toggleWishlistMovie(currentFilmMovie.id);
+        /*
+          Un film TMDB sans microcritique est enregistré
+          dans le catalogue avant son ajout dans la wishlist.
+        */
+        const catalogMovie = await ensureCurrentFilmInCatalog();
+
+        await toggleWishlistMovie(catalogMovie.id);
+
         await initialiseFilmPage();
       } catch (error) {
         console.error("Erreur de gestion de la wishlist :", error);
@@ -794,6 +935,10 @@ function setupListButtons() {
     });
 }
 
+/* =====================================================
+   CATALOGUE ET TMDB
+   ===================================================== */
+
 async function getMovieFromCatalog(movieId) {
   const { data, error } = await supabaseClient
     .from("movies")
@@ -863,6 +1008,10 @@ async function getTmdbDetails(tmdbId) {
   return data.result;
 }
 
+/* =====================================================
+   INITIALISATION
+   ===================================================== */
+
 async function initialiseFilmPage() {
   const movieId = getMovieIdFromUrl();
   const tmdbIdFromUrl = getTmdbIdFromUrl();
@@ -909,9 +1058,9 @@ async function initialiseFilmPage() {
       tmdbDetails = await getTmdbDetails(tmdbIdFromUrl);
 
       /*
-        Film virtuel : utilisé seulement pour afficher la fiche.
-        Il sera réellement créé dans Supabase au moment de la
-        première microcritique.
+        Film virtuel : utilisé pour afficher la fiche.
+        Il est créé dans Supabase lors du premier ajout
+        à « À voir » ou de la première microcritique.
       */
       if (!movie) {
         movie = {
