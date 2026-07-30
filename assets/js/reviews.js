@@ -685,6 +685,10 @@ if (
       </a>
     `
     : "";
+  
+  const shouldShowAuthor = !options.hideAuthor;
+  const shouldShowDiscussionLink = !options.hideDiscussionLink;
+
 
   const posterContent = posterUrl
     ? `
@@ -874,15 +878,27 @@ if (
             .join("")}
         </div>
 
-        <div class="card-bottom">
-          ${authorMarkup}
 
-          <div class="card-actions">
-            ${discussionLink}
-            ${editButton}
-            ${actionButton}
-          </div>
-        </div>
+<div class="card-bottom ${
+  shouldShowAuthor ? "" : "card-bottom-own-profile"
+}">
+  ${
+    shouldShowAuthor
+      ? authorMarkup
+      : ""
+  }
+
+  <div class="card-actions">
+    ${
+      shouldShowDiscussionLink
+        ? discussionLink
+        : ""
+    }
+    ${editButton}
+    ${actionButton}
+  </div>
+</div>
+
       </div>
     </article>
   `;
