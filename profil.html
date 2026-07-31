@@ -602,6 +602,90 @@
       </div>
     </div>
 
+<!-- =================================================
+     MODALE : AJOUT D'UNE MICROCRITIQUE À UNE NOTE
+     ================================================= -->
+
+<div
+  id="addReviewContentModal"
+  class="modal-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="addReviewContentTitle"
+>
+  <div class="modal-content edit-review-modal-content">
+    <button
+      id="closeAddReviewContentModal"
+      class="modal-close"
+      type="button"
+      aria-label="Fermer la fenêtre"
+    >
+      ×
+    </button>
+
+    <div class="eyebrow red-eyebrow">
+      Mon journal
+    </div>
+
+    <h2 id="addReviewContentTitle">
+      Ajouter une microcritique
+    </h2>
+
+    <p
+      id="addReviewContentMovieTitle"
+      class="edit-review-movie-title"
+    ></p>
+
+    <p class="edit-review-note-explanation">
+      Ces mots deviendront définitifs après publication.
+      Ils pourront recevoir des likes et des réponses.
+    </p>
+
+    <form id="addReviewContentForm">
+      <div class="form-field">
+        <label for="addReviewContentInput">
+          Ma microcritique
+        </label>
+
+        <textarea
+          id="addReviewContentInput"
+          maxlength="140"
+          rows="5"
+          required
+          placeholder="Une image, une émotion, une phrase…"
+        ></textarea>
+
+        <div class="character-counter-wrap">
+          <span
+            id="addReviewContentCharacterCounter"
+            class="character-counter"
+          >
+            0 / 140
+          </span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button
+          id="saveAddReviewContentButton"
+          class="button-primary"
+          type="submit"
+        >
+          Publier mes mots
+        </button>
+
+        <button
+          id="cancelAddReviewContentButton"
+          class="button-text"
+          type="button"
+        >
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
     <!-- =================================================
          MODALE : AUTHENTIFICATION
          ================================================= -->
