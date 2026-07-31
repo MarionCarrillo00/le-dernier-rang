@@ -71,6 +71,10 @@ const activityUnreadCount = document.getElementById(
   "activityUnreadCount"
 );
 
+const markAllNotificationsReadButton = document.getElementById(
+  "markAllNotificationsReadButton"
+);
+
 /* =====================================================
    MODALE D'ÉDITION DES MICROCRITIQUES
    ===================================================== */
@@ -1169,6 +1173,26 @@ async function markNotificationAsRead(notificationId) {
   }
 }
 
+
+async function markAllNotificationsAsRead() {
+  if (!currentUser) {
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("notifications")
+    .update({
+      read_at: new Date().toISOString()
+    })
+    .eq("recipient_id", currentUser.id)
+    .is("read_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+
 function refreshActivityUnreadCount() {
   if (!activityUnreadCount) {
     return;
@@ -1223,11 +1247,18 @@ function renderActivityFeed(notifications) {
     return;
   }
 
-  if (!currentUser) {
-    activityFeed.innerHTML = "";
-    activityUnreadCount.hidden = true;
-    return;
+
+if (!currentUser) {
+  activityFeed.innerHTML = "";
+  activityUnreadCount.hidden = true;
+
+  if (markAllNotificationsReadButton) {
+    markAllNotificationsReadButton.hidden = true;
   }
+
+  return;
+}
+
 
   const unreadCount = notifications.filter(
     (notification) => !notification.read_at
@@ -1235,6 +1266,10 @@ function renderActivityFeed(notifications) {
 
   activityUnreadCount.textContent = String(unreadCount);
   activityUnreadCount.hidden = unreadCount === 0;
+
+if (markAllNotificationsReadButton) {
+  markAllNotificationsReadButton.hidden = unreadCount === 0;
+}
 
   if (!notifications.length) {
     activityFeed.innerHTML = `
@@ -2031,6 +2066,45 @@ function setupProfilePage() {
     listForm.addEventListener(
       "submit",
       createMovieList
+    );
+  }
+
+  if (markAllNotificationsReadButton) {
+    markAllNotificationsReadButton.addEventListener(
+      "click",
+      async () => {
+        const originalText =
+          markAllNotificationsReadButton.textContent;
+
+        markAllNotificationsReadButton.disabled = true;
+        markAllNotificationsReadButton.textContent = "Lecture…";
+
+        try {
+          await markAllNotificationsAsRead();
+
+          document
+            .querySelectorAll(".activity-item.is-unread")
+            .forEach((item) => {
+              item.classList.remove("is-unread");
+            });
+
+          refreshActivityUnreadCount();
+
+          markAllNotificationsReadButton.hidden = true;
+        } catch (error) {
+          console.error(
+            "Impossible de marquer les notifications comme lues :",
+            error
+          );
+
+          alert(
+            `Impossible de mettre à jour les notifications : ${error.message}`
+          );
+        } finally {
+          markAllNotificationsReadButton.disabled = false;
+          markAllNotificationsReadButton.textContent = originalText;
+        }
+      }
     );
   }
 
