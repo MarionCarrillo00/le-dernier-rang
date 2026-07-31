@@ -778,6 +778,7 @@ const canReceiveInteractions = Boolean(reviewContent);
   const canReceiveLikes = Boolean(reviewContent);
 
 
+
 const reviewMarkup = reviewContent
   ? `
       <p class="review">
@@ -785,10 +786,18 @@ const reviewMarkup = reviewContent
       </p>
     `
   : `
-      <p class="review review-note-only">
-        Note du carnet · ${escapeHTML(primaryGenre)}
+      <div
+        class="note-only-rating"
+        aria-label="Note : ${escapeHTML(String(review.rating))} sur 5"
+      >
+        ${stars(review.rating)}
+      </div>
+
+      <p class="movie-card-note-meta">
+        ${escapeHTML(primaryGenre)}
       </p>
     `;
+
 
 const tagsMarkup = isNoteOnly
   ? ""
@@ -956,7 +965,10 @@ const discussionLink =
       </div>
     `;
 
-  const posterMarkup = movieUrl
+
+const posterMarkup = isNoteOnly
+  ? ""
+  : movieUrl
     ? `
       <a
         class="movie-poster-link"
@@ -969,6 +981,7 @@ const discussionLink =
       </a>
     `
     : posterContent;
+
 
   const authorAvatarMarkup = authorAvatarUrl
     ? `
@@ -1030,9 +1043,15 @@ const discussionLink =
           <div class="film-review-header">
             ${authorMarkup}
 
-            <span class="rating" title="${review.rating}/5">
-              ${stars(review.rating)}
-            </span>
+${
+  isNoteOnly
+    ? ""
+    : `
+      <span class="rating" title="${review.rating}/5">
+        ${stars(review.rating)}
+      </span>
+    `
+}
           </div>
 
           ${reviewMarkup}
