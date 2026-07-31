@@ -5659,3 +5659,45 @@ a.activity-content-link:hover .activity-detail {
   justify-content: flex-end;
   padding-top: 9px;
 }
+
+
+/* =====================================================
+   NOTE SEULE — ACTIONS
+   ===================================================== */
+
+.add-review-content {
+  padding: 0;
+  color: var(--deep-red);
+  background: transparent;
+  border: none;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.add-review-content:hover {
+  color: var(--red);
+}
+
+/* Harmonisation avec les actions de note seule. */
+
+.movie-card-note-only .card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.movie-card-note-only .edit-review,
+.movie-card-note-only .add-review-content {
+  padding: 0;
+  font-size: 0.68rem;
+}
+
+.movie-card-note-only .delete-review {
+  padding: 5px 9px;
+  font-size: 0.66rem;
+}
+
