@@ -5246,3 +5246,144 @@ a.activity-content-link:hover .activity-detail {
   font-size: 0.77rem;
   line-height: 1.45;
 }
+
+
+/* =====================================================
+   NOTE SEULE — CARTE COMPACTE
+   Une note est une trace légère dans le carnet :
+   moins haute, plus directe, sans interactions sociales.
+   ===================================================== */
+
+.movie-card-note-only {
+  min-height: 150px;
+}
+
+/* Affiche plus étroite et proportionnée à la carte courte. */
+
+.movie-card-note-only .poster {
+  width: 100px;
+  min-width: 100px;
+  height: 150px;
+  padding: 10px;
+}
+
+.movie-card-note-only .poster .movie-title {
+  font-size: 1rem;
+}
+
+.movie-card-note-only .poster .year {
+  font-size: 0.62rem;
+}
+
+/* Le contenu est plus ramassé. */
+
+.movie-card-note-only .movie-content {
+  padding: 14px 16px 12px;
+}
+
+.movie-card-note-only .movie-card-heading {
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.movie-card-note-only .movie-card-title {
+  margin-bottom: 4px;
+  font-size: 1rem;
+}
+
+.movie-card-note-only .movie-card-director {
+  font-size: 0.68rem;
+}
+
+/* La note devient l'élément fort, à droite. */
+
+.movie-card-note-only .rating {
+  padding: 7px 9px;
+  color: var(--gold);
+  background: rgba(215, 167, 93, 0.11);
+  border-radius: 999px;
+  font-size: 0.82rem;
+}
+
+/* Supprime l'impression de vide :
+   le libellé remplace le grand bloc de microcritique. */
+
+.movie-card-note-only .review-note-only {
+  display: inline-block;
+  width: fit-content;
+  margin: 13px 0 auto;
+  padding: 6px 9px;
+  color: var(--grey);
+  background: transparent;
+  border-left: 1px solid var(--gold);
+  border-radius: 0;
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+/* Les cartes compactes n'ont pas de tags :
+   le genre est déjà indiqué dans le libellé de note. */
+
+.movie-card-note-only .tags {
+  display: none;
+}
+
+.movie-card-note-only .card-bottom {
+  min-height: 27px;
+  padding-top: 8px;
+}
+
+/* Variante fiche film : garde l'alignement propre,
+   sans les grands décalages pensés pour l'avatar. */
+
+.movie-card-film-review.movie-card-note-only {
+  min-height: 0;
+}
+
+.movie-card-film-review.movie-card-note-only .movie-content {
+  padding: 16px 20px 13px;
+}
+
+.movie-card-film-review.movie-card-note-only .review-note-only {
+  margin-left: 0;
+}
+
+.movie-card-film-review.movie-card-note-only .card-bottom {
+  margin-top: 9px;
+}
+
+/* Mobile */
+
+@media (max-width: 650px) {
+  .movie-card-note-only {
+    flex-direction: row;
+    min-height: 135px;
+  }
+
+  .movie-card-note-only .poster {
+    width: 90px;
+    min-width: 90px;
+    height: 135px;
+  }
+
+  .movie-card-note-only .movie-content {
+    padding: 12px 13px 10px;
+  }
+
+  .movie-card-note-only .movie-card-title {
+    font-size: 0.94rem;
+  }
+
+  .movie-card-note-only .rating {
+    padding: 5px 7px;
+    font-size: 0.74rem;
+  }
+
+  .movie-card-note-only .review-note-only {
+    margin-top: 10px;
+    font-size: 0.63rem;
+  }
+}
+
