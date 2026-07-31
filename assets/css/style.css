@@ -4821,3 +4821,30 @@ footer {
   }
 }
 
+/* =====================================================
+   PROFIL — APERÇU DES COLLECTIONS
+   ===================================================== */
+
+.profile-lists-toggle {
+  width: fit-content;
+  padding: 4px 0;
+  color: var(--deep-red);
+  background: transparent;
+  border: 0;
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.profile-lists-toggle:hover {
+  color: var(--red);
+}
+
+.profile-lists-toggle span {
+  display: inline-block;
+  margin-left: 3px;
+  text-decoration: none;
+}
+
