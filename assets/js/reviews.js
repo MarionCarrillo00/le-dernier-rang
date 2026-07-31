@@ -1015,7 +1015,7 @@ function createMovieCard(review, index, options = {}) {
     aucune conversation déroulée dans la grille.
   */
   return `
-    <article class="movie-card">
+    <article id="review-${escapeHTML(review.id)}" class="movie-card">
       ${posterMarkup}
 
       <div class="movie-content">
