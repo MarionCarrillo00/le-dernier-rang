@@ -230,152 +230,159 @@
 
 
 
-      <!-- =============================================
-           WISHLIST + LISTES
-           ============================================= -->
+<!-- =============================================
+     JOURNAL + COLONNE PERSONNELLE
+     ============================================= -->
 
-      <div class="profile-collections-layout">
-        <section class="profile-wishlist-section">
-          <div class="section-title">
-            <div>
-              <div class="eyebrow red-eyebrow">
-                Prochaines séances
-              </div>
+<div class="profile-journal-layout">
+  <!-- ===========================================
+       COLONNE PRINCIPALE : JOURNAL
+       =========================================== -->
 
-              <h2>À voir</h2>
-            </div>
+  <section class="profile-reviews-section">
+    <div class="section-title profile-reviews-heading">
+      <div>
+        <div class="eyebrow red-eyebrow">
+          Mon journal
+        </div>
+
+        <h2>Critiques</h2>
+      </div>
+    </div>
+
+    <div
+      id="myReviewsGrid"
+      class="movies-grid profile-reviews-grid"
+    >
+      <div class="empty-state">
+        Chargement de ton carnet…
+      </div>
+    </div>
+  </section>
+
+  <!-- ===========================================
+       COLONNE SECONDAIRE : À VOIR + LISTES
+       =========================================== -->
+
+  <aside class="profile-sidebar">
+    <section class="profile-wishlist-section">
+      <div class="section-title profile-sidebar-heading">
+        <div>
+          <div class="eyebrow red-eyebrow">
+            Prochaines séances
           </div>
 
-          <div
-            id="myWishlistGrid"
-            class="wishlist-grid"
-          ></div>
-        </section>
-
-        <section class="profile-lists-section">
-          <div class="section-title profile-lists-heading">
-            <div>
-              <div class="eyebrow red-eyebrow">
-                Mes listes
-              </div>
-
-              <h2>Collections</h2>
-            </div>
-
-            <button
-              id="openListFormButton"
-              class="button-primary"
-              type="button"
-              hidden
-            >
-              Créer une liste
-            </button>
-          </div>
-
-          <!-- Formulaire de création de liste -->
-          <form
-            id="listForm"
-            class="list-form"
-            hidden
-          >
-            <div class="form-field">
-              <label for="listTitle">
-                Titre de la liste
-              </label>
-
-              <input
-                id="listTitle"
-                name="title"
-                type="text"
-                minlength="2"
-                maxlength="80"
-                placeholder="Ex. Les films de pluie"
-                required
-              />
-            </div>
-
-            <div class="form-field">
-              <label for="listVisibility">
-                Visibilité
-              </label>
-
-              <select
-                id="listVisibility"
-                name="visibility"
-              >
-                <option value="public">
-                  Publique — visible par tous
-                </option>
-
-                <option value="private">
-                  Privée — visible uniquement par moi
-                </option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label for="listDescription">
-                Quelques mots <span>(facultatif)</span>
-              </label>
-
-              <textarea
-                id="listDescription"
-                name="description"
-                maxlength="280"
-                rows="3"
-                placeholder="Ce que ces films ont en commun…"
-              ></textarea>
-            </div>
-
-            <div class="list-form-actions">
-              <button
-                class="button-primary"
-                type="submit"
-              >
-                Créer ma liste
-              </button>
-
-              <button
-                id="cancelListFormButton"
-                class="button-text"
-                type="button"
-              >
-                Annuler
-              </button>
-            </div>
-          </form>
-
-          <div
-            id="myListsGrid"
-            class="lists-grid"
-          ></div>
-        </section>
+          <h2>À voir</h2>
+        </div>
       </div>
 
-      <!-- =============================================
-           JOURNAL / CRITIQUES
-           ============================================= -->
+      <div
+        id="myWishlistGrid"
+        class="wishlist-grid"
+      ></div>
+    </section>
 
-      <section class="profile-reviews-section">
-        <div class="section-title">
-          <div>
-            <div class="eyebrow red-eyebrow">
-              Mon journal
-            </div>
-
-            <h2>Critiques</h2>
+    <section class="profile-lists-section">
+      <div class="section-title profile-sidebar-heading">
+        <div>
+          <div class="eyebrow red-eyebrow">
+            Mes listes
           </div>
+
+          <h2>Collections</h2>
         </div>
 
-        <div
-          id="myReviewsGrid"
-          class="movies-grid profile-reviews-grid"
+        <button
+          id="openListFormButton"
+          class="button-primary"
+          type="button"
+          hidden
         >
-          <div class="empty-state">
-            Chargement de ton carnet…
-          </div>
+          Créer une liste
+        </button>
+      </div>
+
+      <!-- Formulaire de création de liste -->
+      <form
+        id="listForm"
+        class="list-form"
+        hidden
+      >
+        <div class="form-field">
+          <label for="listTitle">
+            Titre de la liste
+          </label>
+
+          <input
+            id="listTitle"
+            name="title"
+            type="text"
+            minlength="2"
+            maxlength="80"
+            placeholder="Ex. Les films de pluie"
+            required
+          />
         </div>
-      </section>
+
+        <div class="form-field">
+          <label for="listVisibility">
+            Visibilité
+          </label>
+
+          <select
+            id="listVisibility"
+            name="visibility"
+          >
+            <option value="public">
+              Publique — visible par tous
+            </option>
+
+            <option value="private">
+              Privée — visible uniquement par moi
+            </option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="listDescription">
+            Quelques mots <span>(facultatif)</span>
+          </label>
+
+          <textarea
+            id="listDescription"
+            name="description"
+            maxlength="280"
+            rows="3"
+            placeholder="Ce que ces films ont en commun…"
+          ></textarea>
+        </div>
+
+        <div class="list-form-actions">
+          <button
+            class="button-primary"
+            type="submit"
+          >
+            Créer ma liste
+          </button>
+
+          <button
+            id="cancelListFormButton"
+            class="button-text"
+            type="button"
+          >
+            Annuler
+          </button>
+        </div>
+      </form>
+
+      <div
+        id="myListsGrid"
+        class="lists-grid profile-sidebar-lists-grid"
+      ></div>
+    </section>
+  </aside>
+</div>
+
     </main>
 
     <!-- =================================================
