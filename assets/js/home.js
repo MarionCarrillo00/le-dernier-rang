@@ -13,6 +13,18 @@ const filters = document.getElementById("filters");
 const movieCount = document.getElementById("movieCount");
 const homeTmdbResults = document.getElementById("homeTmdbResults");
 
+/* ---------------------------------
+   Activité du cercle
+--------------------------------- */
+
+const circleActivitySidebar = document.getElementById(
+  "circleActivitySidebar"
+);
+
+const circleActivityFeed = document.getElementById(
+  "circleActivityFeed"
+);
+
 const reviewModal = document.getElementById("reviewModal");
 const openModal = document.getElementById("openModal");
 const closeModal = document.getElementById("closeModal");
@@ -553,6 +565,280 @@ function handleHomeSearchInput() {
   }, 450);
 }
 
+/* ---------------------------------
+   Activité du cercle
+--------------------------------- */
+
+function formatCircleActivityDate(dateValue) {
+  if (!dateValue) {
+    return "";
+  }
+
+  const date = new Date(dateValue);
+  const now = new Date();
+
+  const differenceInSeconds = Math.max(
+    0,
+    Math.floor((now.getTime() - date.getTime()) / 1000)
+  );
+
+  if (differenceInSeconds < 60) {
+    return "À l’instant";
+  }
+
+  const differenceInMinutes = Math.floor(
+    differenceInSeconds / 60
+  );
+
+  if (differenceInMinutes < 60) {
+    return `Il y a ${differenceInMinutes} min`;
+  }
+
+  const differenceInHours = Math.floor(
+    differenceInMinutes / 60
+  );
+
+  if (differenceInHours < 24) {
+    return `Il y a ${differenceInHours} h`;
+  }
+
+  const differenceInDays = Math.floor(
+    differenceInHours / 24
+  );
+
+  if (differenceInDays === 1) {
+    return "Hier";
+  }
+
+  if (differenceInDays < 7) {
+    return `Il y a ${differenceInDays} jours`;
+  }
+
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short"
+  });
+}
+
+function getCircleMemberInitial(profile) {
+  const username = profile?.username || "Membre";
+
+  return username.charAt(0).toUpperCase() || "?";
+}
+
+function renderCircleMemberAvatar(profile) {
+  const username = profile?.username || "Membre";
+
+  if (profile?.avatar_url) {
+    return `
+      <img
+        class="circle-activity-avatar"
+        src="${escapeHTML(profile.avatar_url)}"
+        alt="Photo de profil de ${escapeHTML(username)}"
+        loading="lazy"
+      />
+    `;
+  }
+
+  return `
+    <div
+      class="circle-activity-avatar circle-activity-avatar-placeholder"
+      aria-hidden="true"
+    >
+      ${escapeHTML(getCircleMemberInitial(profile))}
+    </div>
+  `;
+}
+
+async function getCircleRecentReviews() {
+  if (!currentUser) {
+    return [];
+  }
+
+  /*
+    getAcceptedFriends() vient de friends.js.
+    On récupère seulement les amis validés de l'utilisatrice.
+  */
+  const friends = await getAcceptedFriends(currentUser.id);
+
+  if (!friends.length) {
+    return [];
+  }
+
+  const friendIds = friends
+    .map((friend) => friend.id)
+    .filter(Boolean);
+
+  if (!friendIds.length) {
+    return [];
+  }
+
+  const friendsById = Object.fromEntries(
+    friends.map((friend) => [friend.id, friend])
+  );
+
+  const { data: reviews, error } = await supabaseClient
+    .from("reviews")
+    .select(`
+      id,
+      user_id,
+      rating,
+      content,
+      created_at,
+      movies (
+        id,
+        title,
+        release_year,
+        director,
+        poster_url,
+        genres
+      )
+    `)
+    .in("user_id", friendIds)
+    .eq("is_published", true)
+    .order("created_at", {
+      ascending: false
+    })
+    .limit(6);
+
+  if (error) {
+    throw error;
+  }
+
+  return (reviews || [])
+    .filter((review) => review.movies)
+    .map((review) => ({
+      ...review,
+      author: friendsById[review.user_id] || null
+    }));
+}
+
+function renderCircleActivityItem(review) {
+  const author = review.author || {};
+  const username = author.username || "Un membre";
+
+  const movie = review.movies || {};
+  const movieTitle = movie.title || "un film";
+
+  const profileUrl =
+    `membre.html?id=${encodeURIComponent(review.user_id)}`;
+
+  const movieUrl =
+    `film.html?id=${encodeURIComponent(
+      movie.id
+    )}#review-${encodeURIComponent(review.id)}`;
+
+  const reviewText = review.content?.trim()
+    ? `« ${review.content.trim()} »`
+    : `a ajouté une note de ${review.rating}/5.`;
+
+  return `
+    <article class="circle-activity-item">
+      <a
+        class="circle-activity-avatar-link"
+        href="${profileUrl}"
+        title="Voir le profil de ${escapeHTML(username)}"
+      >
+        ${renderCircleMemberAvatar(author)}
+      </a>
+
+      <div class="circle-activity-content">
+        <p class="circle-activity-main">
+          <a href="${profileUrl}">
+            ${escapeHTML(username)}
+          </a>
+          <span>a écrit sur</span>
+          <a href="${movieUrl}">
+            ${escapeHTML(movieTitle)}
+          </a>
+        </p>
+
+        <a
+          class="circle-activity-review"
+          href="${movieUrl}"
+        >
+          ${escapeHTML(reviewText)}
+        </a>
+
+        <time
+          class="circle-activity-date"
+          datetime="${escapeHTML(review.created_at)}"
+        >
+          ${escapeHTML(
+            formatCircleActivityDate(review.created_at)
+          )}
+        </time>
+      </div>
+    </article>
+  `;
+}
+
+function renderCircleActivity(reviews) {
+  if (!circleActivityFeed || !circleActivitySidebar) {
+    return;
+  }
+
+  if (!currentUser) {
+    circleActivitySidebar.hidden = true;
+    circleActivityFeed.innerHTML = "";
+    return;
+  }
+
+  circleActivitySidebar.hidden = false;
+
+  if (!reviews.length) {
+    circleActivityFeed.innerHTML = `
+      <div class="circle-activity-empty-state">
+        <strong>Ton cercle est encore silencieux.</strong>
+        <br /><br />
+        Les nouvelles critiques de tes amis apparaîtront ici.
+      </div>
+    `;
+
+    return;
+  }
+
+  circleActivityFeed.innerHTML = reviews
+    .map(renderCircleActivityItem)
+    .join("");
+}
+
+async function refreshCircleActivity() {
+  if (!circleActivityFeed || !circleActivitySidebar) {
+    return;
+  }
+
+  if (!currentUser) {
+    renderCircleActivity([]);
+    return;
+  }
+
+  circleActivityFeed.innerHTML = `
+    <div class="circle-activity-loading">
+      Chargement de l’activité…
+    </div>
+  `;
+
+  try {
+    const reviews = await getCircleRecentReviews();
+
+    renderCircleActivity(reviews);
+  } catch (error) {
+    console.error(
+      "Erreur de chargement de l’activité du cercle :",
+      error
+    );
+
+    circleActivitySidebar.hidden = false;
+
+    circleActivityFeed.innerHTML = `
+      <div class="circle-activity-empty-state">
+        Impossible de charger l’activité du cercle pour le moment.
+      </div>
+    `;
+  }
+}
+
 
 /* ---------------------------------
    Accueil et affichage des critiques
@@ -804,15 +1090,27 @@ function setupHome() {
     }
   });
 
-  document.addEventListener("authChanged", async () => {
-    await refreshHomeReviews();
-    await handleWriteTmdbFromUrl();
-  });
+
+document.addEventListener("authChanged", async () => {
+  await Promise.all([
+    refreshHomeReviews(),
+    refreshCircleActivity()
+  ]);
+
+  await handleWriteTmdbFromUrl();
+});
+
 }
+
 
 async function initialiseHome() {
   setupHome();
-  await refreshHomeReviews();
+
+  await Promise.all([
+    refreshHomeReviews(),
+    refreshCircleActivity()
+  ]);
+
   await handleWriteTmdbFromUrl();
 }
 
