@@ -1110,7 +1110,7 @@ function renderMovieLists(lists) {
           <h3>
             <a
               class="movie-list-link"
-              href="list.html?id=${encodeURIComponent(list.id)}"
+              href="liste.html?id=${encodeURIComponent(list.id)}"
             >
               ${escapeHTML(list.title)}
             </a>
