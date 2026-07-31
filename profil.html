@@ -163,58 +163,28 @@
         </div>
       </section>
 
-      <!-- =============================================
-           DEMANDES D'AMIS
-           Cachée automatiquement s'il n'y a aucune
-           demande en attente.
-           ============================================= -->
-
-      <section
-        id="friendRequestsSection"
-        class="friend-requests-section"
-        hidden
-      >
-        <div class="section-title friend-requests-heading">
-          <div>
-            <div class="eyebrow red-eyebrow">
-              Mon cercle
-            </div>
-
-            <h2>Demandes d’amis</h2>
-          </div>
-
-          <span
-            id="friendRequestsCount"
-            class="friend-requests-count"
-            aria-label="Nombre de demandes d’amis en attente"
-          >
-            0
-          </span>
-        </div>
-
-        <div
-          id="friendRequestsGrid"
-          class="friend-requests-grid"
-        ></div>
-      </section>
-
-      
+  
 <!-- =============================================
-     MON CERCLE : AMITIÉS ACCEPTÉES
+     MON CERCLE
+     Amis acceptés + demandes en attente
      ============================================= -->
 
 <section
   id="myCircleSection"
-  class="my-circle-section"
+  class="profile-circle-section"
 >
-  <div class="section-title my-circle-heading">
+  <div class="profile-circle-header">
     <div>
-      <h2>Mes amis</h2>
+      <div class="eyebrow red-eyebrow">
+        Mon cercle
+      </div>
+
+      <h2>Les personnes que je garde près de moi</h2>
     </div>
 
     <span
       id="myCircleCount"
-      class="my-circle-count"
+      class="profile-circle-count"
       aria-label="Nombre d’amis"
     >
       0
@@ -223,9 +193,41 @@
 
   <div
     id="myCircleGrid"
-    class="circle-friends-grid"
+    class="circle-friends-grid profile-circle-friends-grid"
   ></div>
+
+  <section
+    id="friendRequestsSection"
+    class="circle-pending-section"
+    hidden
+  >
+    <div class="circle-pending-heading">
+      <div>
+        <span class="circle-pending-kicker">
+          Une invitation attend ta réponse
+        </span>
+
+        <p>
+          Une personne souhaite rejoindre ton cercle.
+        </p>
+      </div>
+
+      <span
+        id="friendRequestsCount"
+        class="circle-pending-count"
+        aria-label="Nombre de demandes d’amis en attente"
+      >
+        0
+      </span>
+    </div>
+
+    <div
+      id="friendRequestsGrid"
+      class="friend-requests-grid"
+    ></div>
+  </section>
 </section>
+
 
 
       <!-- =============================================
