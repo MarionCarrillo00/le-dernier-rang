@@ -5701,3 +5701,56 @@ a.activity-content-link:hover .activity-detail {
   font-size: 0.66rem;
 }
 
+
+/* =====================================================
+   NOTE SEULE — COMPACTAGE FINAL
+   ===================================================== */
+
+.movie-card.movie-card-note-only {
+  display: block;
+  min-height: 0 !important;
+}
+
+.movie-card.movie-card-note-only .movie-content {
+  display: block;
+  min-height: 0 !important;
+  padding: 14px 17px 12px;
+}
+
+.movie-card.movie-card-note-only .movie-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.movie-card.movie-card-note-only .note-only-rating {
+  margin: 10px 0 3px;
+}
+
+.movie-card.movie-card-note-only .movie-card-note-meta {
+  margin: 0;
+}
+
+/* Le vrai point de correction :
+   les actions ne doivent plus être poussées au bas
+   d'une grande carte. */
+
+.movie-card.movie-card-note-only .card-bottom {
+  display: flex;
+  min-height: 0;
+  margin-top: 12px !important;
+  padding-top: 9px;
+}
+
+.movie-card.movie-card-note-only .card-bottom-own-profile {
+  justify-content: flex-end;
+}
+
+/* On ne veut aucun espace réservé pour les éléments
+   absents d'une microcritique. */
+
+.movie-card.movie-card-note-only .tags,
+.movie-card.movie-card-note-only .review,
+.movie-card.movie-card-note-only .review-note-only {
+  display: none !important;
+}
