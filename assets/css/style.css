@@ -5230,3 +5230,19 @@ a.activity-content-link:hover .activity-detail {
     grid-template-columns: 1fr;
   }
 }
+
+/* =====================================================
+   PROFIL — MODIFICATION DE NOTE
+   ===================================================== */
+
+.edit-review-note-explanation {
+  margin: 0 0 22px;
+  padding: 11px 13px;
+  color: var(--grey);
+  background: rgba(215, 167, 93, 0.1);
+  border-left: 2px solid var(--gold);
+  border-radius: 0 7px 7px 0;
+  font-family: Arial, sans-serif;
+  font-size: 0.77rem;
+  line-height: 1.45;
+}
