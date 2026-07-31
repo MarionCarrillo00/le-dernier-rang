@@ -771,21 +771,41 @@ function createMovieCard(review, index, options = {}) {
 
   const reviewContent = String(review.content || "").trim();
   
+const isNoteOnly = !reviewContent;
+
 const canReceiveInteractions = Boolean(reviewContent);
 
   const canReceiveLikes = Boolean(reviewContent);
 
-  const reviewMarkup = reviewContent
-    ? `
+
+const reviewMarkup = reviewContent
+  ? `
       <p class="review">
         “${escapeHTML(reviewContent)}”
       </p>
     `
-    : `
+  : `
       <p class="review review-note-only">
-        Note seule
+        Note du carnet · ${escapeHTML(primaryGenre)}
       </p>
     `;
+
+const tagsMarkup = isNoteOnly
+  ? ""
+  : `
+      <div class="tags">
+        <span class="tag">${escapeHTML(primaryGenre)}</span>
+
+        ${genres
+          .filter((genre) => genre !== primaryGenre)
+          .map(
+            (genre) =>
+              `<span class="tag">${escapeHTML(genre)}</span>`
+          )
+          .join("")}
+      </div>
+    `;
+
 
 
 const actionButton = options.canDelete
@@ -998,10 +1018,14 @@ const discussionLink =
   */
   if (isCompactFilmReview) {
     return `
-      <article
-        class="movie-card movie-card-film-review"
-        id="review-${review.id}"
-      >
+
+<article
+  class="movie-card movie-card-film-review ${
+    isNoteOnly ? "movie-card-note-only" : ""
+  }"
+  id="review-${review.id}"
+>
+
         <div class="movie-content">
           <div class="film-review-header">
             ${authorMarkup}
@@ -1013,17 +1037,8 @@ const discussionLink =
 
           ${reviewMarkup}
 
-          <div class="tags">
-            <span class="tag">${escapeHTML(primaryGenre)}</span>
+${tagsMarkup}
 
-            ${genres
-              .filter((genre) => genre !== primaryGenre)
-              .map(
-                (genre) =>
-                  `<span class="tag">${escapeHTML(genre)}</span>`
-              )
-              .join("")}
-          </div>
 
           <div class="card-bottom">
             <span class="film-review-meta">
@@ -1050,8 +1065,13 @@ const discussionLink =
     Variante accueil / profil / membre :
     aucune conversation déroulée dans la grille.
   */
-  return `
-    <article id="review-${escapeHTML(review.id)}" class="movie-card">
+
+return `
+  <article
+    id="review-${escapeHTML(review.id)}"
+    class="movie-card ${isNoteOnly ? "movie-card-note-only" : ""}"
+  >
+
       ${posterMarkup}
 
       <div class="movie-content">
@@ -1088,17 +1108,8 @@ const discussionLink =
 
         ${reviewMarkup}
 
-        <div class="tags">
-          <span class="tag">${escapeHTML(primaryGenre)}</span>
+${tagsMarkup}
 
-          ${genres
-            .filter((genre) => genre !== primaryGenre)
-            .map(
-              (genre) =>
-                `<span class="tag">${escapeHTML(genre)}</span>`
-            )
-            .join("")}
-        </div>
 
         <div class="card-bottom ${
           shouldShowAuthor ? "" : "card-bottom-own-profile"
