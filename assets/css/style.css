@@ -4994,3 +4994,34 @@ a.activity-content-link:hover .activity-detail {
   outline-offset: 4px;
   box-shadow: 0 0 0 7px rgba(184, 68, 68, 0.08);
 }
+
+/* =====================================================
+   ACTIVITÉ — TOUT MARQUER COMME LU
+   ===================================================== */
+
+.activity-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+
+.activity-mark-all-read {
+  padding: 0;
+  color: var(--grey);
+  background: transparent;
+  border: 0;
+  font-family: Arial, sans-serif;
+  font-size: 0.62rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.activity-mark-all-read:hover {
+  color: var(--red);
+}
+
+.activity-mark-all-read:disabled {
+  cursor: wait;
+}
+
