@@ -44,6 +44,22 @@ const friendRequestsCount = document.getElementById(
 );
 
 /* =====================================================
+   MON CERCLE — AMIS ACCEPTÉS
+   ===================================================== */
+
+const myCircleSection = document.getElementById(
+  "myCircleSection"
+);
+
+const myCircleGrid = document.getElementById(
+  "myCircleGrid"
+);
+
+const myCircleCount = document.getElementById(
+  "myCircleCount"
+);
+
+/* =====================================================
    MODALE D'ÉDITION DES MICROCRITIQUES
    ===================================================== */
 
@@ -133,10 +149,7 @@ function showAvatarStatus(message, type = "") {
 }
 
 function renderProfileAvatar() {
-  if (
-    !profileAvatar ||
-    !profileAvatarPlaceholder
-  ) {
+  if (!profileAvatar || !profileAvatarPlaceholder) {
     return;
   }
 
@@ -283,10 +296,7 @@ function showListForm() {
 }
 
 function hideListForm() {
-  if (
-    !listForm ||
-    !openListFormButton
-  ) {
+  if (!listForm || !openListFormButton) {
     return;
   }
 
@@ -346,14 +356,16 @@ function openEditReviewModal(button) {
     ? "Modifier mes mots"
     : "Ajouter quelques mots";
 
+  editReviewMovieTitle.textContent = movieTitle;
 
-editReviewMovieTitle.textContent = movieTitle;
+  /*
+    stars() renvoie volontairement du HTML.
+    Il faut donc innerHTML, et non textContent.
+  */
+  editReviewRating.innerHTML =
+    `${stars(rating)} <span>· ${rating}/5</span>`;
 
-editReviewRating.innerHTML =
-  `${stars(rating)} <span>· ${rating}/5</span>`;
-
-editReviewContent.value = currentContent;
-
+  editReviewContent.value = currentContent;
 
   saveEditReviewButton.textContent = hasExistingContent
     ? "Enregistrer mes modifications"
@@ -597,7 +609,6 @@ function renderFriendRequests(requests) {
     friendRequestsSection.hidden = true;
     friendRequestsGrid.innerHTML = "";
     friendRequestsCount.textContent = "0";
-
     return;
   }
 
@@ -607,9 +618,7 @@ function renderFriendRequests(requests) {
   friendRequestsGrid.innerHTML = requests
     .map((request) => {
       const profile = request.requester;
-
-      const username =
-        profile?.username || "Un membre";
+      const username = profile?.username || "Un membre";
 
       const profileUrl =
         `membre.html?id=${encodeURIComponent(request.requester_id)}`;
@@ -720,7 +729,6 @@ function setupFriendRequestButtons() {
     .forEach((button) => {
       button.addEventListener("click", async () => {
         const action = button.dataset.friendRequestAction;
-
         const friendshipId = button.dataset.friendshipId;
 
         if (!friendshipId) {
@@ -764,6 +772,46 @@ function setupFriendRequestButtons() {
         }
       });
     });
+}
+
+/* =====================================================
+   MON CERCLE — AMIS ACCEPTÉS
+   Les fonctions getAcceptedFriends() et createFriendsMarkup()
+   viennent de assets/js/friends.js.
+   ===================================================== */
+
+function renderMyCircle(friends) {
+  if (
+    !myCircleSection ||
+    !myCircleGrid ||
+    !myCircleCount
+  ) {
+    return;
+  }
+
+  if (!currentUser) {
+    myCircleSection.hidden = true;
+    myCircleGrid.innerHTML = "";
+    myCircleCount.textContent = "0";
+    return;
+  }
+
+  myCircleSection.hidden = false;
+  myCircleCount.textContent = String(friends.length);
+
+  myCircleGrid.innerHTML = createFriendsMarkup(
+    friends,
+    `
+      <strong>Ton cercle attend ses premiers visages.</strong>
+      <br /><br />
+      Explore les carnets des autres membres pour envoyer
+      une demande d’ami.
+      <br /><br />
+      <a class="button-primary" href="index.html#critiques">
+        Explorer les critiques
+      </a>
+    `
+  );
 }
 
 /* =====================================================
@@ -963,11 +1011,6 @@ async function getMyMovieLists() {
     return [];
   }
 
-  /*
-    "custom" = nouvelles listes personnalisées.
-    null = compatibilité avec les listes créées avant
-    l'ajout de la colonne list_type.
-  */
   const { data: lists, error } = await supabaseClient
     .from("movie_lists")
     .select(`
@@ -1067,7 +1110,7 @@ function renderMovieLists(lists) {
           <h3>
             <a
               class="movie-list-link"
-              href="liste.html?id=${encodeURIComponent(list.id)}"
+              href="list.html?id=${encodeURIComponent(list.id)}"
             >
               ${escapeHTML(list.title)}
             </a>
@@ -1164,6 +1207,10 @@ async function createMovieList(event) {
     'button[type="submit"]'
   );
 
+  if (!submitButton) {
+    return;
+  }
+
   submitButton.disabled = true;
   submitButton.textContent = "Création…";
 
@@ -1201,8 +1248,9 @@ async function createMovieList(event) {
 
 /* =====================================================
    CHARGEMENT DE LA PAGE
+   Chaque bloc charge indépendamment : une erreur sur les
+   amis ne casse pas le carnet, la wishlist ou les listes.
    ===================================================== */
-
 
 async function loadMyProfilePage() {
   if (!currentUser) {
@@ -1235,6 +1283,18 @@ async function loadMyProfilePage() {
 
     if (friendRequestsCount) {
       friendRequestsCount.textContent = "0";
+    }
+
+    if (myCircleSection) {
+      myCircleSection.hidden = true;
+    }
+
+    if (myCircleGrid) {
+      myCircleGrid.innerHTML = "";
+    }
+
+    if (myCircleCount) {
+      myCircleCount.textContent = "0";
     }
 
     if (reviewTotal) {
@@ -1270,19 +1330,19 @@ async function loadMyProfilePage() {
     getMyReviews(currentUser.id),
     getMyWishlistMovies(),
     getMyMovieLists(),
-    getIncomingFriendRequests()
+    getIncomingFriendRequests(),
+    getAcceptedFriends(currentUser.id)
   ]);
 
   const [
     reviewsResult,
     wishlistResult,
     listsResult,
-    friendRequestsResult
+    friendRequestsResult,
+    friendsResult
   ] = results;
 
-  /* -------------------------------
-     Critiques
-     ------------------------------- */
+  /* Critiques */
 
   if (reviewsResult.status === "fulfilled") {
     renderProfileReviews(reviewsResult.value);
@@ -1301,9 +1361,7 @@ async function loadMyProfilePage() {
     }
   }
 
-  /* -------------------------------
-     Wishlist
-     ------------------------------- */
+  /* Wishlist */
 
   if (wishlistResult.status === "fulfilled") {
     renderWishlistMovies(wishlistResult.value);
@@ -1322,9 +1380,7 @@ async function loadMyProfilePage() {
     }
   }
 
-  /* -------------------------------
-     Listes personnalisées
-     ------------------------------- */
+  /* Listes personnalisées */
 
   if (listsResult.status === "fulfilled") {
     renderMovieLists(listsResult.value);
@@ -1343,9 +1399,7 @@ async function loadMyProfilePage() {
     }
   }
 
-  /* -------------------------------
-     Demandes d'amis
-     ------------------------------- */
+  /* Demandes d'amis */
 
   if (friendRequestsResult.status === "fulfilled") {
     renderFriendRequests(friendRequestsResult.value);
@@ -1367,8 +1421,30 @@ async function loadMyProfilePage() {
       friendRequestsCount.textContent = "0";
     }
   }
-}
 
+  /* Mon cercle */
+
+  if (friendsResult.status === "fulfilled") {
+    renderMyCircle(friendsResult.value);
+  } else {
+    console.error(
+      "Erreur de chargement des amis :",
+      friendsResult.reason
+    );
+
+    if (myCircleSection) {
+      myCircleSection.hidden = true;
+    }
+
+    if (myCircleGrid) {
+      myCircleGrid.innerHTML = "";
+    }
+
+    if (myCircleCount) {
+      myCircleCount.textContent = "0";
+    }
+  }
+}
 
 /* =====================================================
    ÉVÉNEMENTS
@@ -1463,6 +1539,11 @@ function setupProfilePage() {
         );
       } finally {
         saveEditReviewButton.disabled = false;
+
+        if (editingReviewId) {
+          saveEditReviewButton.textContent =
+            "Enregistrer mes modifications";
+        }
       }
     });
 
