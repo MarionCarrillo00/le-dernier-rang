@@ -2267,10 +2267,6 @@ function setupProfilePage() {
   });
 }
 
-
-
-}
-
 document.addEventListener("authChanged", () => {
   loadMyProfilePage();
 });
