@@ -4980,3 +4980,17 @@ a.activity-content-link:hover .activity-detail {
   font-family: Georgia, "Times New Roman", serif;
   font-size: 0.85rem;
 }
+
+/* =====================================================
+   NOTIFICATIONS — ANCRAGE VERS UNE MICROCRITIQUE
+   ===================================================== */
+
+[id^="review-"] {
+  scroll-margin-top: 105px;
+}
+
+[id^="review-"]:target {
+  outline: 2px solid rgba(184, 68, 68, 0.5);
+  outline-offset: 4px;
+  box-shadow: 0 0 0 7px rgba(184, 68, 68, 0.08);
+}
