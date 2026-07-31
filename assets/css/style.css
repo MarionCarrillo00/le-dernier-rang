@@ -4644,3 +4644,180 @@ footer {
   }
 }
 
+/* =====================================================
+   PROFIL — VERSION PLUS COMPACTE
+   Le hero reste généreux, le contenu devient plus dense.
+   ===================================================== */
+
+/* ---------------------------------------------
+   Titres de sections : plus sobres et plus petits
+   --------------------------------------------- */
+
+.profile-page h2 {
+  font-size: clamp(1.55rem, 2vw, 2rem);
+  line-height: 1.05;
+  letter-spacing: -0.8px;
+}
+
+.profile-page .eyebrow {
+  margin-bottom: 6px;
+  font-size: 0.62rem;
+  letter-spacing: 1.5px;
+}
+
+/* ---------------------------------------------
+   Cercle : moins de hauteur, plus d'efficacité
+   --------------------------------------------- */
+
+.profile-circle-section {
+  margin-bottom: 40px;
+}
+
+.profile-circle-header {
+  margin-bottom: 14px;
+  padding-bottom: 11px;
+}
+
+.profile-circle-header h2 {
+  font-size: 1.8rem;
+}
+
+.profile-circle-count {
+  width: 28px;
+  height: 28px;
+  font-size: 0.68rem;
+}
+
+/* Une seule carte amie ne doit pas créer
+   une section haute et vide. */
+
+.profile-circle-friends-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 280px));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.profile-circle-friends-grid .circle-friend-card {
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.profile-circle-friends-grid .circle-friend-avatar {
+  width: 42px;
+  height: 42px;
+}
+
+.profile-circle-friends-grid .circle-friend-content h3 {
+  margin: 0 0 3px;
+  font-size: 0.9rem;
+}
+
+.profile-circle-friends-grid .circle-friend-bio {
+  margin-bottom: 4px;
+  font-size: 0.65rem;
+  -webkit-line-clamp: 1;
+}
+
+.profile-circle-friends-grid .circle-friend-link {
+  font-size: 0.64rem;
+}
+
+/* ---------------------------------------------
+   Invitation : notification plus discrète
+   --------------------------------------------- */
+
+.circle-pending-section {
+  margin-top: 12px;
+  padding: 11px 12px;
+}
+
+.circle-pending-heading {
+  margin-bottom: 8px;
+}
+
+.circle-pending-kicker {
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+}
+
+.circle-pending-heading p {
+  margin-top: 2px;
+  font-size: 0.67rem;
+}
+
+.circle-pending-count {
+  width: 22px;
+  height: 22px;
+  font-size: 0.62rem;
+}
+
+.circle-pending-section .friend-request-card {
+  gap: 10px;
+  padding: 9px 10px;
+}
+
+.circle-pending-section .friend-request-avatar {
+  width: 38px;
+  height: 38px;
+}
+
+.circle-pending-section .friend-request-content p {
+  font-size: 0.77rem;
+}
+
+.circle-pending-section .friend-request-actions {
+  margin-top: 4px;
+}
+
+.circle-pending-section .friend-request-accept {
+  padding: 5px 9px;
+  font-size: 0.65rem;
+}
+
+.circle-pending-section .friend-request-refuse {
+  padding: 5px 2px;
+  font-size: 0.65rem;
+}
+
+/* ---------------------------------------------
+   Journal + sidebar : remontent légèrement
+   --------------------------------------------- */
+
+.profile-journal-layout {
+  gap: 36px;
+  margin-top: 40px;
+}
+
+.profile-reviews-heading,
+.profile-sidebar-heading {
+  margin-bottom: 14px;
+}
+
+.profile-sidebar {
+  gap: 30px;
+  padding-left: 24px;
+}
+
+.profile-sidebar h2 {
+  font-size: 1.55rem;
+}
+
+/* ---------------------------------------------
+   Mobile : garde du confort de lecture
+   --------------------------------------------- */
+
+@media (max-width: 650px) {
+  .profile-page h2,
+  .profile-circle-header h2 {
+    font-size: 1.65rem;
+  }
+
+  .profile-circle-friends-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-journal-layout {
+    margin-top: 34px;
+  }
+}
+
