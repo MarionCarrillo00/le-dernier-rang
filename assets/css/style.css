@@ -4431,3 +4431,20 @@ footer {
   font-size: clamp(1.85rem, 2.8vw, 2.5rem);
 }
 
+
+/* Aperçu limité de la wishlist sur le profil */
+
+.wishlist-see-all-link {
+  grid-column: 1 / -1;
+  display: inline-block;
+  margin-top: 3px;
+  color: var(--deep-red);
+  font-family: Arial, sans-serif;
+  font-size: 0.74rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.wishlist-see-all-link:hover {
+  color: var(--red);
+}
