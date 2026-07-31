@@ -114,6 +114,40 @@ const saveEditReviewButton = document.getElementById(
 
 let editingReviewId = null;
 
+let addingContentReviewId = null;
+
+const addReviewContentModal = document.getElementById(
+  "addReviewContentModal"
+);
+
+const addReviewContentForm = document.getElementById(
+  "addReviewContentForm"
+);
+
+const closeAddReviewContentModalButton = document.getElementById(
+  "closeAddReviewContentModal"
+);
+
+const cancelAddReviewContentButton = document.getElementById(
+  "cancelAddReviewContentButton"
+);
+
+const addReviewContentMovieTitle = document.getElementById(
+  "addReviewContentMovieTitle"
+);
+
+const addReviewContentInput = document.getElementById(
+  "addReviewContentInput"
+);
+
+const addReviewContentCharacterCounter = document.getElementById(
+  "addReviewContentCharacterCounter"
+);
+
+const saveAddReviewContentButton = document.getElementById(
+  "saveAddReviewContentButton"
+);
+
 let areAllMovieListsVisible = false;
 
 /* =====================================================
@@ -369,12 +403,85 @@ function closeEditReviewModal() {
 }
 
 
+
 function setupReviewEditButtons() {
   document.querySelectorAll(".edit-review").forEach((button) => {
     button.addEventListener("click", () => {
       openEditReviewModal(button);
     });
   });
+
+  document
+    .querySelectorAll(".add-review-content")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        openAddReviewContentModal(button);
+      });
+    });
+}
+
+
+function updateAddReviewContentCharacterCounter() {
+  if (
+    !addReviewContentInput ||
+    !addReviewContentCharacterCounter
+  ) {
+    return;
+  }
+
+  const maximum =
+    Number(addReviewContentInput.maxLength) || 140;
+
+  const length = addReviewContentInput.value.length;
+
+  addReviewContentCharacterCounter.textContent =
+    `${length} / ${maximum}`;
+
+  addReviewContentCharacterCounter.classList.toggle(
+    "limit-reached",
+    length >= maximum
+  );
+}
+
+function openAddReviewContentModal(button) {
+  if (
+    !addReviewContentModal ||
+    !addReviewContentMovieTitle ||
+    !addReviewContentInput
+  ) {
+    return;
+  }
+
+  addingContentReviewId = button.dataset.reviewId;
+
+  addReviewContentMovieTitle.textContent =
+    button.dataset.reviewTitle || "Film sans titre";
+
+  addReviewContentInput.value = "";
+
+  updateAddReviewContentCharacterCounter();
+
+  addReviewContentModal.classList.add("visible");
+
+  window.setTimeout(() => {
+    addReviewContentInput.focus();
+  }, 50);
+}
+
+function closeAddReviewContentModal() {
+  if (!addReviewContentModal) {
+    return;
+  }
+
+  addReviewContentModal.classList.remove("visible");
+
+  addingContentReviewId = null;
+
+  if (addReviewContentInput) {
+    addReviewContentInput.value = "";
+  }
+
+  updateAddReviewContentCharacterCounter();
 }
 
 /* =====================================================
@@ -2074,6 +2181,12 @@ function setupProfilePage() {
   }
 
 
+ 
+
+  /* ---------------------------------
+     Modale : modifier ma note
+  --------------------------------- */
+
   if (
     closeEditReviewModalButton &&
     cancelEditReviewButton &&
@@ -2131,16 +2244,30 @@ function setupProfilePage() {
           "Enregistrer ma note";
       }
     });
-
-    document.addEventListener("keydown", (event) => {
-      if (
-        event.key === "Escape" &&
-        editReviewModal.classList.contains("visible")
-      ) {
-        closeEditReviewModal();
-      }
-    });
   }
+
+  /* ---------------------------------
+     Touche Escape : fermer les modales
+  --------------------------------- */
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") {
+      return;
+    }
+
+    if (editReviewModal?.classList.contains("visible")) {
+      closeEditReviewModal();
+    }
+
+    if (
+      addReviewContentModal?.classList.contains("visible")
+    ) {
+      closeAddReviewContentModal();
+    }
+  });
+}
+
+
 
 }
 
