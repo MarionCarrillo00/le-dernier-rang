@@ -447,13 +447,89 @@
          MODALE : ÉDITION D'UNE MICROCRITIQUE
          ================================================= -->
 
-    <div
-      id="editReviewModal"
-      class="modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="editReviewTitle"
+
+<!-- =================================================
+     MODALE : MODIFICATION DE NOTE
+     ================================================= -->
+
+<div
+  id="editReviewModal"
+  class="modal-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="editReviewTitle"
+>
+  <div class="modal-content edit-review-modal-content">
+    <button
+      id="closeEditReviewModal"
+      class="modal-close"
+      type="button"
+      aria-label="Fermer la fenêtre"
     >
+      ×
+    </button>
+
+    <div class="eyebrow red-eyebrow">
+      Mon journal
+    </div>
+
+    <h2 id="editReviewTitle">
+      Modifier ma note
+    </h2>
+
+    <p
+      id="editReviewMovieTitle"
+      class="edit-review-movie-title"
+    ></p>
+
+    <p class="edit-review-note-explanation">
+      Les mots publiés restent tels qu’ils ont été écrits.
+      Ta note, elle, peut évoluer avec le temps.
+    </p>
+
+    <form id="editReviewForm">
+      <div class="form-field">
+        <label for="editReviewRatingInput">
+          Ma note
+        </label>
+
+        <select
+          id="editReviewRatingInput"
+          required
+        >
+          <option value="1">1 / 5</option>
+          <option value="1.5">1,5 / 5</option>
+          <option value="2">2 / 5</option>
+          <option value="2.5">2,5 / 5</option>
+          <option value="3">3 / 5</option>
+          <option value="3.5">3,5 / 5</option>
+          <option value="4">4 / 5</option>
+          <option value="4.5">4,5 / 5</option>
+          <option value="5">5 / 5</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button
+          id="saveEditReviewButton"
+          class="button-primary"
+          type="submit"
+        >
+          Enregistrer ma note
+        </button>
+
+        <button
+          id="cancelEditReviewButton"
+          class="button-text"
+          type="button"
+        >
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
       <div class="modal-content edit-review-modal-content">
         <button
           id="closeEditReviewModal"
