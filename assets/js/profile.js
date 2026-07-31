@@ -105,6 +105,8 @@ const saveEditReviewButton = document.getElementById(
 
 let editingReviewId = null;
 
+let areAllMovieListsVisible = false;
+
 /* =====================================================
    PHOTO DE PROFIL
    ===================================================== */
@@ -1084,6 +1086,7 @@ async function getMyMovieLists() {
   }));
 }
 
+
 function renderMovieLists(lists) {
   if (!myListsGrid) {
     return;
@@ -1106,69 +1109,103 @@ function renderMovieLists(lists) {
     return;
   }
 
-  myListsGrid.innerHTML = lists
-    .map((list) => {
-      const visibilityLabel = list.is_public
-        ? "Publique"
-        : "Privée";
+  /*
+    La sidebar montre trois collections par défaut.
+    Au clic, la personne peut ouvrir l’ensemble de ses listes
+    sans quitter son espace.
+  */
+  const previewLimit = 3;
 
-      const movieLabel =
-        list.movie_count > 1
-          ? "films"
-          : "film";
+  const visibleLists = areAllMovieListsVisible
+    ? lists
+    : lists.slice(0, previewLimit);
 
-      return `
-        <article class="movie-list-card">
-          <div class="movie-list-card-top">
-            <span class="list-visibility ${
-              list.is_public ? "public" : "private"
-            }">
-              ${visibilityLabel}
-            </span>
+  myListsGrid.innerHTML = `
+    ${visibleLists
+      .map((list) => {
+        const visibilityLabel = list.is_public
+          ? "Publique"
+          : "Privée";
 
-            <button
-              class="delete-list-button"
-              type="button"
-              data-list-id="${list.id}"
-              data-list-title="${escapeHTML(list.title)}"
-              title="Supprimer cette liste"
-            >
-              Supprimer
-            </button>
-          </div>
+        const movieLabel =
+          list.movie_count > 1
+            ? "films"
+            : "film";
 
-          <h3>
-            <a
-              class="movie-list-link"
-              href="liste.html?id=${encodeURIComponent(list.id)}"
-            >
-              ${escapeHTML(list.title)}
-            </a>
-          </h3>
+        return `
+          <article class="movie-list-card">
+            <div class="movie-list-card-top">
+              <span class="list-visibility ${
+                list.is_public ? "public" : "private"
+              }">
+                ${visibilityLabel}
+              </span>
 
-          <p>
-            ${
-              list.description
-                ? escapeHTML(list.description)
-                : "Une collection de films à faire grandir."
-            }
-          </p>
+              <button
+                class="delete-list-button"
+                type="button"
+                data-list-id="${list.id}"
+                data-list-title="${escapeHTML(list.title)}"
+                title="Supprimer cette liste"
+              >
+                Supprimer
+              </button>
+            </div>
 
-          <div class="movie-list-card-bottom">
-            <span>${list.movie_count} ${movieLabel}</span>
+            <h3>
+              <a
+                class="movie-list-link"
+                href="liste.html?id=${encodeURIComponent(list.id)}"
+              >
+                ${escapeHTML(list.title)}
+              </a>
+            </h3>
 
-            <span>
+            <p>
               ${
-                list.is_public
-                  ? "Visible par tous"
-                  : "Visible uniquement par moi"
+                list.description
+                  ? escapeHTML(list.description)
+                  : "Une collection de films à faire grandir."
               }
+            </p>
+
+            <div class="movie-list-card-bottom">
+              <span>${list.movie_count} ${movieLabel}</span>
+
+              <span>
+                ${
+                  list.is_public
+                    ? "Visible par tous"
+                    : "Visible uniquement par moi"
+                }
+              </span>
+            </div>
+          </article>
+        `;
+      })
+      .join("")}
+
+    ${
+      lists.length > previewLimit
+        ? `
+          <button
+            class="profile-lists-toggle"
+            type="button"
+            aria-expanded="${areAllMovieListsVisible}"
+          >
+            ${
+              areAllMovieListsVisible
+                ? "Réduire les collections"
+                : `Voir les ${lists.length} collections`
+            }
+            <span aria-hidden="true">
+              ${areAllMovieListsVisible ? "↑" : "→"}
             </span>
-          </div>
-        </article>
-      `;
-    })
-    .join("");
+          </button>
+        `
+        : ""
+    }
+  `;
 
   document.querySelectorAll(".delete-list-button").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -1212,7 +1249,20 @@ function renderMovieLists(lists) {
       }
     });
   });
+
+  const toggleButton = document.querySelector(
+    ".profile-lists-toggle"
+  );
+
+  if (toggleButton) {
+    toggleButton.addEventListener("click", () => {
+      areAllMovieListsVisible = !areAllMovieListsVisible;
+
+      renderMovieLists(lists);
+    });
+  }
 }
+
 
 async function createMovieList(event) {
   event.preventDefault();
