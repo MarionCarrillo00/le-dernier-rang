@@ -770,6 +770,9 @@ function createMovieCard(review, index, options = {}) {
   }
 
   const reviewContent = String(review.content || "").trim();
+  
+const canReceiveInteractions = Boolean(reviewContent);
+
   const canReceiveLikes = Boolean(reviewContent);
 
   const reviewMarkup = reviewContent
@@ -851,23 +854,50 @@ const editButton = options.canEdit
     `
   : "";
 
+const addContentButton =
+  options.canEdit && !reviewContent
+    ? `
+      <button
+        class="add-review-content"
+        type="button"
+        data-review-id="${review.id}"
+        data-review-title="${escapeHTML(
+          movie.title || "Film sans titre"
+        )}"
+        data-review-rating="${escapeHTML(
+          String(review.rating || "")
+        )}"
+        title="Ajouter une microcritique"
+      >
+        Ajouter une microcritique
+      </button>
+    `
+    : "";
+
 
   const movieUrl = movie.id
     ? `film.html?id=${encodeURIComponent(movie.id)}`
     : "";
 
-  const commentButton = isCompactFilmReview
+
+const commentButton =
+  isCompactFilmReview && canReceiveInteractions
     ? renderReviewCommentButton(review)
     : "";
 
-  const commentPanel = isCompactFilmReview
+const commentPanel =
+  isCompactFilmReview && canReceiveInteractions
     ? renderReviewCommentSection(review)
     : "";
 
+
   const commentCount = (review.comments || []).length;
 
-  const discussionLink = movieUrl
+
+const discussionLink =
+  movieUrl && canReceiveInteractions
     ? `
+
       <a
         class="review-discussion-link"
         href="${movieUrl}#review-${review.id}"
@@ -1085,8 +1115,11 @@ const editButton = options.canEdit
                 ? discussionLink
                 : ""
             }
-            ${editButton}
-            ${actionButton}
+
+${editButton}
+${addContentButton}
+${actionButton}
+
           </div>
         </div>
       </div>
@@ -1520,6 +1553,64 @@ async function updateReviewRating(reviewId, rating) {
 
   return data;
 }
+
+
+async function addReviewContent(reviewId, content) {
+  if (!currentUser) {
+    throw new Error(
+      "Tu dois être connectée pour ajouter une microcritique."
+    );
+  }
+
+  const cleanContent = String(content || "").trim();
+
+  if (!cleanContent) {
+    throw new Error(
+      "Écris quelques mots avant d’enregistrer."
+    );
+  }
+
+  if (cleanContent.length > 140) {
+    throw new Error(
+      "Ta microcritique ne peut pas dépasser 140 caractères."
+    );
+  }
+
+  const { data: currentReview, error: currentReviewError } =
+    await supabaseClient
+      .from("reviews")
+      .select("id, content")
+      .eq("id", reviewId)
+      .eq("user_id", currentUser.id)
+      .single();
+
+  if (currentReviewError) {
+    throw currentReviewError;
+  }
+
+  if (String(currentReview.content || "").trim()) {
+    throw new Error(
+      "Cette microcritique possède déjà un texte définitif."
+    );
+  }
+
+  const { data, error } = await supabaseClient
+    .from("reviews")
+    .update({
+      content: cleanContent
+    })
+    .eq("id", reviewId)
+    .eq("user_id", currentUser.id)
+    .select("id, content, rating")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
 
 /* =====================================================
    SUPPRESSION D'UNE NOTE / MICROCRITIQUE
