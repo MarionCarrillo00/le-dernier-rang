@@ -770,6 +770,7 @@ function createMovieCard(review, index, options = {}) {
   }
 
   const reviewContent = String(review.content || "").trim();
+  const canReceiveLikes = Boolean(reviewContent);
 
   const reviewMarkup = reviewContent
     ? `
@@ -783,8 +784,9 @@ function createMovieCard(review, index, options = {}) {
       </p>
     `;
 
-  const actionButton = options.canDelete
-    ? `
+
+const actionButton = options.canDelete
+  ? `
       <button
         class="delete-review"
         type="button"
@@ -794,57 +796,61 @@ function createMovieCard(review, index, options = {}) {
         Supprimer
       </button>
     `
-    : `
-      <div class="review-like-actions">
-        <button
-          class="favorite ${hasLiked ? "liked" : ""}"
-          type="button"
-          data-review-id="${review.id}"
-          title="${hasLiked ? "Retirer mon like" : "J’aime cette entrée"}"
-          aria-label="${hasLiked ? "Retirer mon like" : "J’aime cette entrée"}"
-        >
-          ${hasLiked ? "♥" : "♡"}
-        </button>
-
-        <button
-          class="review-like-count"
-          type="button"
-          data-review-id="${review.id}"
-          title="Voir les personnes ayant aimé cette entrée"
-          aria-label="Voir les personnes ayant aimé cette entrée"
-        >
-          ${likeCount}
-        </button>
-      </div>
-    `;
-
-  const editButton = options.canEdit
+  : canReceiveLikes
     ? `
+        <div class="review-like-actions">
+          <button
+            class="favorite ${hasLiked ? "liked" : ""}"
+            type="button"
+            data-review-id="${review.id}"
+            title="${
+              hasLiked
+                ? "Retirer mon like"
+                : "J’aime cette microcritique"
+            }"
+            aria-label="${
+              hasLiked
+                ? "Retirer mon like"
+                : "J’aime cette microcritique"
+            }"
+          >
+            ${hasLiked ? "♥" : "♡"}
+          </button>
+
+          <button
+            class="review-like-count"
+            type="button"
+            data-review-id="${review.id}"
+            title="Voir les personnes ayant aimé cette microcritique"
+            aria-label="Voir les personnes ayant aimé cette microcritique"
+          >
+            ${likeCount}
+          </button>
+        </div>
+      `
+    : "";
+
+
+
+const editButton = options.canEdit
+  ? `
       <button
         class="edit-review"
         type="button"
         data-review-id="${review.id}"
-        data-review-content="${escapeHTML(reviewContent)}"
         data-review-title="${escapeHTML(
           movie.title || "Film sans titre"
         )}"
         data-review-rating="${escapeHTML(
           String(review.rating || "")
         )}"
-        title="${
-          reviewContent
-            ? "Modifier mes mots"
-            : "Ajouter quelques mots"
-        }"
+        title="Modifier ma note"
       >
-        ${
-          reviewContent
-            ? "Modifier mes mots"
-            : "Ajouter quelques mots"
-        }
+        Modifier ma note
       </button>
     `
-    : "";
+  : "";
+
 
   const movieUrl = movie.id
     ? `film.html?id=${encodeURIComponent(movie.id)}`
@@ -1471,35 +1477,41 @@ async function publishReview(payload) {
    ÉDITION DU TEXTE UNIQUEMENT
    ===================================================== */
 
-async function updateReviewContent(reviewId, content) {
+async function updateReviewRating(reviewId, rating) {
   if (!currentUser) {
     throw new Error(
-      "Tu dois être connectée pour modifier tes mots."
+      "Tu dois être connectée pour modifier ta note."
     );
   }
 
-  const cleanContent = String(content || "").trim();
+  const numericRating = Number(rating);
 
-  if (!cleanContent) {
-    throw new Error(
-      "Ajoute quelques mots avant d’enregistrer."
-    );
-  }
+  const allowedRatings = [
+    1,
+    1.5,
+    2,
+    2.5,
+    3,
+    3.5,
+    4,
+    4.5,
+    5
+  ];
 
-  if (cleanContent.length > 140) {
+  if (!allowedRatings.includes(numericRating)) {
     throw new Error(
-      "Ta microcritique ne peut pas dépasser 140 caractères."
+      "Choisis une note comprise entre 1 et 5."
     );
   }
 
   const { data, error } = await supabaseClient
     .from("reviews")
     .update({
-      content: cleanContent
+      rating: numericRating
     })
     .eq("id", reviewId)
     .eq("user_id", currentUser.id)
-    .select("id, content, rating")
+    .select("id, rating")
     .single();
 
   if (error) {
