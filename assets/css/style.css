@@ -5630,3 +5630,10 @@ a.activity-content-link:hover .activity-detail {
   }
 }
 
+
+/* Une note seule affiche ses étoiles uniquement
+   dans le bloc central .note-only-rating. */
+
+.movie-card-note-only .movie-card-heading .rating {
+  display: none !important;
+}
