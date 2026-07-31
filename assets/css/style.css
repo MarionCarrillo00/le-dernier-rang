@@ -4848,3 +4848,135 @@ footer {
   text-decoration: none;
 }
 
+
+/* =====================================================
+   PROFIL — ACTIVITÉ / NOTIFICATIONS
+   ===================================================== */
+
+.profile-activity-section {
+  min-width: 0;
+}
+
+.activity-unread-count {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  color: white;
+  background: var(--red);
+  border-radius: 50%;
+  font-family: Arial, sans-serif;
+  font-size: 0.64rem;
+  font-weight: bold;
+  place-items: center;
+}
+
+.activity-feed {
+  display: grid;
+  gap: 9px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-width: 0;
+  padding: 10px 9px;
+  background: transparent;
+  border-bottom: 1px solid var(--line);
+}
+
+.activity-item:first-child {
+  border-top: 1px solid var(--line);
+}
+
+.activity-item.is-unread {
+  background: rgba(184, 68, 68, 0.045);
+}
+
+.activity-avatar-link {
+  display: block;
+  flex: 0 0 auto;
+  text-decoration: none;
+}
+
+.activity-avatar {
+  display: block;
+  width: 33px;
+  height: 33px;
+  flex: 0 0 auto;
+  border: 1px solid var(--cream);
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(61, 43, 32, 0.1);
+  object-fit: cover;
+}
+
+.activity-avatar-placeholder {
+  display: grid;
+  color: var(--cream);
+  background: var(--red);
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+  font-weight: bold;
+  place-items: center;
+}
+
+.activity-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.activity-content-link {
+  display: block;
+  color: var(--ink);
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+a.activity-content-link:hover strong,
+a.activity-content-link:hover .activity-detail {
+  color: var(--red);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.activity-content-link strong {
+  display: block;
+  font-weight: bold;
+}
+
+.activity-detail {
+  display: block;
+  overflow: hidden;
+  margin-top: 2px;
+  color: var(--grey);
+  font-size: 0.67rem;
+  font-style: italic;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-date {
+  display: block;
+  margin-top: 4px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.6rem;
+}
+
+.activity-empty-state,
+.activity-loading {
+  padding: 12px 0 4px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.activity-empty-state strong {
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.85rem;
+}
