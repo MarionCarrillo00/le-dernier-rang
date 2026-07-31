@@ -980,7 +980,7 @@ function renderWishlistMovies(items) {
         ? `
           <a
             class="wishlist-see-all-link"
-            href="list.html?id=${encodeURIComponent(wishlistId)}"
+            href="liste.html?id=${encodeURIComponent(wishlistId)}"
           >
             Voir les ${items.length} films à voir →
           </a>
