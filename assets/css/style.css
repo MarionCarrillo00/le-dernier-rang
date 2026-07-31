@@ -5523,3 +5523,110 @@ a.activity-content-link:hover .activity-detail {
   }
 }
 
+/* =====================================================
+   NOTE SEULE — ENTRÉE MINIMALE SANS AFFICHE
+   ===================================================== */
+
+.movie-card-note-only {
+  display: block;
+  min-height: 0;
+  background: rgba(255, 250, 244, 0.72);
+  box-shadow: none;
+}
+
+.movie-card-note-only:hover {
+  box-shadow: 0 8px 18px rgba(61, 43, 32, 0.08);
+  transform: translateY(-2px);
+}
+
+.movie-card-note-only .movie-content {
+  min-height: 125px;
+  padding: 17px 20px 12px;
+}
+
+.movie-card-note-only .movie-card-heading {
+  display: block;
+}
+
+.movie-card-note-only .movie-card-title {
+  margin: 0 0 3px;
+  font-size: 1.05rem;
+}
+
+.movie-card-note-only .movie-card-director {
+  font-size: 0.68rem;
+}
+
+/* Les étoiles deviennent la vraie information centrale. */
+
+.movie-card-note-only .note-only-rating {
+  margin: 14px 0 4px;
+  color: var(--gold);
+  font-size: 1.25rem;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.movie-card-note-only .note-only-rating .stars {
+  font-size: inherit;
+}
+
+/* Un seul repère éditorial : le genre. */
+
+.movie-card-note-only .movie-card-note-meta {
+  margin: 0 0 auto;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.64rem;
+  line-height: 1.3;
+}
+
+.movie-card-note-only .tags,
+.movie-card-note-only .review-note-only {
+  display: none;
+}
+
+.movie-card-note-only .card-bottom {
+  min-height: 25px;
+  margin-top: 12px;
+  padding-top: 8px;
+}
+
+.movie-card-note-only .review-author-avatar {
+  width: 20px;
+  height: 20px;
+}
+
+.movie-card-note-only .author,
+.movie-card-note-only .edit-review,
+.movie-card-note-only .add-review-content,
+.movie-card-note-only .delete-review {
+  font-size: 0.64rem;
+}
+
+/* Note seule sur une fiche film */
+
+.movie-card-film-review.movie-card-note-only .movie-content {
+  min-height: 0;
+  padding: 16px 20px 12px;
+}
+
+.movie-card-film-review.movie-card-note-only .film-review-header {
+  margin-bottom: 0;
+}
+
+.movie-card-film-review.movie-card-note-only .note-only-rating {
+  margin-top: 12px;
+}
+
+@media (max-width: 650px) {
+  .movie-card-note-only .movie-content {
+    min-height: 115px;
+    padding: 14px 16px 10px;
+  }
+
+  .movie-card-note-only .note-only-rating {
+    font-size: 1.1rem;
+  }
+}
+
