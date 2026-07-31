@@ -650,15 +650,12 @@ function renderCircleMemberAvatar(profile) {
   `;
 }
 
-async function getCircleRecentReviews() {
+
+async function getCircleActivityEvents() {
   if (!currentUser) {
     return [];
   }
 
-  /*
-    getAcceptedFriends() vient de friends.js.
-    On récupère seulement les amis validés de l'utilisatrice.
-  */
   const friends = await getAcceptedFriends(currentUser.id);
 
   if (!friends.length) {
@@ -677,60 +674,283 @@ async function getCircleRecentReviews() {
     friends.map((friend) => [friend.id, friend])
   );
 
-  const { data: reviews, error } = await supabaseClient
-    .from("reviews")
+  const { data: events, error } = await supabaseClient
+    .from("activity_events")
     .select(`
       id,
-      user_id,
-      rating,
-      content,
-      created_at,
-      movies (
-        id,
-        title,
-        release_year,
-        director,
-        poster_url,
-        genres
-      )
+      actor_id,
+      type,
+      review_id,
+      movie_id,
+      list_id,
+      created_at
     `)
-    .in("user_id", friendIds)
-    .eq("is_published", true)
+    .in("actor_id", friendIds)
     .order("created_at", {
       ascending: false
     })
-    .limit(6);
+    .limit(8);
 
   if (error) {
     throw error;
   }
 
-  return (reviews || [])
-    .filter((review) => review.movies)
-    .map((review) => ({
-      ...review,
-      author: friendsById[review.user_id] || null
-    }));
+  if (!events || events.length === 0) {
+    return [];
+  }
+
+  const reviewIds = [
+    ...new Set(
+      events
+        .map((event) => event.review_id)
+        .filter(Boolean)
+    )
+  ];
+
+  const movieIds = [
+    ...new Set(
+      events
+        .map((event) => event.movie_id)
+        .filter(Boolean)
+    )
+  ];
+
+  const listIds = [
+    ...new Set(
+      events
+        .map((event) => event.list_id)
+        .filter(Boolean)
+    )
+  ];
+
+  const [reviewsResult, moviesResult, listsResult] =
+    await Promise.all([
+      reviewIds.length
+        ? supabaseClient
+            .from("reviews")
+            .select(`
+              id,
+              rating,
+              content,
+              movies (
+                id,
+                title
+              )
+            `)
+            .in("id", reviewIds)
+        : Promise.resolve({
+            data: [],
+            error: null
+          }),
+
+      movieIds.length
+        ? supabaseClient
+            .from("movies")
+            .select(`
+              id,
+              title,
+              release_year,
+              poster_url
+            `)
+            .in("id", movieIds)
+        : Promise.resolve({
+            data: [],
+            error: null
+          }),
+
+      listIds.length
+        ? supabaseClient
+            .from("movie_lists")
+            .select(`
+              id,
+              title,
+              description,
+              is_public,
+              list_type
+            `)
+            .in("id", listIds)
+        : Promise.resolve({
+            data: [],
+            error: null
+          })
+    ]);
+
+  if (reviewsResult.error) {
+    throw reviewsResult.error;
+  }
+
+  if (moviesResult.error) {
+    throw moviesResult.error;
+  }
+
+  if (listsResult.error) {
+    throw listsResult.error;
+  }
+
+  const reviewsById = Object.fromEntries(
+    (reviewsResult.data || []).map((review) => [
+      review.id,
+      review
+    ])
+  );
+
+  const moviesById = Object.fromEntries(
+    (moviesResult.data || []).map((movie) => [
+      movie.id,
+      movie
+    ])
+  );
+
+  const listsById = Object.fromEntries(
+    (listsResult.data || []).map((list) => [
+      list.id,
+      list
+    ])
+  );
+
+  /*
+    Si un film, une critique ou une liste a été supprimé(e)
+    depuis l'événement, on garde l'événement visible avec
+    ses informations disponibles.
+  */
+  return events.map((event) => ({
+    ...event,
+    actor: friendsById[event.actor_id] || null,
+    review: reviewsById[event.review_id] || null,
+    movie: moviesById[event.movie_id] || null,
+    list: listsById[event.list_id] || null
+  }));
 }
 
-function renderCircleActivityItem(review) {
-  const author = review.author || {};
+function renderCircleActivityItem(event) {
+  const author = event.actor || {};
   const username = author.username || "Un membre";
 
-  const movie = review.movies || {};
-  const movieTitle = movie.title || "un film";
-
   const profileUrl =
-    `membre.html?id=${encodeURIComponent(review.user_id)}`;
+    `membre.html?id=${encodeURIComponent(event.actor_id)}`;
 
-  const movieUrl =
-    `film.html?id=${encodeURIComponent(
-      movie.id
-    )}#review-${encodeURIComponent(review.id)}`;
+  const reviewMovie = event.review?.movies || null;
 
-  const reviewText = review.content?.trim()
-    ? `« ${review.content.trim()} »`
-    : `a ajouté une note de ${review.rating}/5.`;
+  const movie =
+    reviewMovie ||
+    event.movie ||
+    null;
+
+  const movieTitle = movie?.title || "un film";
+
+  const movieUrl = movie?.id
+    ? `film.html?id=${encodeURIComponent(movie.id)}${
+        event.review_id
+          ? `#review-${encodeURIComponent(event.review_id)}`
+          : ""
+      }`
+    : "";
+
+  const listTitle = event.list?.title || "une liste";
+
+  const listUrl = event.list_id
+    ? `liste.html?id=${encodeURIComponent(event.list_id)}`
+    : "";
+
+  let mainMarkup = "";
+  let detailMarkup = "";
+  let destination = "";
+
+  if (event.type === "review_published") {
+    const content = event.review?.content?.trim();
+
+    mainMarkup = `
+      <a href="${profileUrl}">
+        ${escapeHTML(username)}
+      </a>
+      <span>a publié une critique sur</span>
+      ${
+        movieUrl
+          ? `
+            <a href="${movieUrl}">
+              ${escapeHTML(movieTitle)}
+            </a>
+          `
+          : `
+            <span>${escapeHTML(movieTitle)}</span>
+          `
+      }
+    `;
+
+    detailMarkup = content
+      ? `« ${content} »`
+      : `A ajouté une note de ${event.review?.rating || "—"}/5.`;
+
+    destination = movieUrl;
+  }
+
+  if (event.type === "wishlist_added") {
+    mainMarkup = `
+      <a href="${profileUrl}">
+        ${escapeHTML(username)}
+      </a>
+      <span>a ajouté</span>
+      ${
+        movieUrl
+          ? `
+            <a href="${movieUrl}">
+              ${escapeHTML(movieTitle)}
+            </a>
+          `
+          : `
+            <span>${escapeHTML(movieTitle)}</span>
+          `
+      }
+      <span>à sa liste À voir</span>
+    `;
+
+    detailMarkup = "Prochaines séances";
+    destination = listUrl || movieUrl;
+  }
+
+  if (event.type === "list_created") {
+    mainMarkup = `
+      <a href="${profileUrl}">
+        ${escapeHTML(username)}
+      </a>
+      <span>a créé la collection</span>
+      ${
+        listUrl
+          ? `
+            <a href="${listUrl}">
+              ${escapeHTML(listTitle)}
+            </a>
+          `
+          : `
+            <span>${escapeHTML(listTitle)}</span>
+          `
+      }
+    `;
+
+    detailMarkup = event.list?.description?.trim() ||
+      "Une nouvelle collection à découvrir.";
+
+    destination = listUrl;
+  }
+
+  if (!mainMarkup) {
+    return "";
+  }
+
+  const contentMarkup = destination
+    ? `
+      <a
+        class="circle-activity-review"
+        href="${destination}"
+      >
+        ${escapeHTML(detailMarkup)}
+      </a>
+    `
+    : `
+      <span class="circle-activity-review">
+        ${escapeHTML(detailMarkup)}
+      </span>
+    `;
 
   return `
     <article class="circle-activity-item">
@@ -744,28 +964,17 @@ function renderCircleActivityItem(review) {
 
       <div class="circle-activity-content">
         <p class="circle-activity-main">
-          <a href="${profileUrl}">
-            ${escapeHTML(username)}
-          </a>
-          <span>a écrit sur</span>
-          <a href="${movieUrl}">
-            ${escapeHTML(movieTitle)}
-          </a>
+          ${mainMarkup}
         </p>
 
-        <a
-          class="circle-activity-review"
-          href="${movieUrl}"
-        >
-          ${escapeHTML(reviewText)}
-        </a>
+        ${contentMarkup}
 
         <time
           class="circle-activity-date"
-          datetime="${escapeHTML(review.created_at)}"
+          datetime="${escapeHTML(event.created_at)}"
         >
           ${escapeHTML(
-            formatCircleActivityDate(review.created_at)
+            formatCircleActivityDate(event.created_at)
           )}
         </time>
       </div>
@@ -773,7 +982,7 @@ function renderCircleActivityItem(review) {
   `;
 }
 
-function renderCircleActivity(reviews) {
+function renderCircleActivity(events) {
   if (!circleActivityFeed || !circleActivitySidebar) {
     return;
   }
@@ -786,20 +995,22 @@ function renderCircleActivity(reviews) {
 
   circleActivitySidebar.hidden = false;
 
-  if (!reviews.length) {
+  if (!events.length) {
     circleActivityFeed.innerHTML = `
       <div class="circle-activity-empty-state">
         <strong>Ton cercle est encore silencieux.</strong>
         <br /><br />
-        Les nouvelles critiques de tes amis apparaîtront ici.
+        Les critiques, listes et prochaines séances de tes amis
+        apparaîtront ici.
       </div>
     `;
 
     return;
   }
 
-  circleActivityFeed.innerHTML = reviews
+  circleActivityFeed.innerHTML = events
     .map(renderCircleActivityItem)
+    .filter(Boolean)
     .join("");
 }
 
@@ -820,9 +1031,9 @@ async function refreshCircleActivity() {
   `;
 
   try {
-    const reviews = await getCircleRecentReviews();
+    const events = await getCircleActivityEvents();
 
-    renderCircleActivity(reviews);
+    renderCircleActivity(events);
   } catch (error) {
     console.error(
       "Erreur de chargement de l’activité du cercle :",
@@ -838,6 +1049,7 @@ async function refreshCircleActivity() {
     `;
   }
 }
+
 
 
 /* ---------------------------------
