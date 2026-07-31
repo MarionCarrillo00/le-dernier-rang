@@ -60,6 +60,18 @@ const myCircleCount = document.getElementById(
 );
 
 /* =====================================================
+   ACTIVITÉ / NOTIFICATIONS
+   ===================================================== */
+
+const activityFeed = document.getElementById(
+  "activityFeed"
+);
+
+const activityUnreadCount = document.getElementById(
+  "activityUnreadCount"
+);
+
+/* =====================================================
    MODALE D'ÉDITION DES MICROCRITIQUES
    ===================================================== */
 
@@ -817,6 +829,354 @@ function renderMyCircle(friends) {
 }
 
 /* =====================================================
+   ACTIVITÉ / NOTIFICATIONS
+   ===================================================== */
+
+function formatNotificationDate(dateValue) {
+  if (!dateValue) {
+    return "";
+  }
+
+  const date = new Date(dateValue);
+  const now = new Date();
+
+  const differenceInSeconds = Math.max(
+    0,
+    Math.floor((now.getTime() - date.getTime()) / 1000)
+  );
+
+  if (differenceInSeconds < 60) {
+    return "À l’instant";
+  }
+
+  const differenceInMinutes = Math.floor(
+    differenceInSeconds / 60
+  );
+
+  if (differenceInMinutes < 60) {
+    return `Il y a ${differenceInMinutes} min`;
+  }
+
+  const differenceInHours = Math.floor(
+    differenceInMinutes / 60
+  );
+
+  if (differenceInHours < 24) {
+    return `Il y a ${differenceInHours} h`;
+  }
+
+  const differenceInDays = Math.floor(
+    differenceInHours / 24
+  );
+
+  if (differenceInDays === 1) {
+    return "Hier";
+  }
+
+  if (differenceInDays < 7) {
+    return `Il y a ${differenceInDays} jours`;
+  }
+
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short"
+  });
+}
+
+function getActivityInitial(profile) {
+  const username = profile?.username || "Membre";
+
+  return username.charAt(0).toUpperCase() || "?";
+}
+
+function renderActivityAvatar(profile) {
+  const username = profile?.username || "Membre";
+
+  if (profile?.avatar_url) {
+    return `
+      <img
+        class="activity-avatar"
+        src="${escapeHTML(profile.avatar_url)}"
+        alt="Photo de profil de ${escapeHTML(username)}"
+        loading="lazy"
+      />
+    `;
+  }
+
+  return `
+    <div
+      class="activity-avatar activity-avatar-placeholder"
+      aria-hidden="true"
+    >
+      ${escapeHTML(getActivityInitial(profile))}
+    </div>
+  `;
+}
+
+async function getMyNotifications() {
+  if (!currentUser) {
+    return [];
+  }
+
+  const { data: notifications, error } = await supabaseClient
+    .from("notifications")
+    .select(`
+      id,
+      recipient_id,
+      actor_id,
+      type,
+      review_id,
+      comment_id,
+      friendship_id,
+      created_at,
+      read_at
+    `)
+    .eq("recipient_id", currentUser.id)
+    .order("created_at", {
+      ascending: false
+    })
+    .limit(8);
+
+  if (error) {
+    throw error;
+  }
+
+  if (!notifications || notifications.length === 0) {
+    return [];
+  }
+
+  const actorIds = [
+    ...new Set(
+      notifications
+        .map((notification) => notification.actor_id)
+        .filter(Boolean)
+    )
+  ];
+
+  const reviewIds = [
+    ...new Set(
+      notifications
+        .map((notification) => notification.review_id)
+        .filter(Boolean)
+    )
+  ];
+
+  const [profilesResult, reviewsResult] = await Promise.all([
+    actorIds.length
+      ? supabaseClient
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", actorIds)
+      : Promise.resolve({ data: [], error: null }),
+
+    reviewIds.length
+      ? supabaseClient
+          .from("reviews")
+          .select(`
+            id,
+            movies (
+              id,
+              title
+            )
+          `)
+          .in("id", reviewIds)
+      : Promise.resolve({ data: [], error: null })
+  ]);
+
+  if (profilesResult.error) {
+    throw profilesResult.error;
+  }
+
+  if (reviewsResult.error) {
+    throw reviewsResult.error;
+  }
+
+  const profilesById = Object.fromEntries(
+    (profilesResult.data || []).map((profile) => [
+      profile.id,
+      profile
+    ])
+  );
+
+  const reviewsById = Object.fromEntries(
+    (reviewsResult.data || []).map((review) => [
+      review.id,
+      review
+    ])
+  );
+
+  return notifications.map((notification) => ({
+    ...notification,
+    actor: profilesById[notification.actor_id] || null,
+    review: reviewsById[notification.review_id] || null
+  }));
+}
+
+function getActivityMessage(notification) {
+  const actorName =
+    notification.actor?.username || "Un membre";
+
+  const movieTitle =
+    notification.review?.movies?.title || "une critique";
+
+  if (notification.type === "review_like") {
+    return {
+      main: `${actorName} a aimé ta critique`,
+      detail: `« ${movieTitle} »`,
+      destination: notification.actor?.id
+        ? `membre.html?id=${encodeURIComponent(
+            notification.actor.id
+          )}`
+        : ""
+    };
+  }
+
+  if (notification.type === "review_comment") {
+    return {
+      main: `${actorName} a répondu à ta critique`,
+      detail: `« ${movieTitle} »`,
+      destination: notification.actor?.id
+        ? `membre.html?id=${encodeURIComponent(
+            notification.actor.id
+          )}`
+        : ""
+    };
+  }
+
+  if (notification.type === "friend_request") {
+    return {
+      main: `${actorName} souhaite rejoindre ton cercle`,
+      detail: "Répondre à la demande",
+      destination: "#friendRequestsSection"
+    };
+  }
+
+  if (notification.type === "friend_accepted") {
+    return {
+      main: `${actorName} a accepté ta demande d’ami`,
+      detail: "Voir son profil",
+      destination: notification.actor?.id
+        ? `membre.html?id=${encodeURIComponent(
+            notification.actor.id
+          )}`
+        : ""
+    };
+  }
+
+  return {
+    main: "Une nouvelle activité concerne ton carnet",
+    detail: "",
+    destination: ""
+  };
+}
+
+function renderActivityItem(notification) {
+  const message = getActivityMessage(notification);
+
+  const mainContent = `
+    <strong>${escapeHTML(message.main)}</strong>
+    ${
+      message.detail
+        ? `
+          <span class="activity-detail">
+            ${escapeHTML(message.detail)}
+          </span>
+        `
+        : ""
+    }
+  `;
+
+  const contentMarkup = message.destination
+    ? `
+      <a
+        class="activity-content-link"
+        href="${message.destination}"
+      >
+        ${mainContent}
+      </a>
+    `
+    : `
+      <div class="activity-content-link">
+        ${mainContent}
+      </div>
+    `;
+
+  return `
+    <article
+      class="activity-item ${
+        notification.read_at ? "" : "is-unread"
+      }"
+    >
+      ${
+        notification.actor?.id
+          ? `
+            <a
+              class="activity-avatar-link"
+              href="membre.html?id=${encodeURIComponent(
+                notification.actor.id
+              )}"
+              title="Voir le profil de ${escapeHTML(
+                notification.actor.username || "Membre"
+              )}"
+            >
+              ${renderActivityAvatar(notification.actor)}
+            </a>
+          `
+          : renderActivityAvatar(notification.actor)
+      }
+
+      <div class="activity-content">
+        ${contentMarkup}
+
+        <time
+          class="activity-date"
+          datetime="${escapeHTML(notification.created_at)}"
+        >
+          ${escapeHTML(
+            formatNotificationDate(notification.created_at)
+          )}
+        </time>
+      </div>
+    </article>
+  `;
+}
+
+function renderActivityFeed(notifications) {
+  if (!activityFeed || !activityUnreadCount) {
+    return;
+  }
+
+  if (!currentUser) {
+    activityFeed.innerHTML = "";
+    activityUnreadCount.hidden = true;
+    return;
+  }
+
+  const unreadCount = notifications.filter(
+    (notification) => !notification.read_at
+  ).length;
+
+  activityUnreadCount.textContent = String(unreadCount);
+  activityUnreadCount.hidden = unreadCount === 0;
+
+  if (!notifications.length) {
+    activityFeed.innerHTML = `
+      <div class="activity-empty-state">
+        <strong>Ton activité est encore paisible.</strong>
+        <br /><br />
+        Les likes, réponses et nouvelles amitiés apparaîtront ici.
+      </div>
+    `;
+
+    return;
+  }
+
+  activityFeed.innerHTML = notifications
+    .map(renderActivityItem)
+    .join("");
+}
+
+/* =====================================================
    WISHLIST : À VOIR
    ===================================================== */
 
@@ -1398,6 +1758,15 @@ async function loadMyProfilePage() {
       listForm.hidden = true;
     }
 
+    if (activityFeed) {
+      activityFeed.innerHTML = "";
+    }
+
+    if (activityUnreadCount) {
+      activityUnreadCount.hidden = true;
+      activityUnreadCount.textContent = "0";
+    }
+
     renderProfileAvatar();
     return;
   }
@@ -1406,21 +1775,27 @@ async function loadMyProfilePage() {
     openListFormButton.hidden = false;
   }
 
-  const results = await Promise.allSettled([
-    getMyReviews(currentUser.id),
-    getMyWishlistMovies(),
-    getMyMovieLists(),
-    getIncomingFriendRequests(),
-    getAcceptedFriends(currentUser.id)
-  ]);
 
-  const [
-    reviewsResult,
-    wishlistResult,
-    listsResult,
-    friendRequestsResult,
-    friendsResult
-  ] = results;
+const results = await Promise.allSettled([
+  getMyReviews(currentUser.id),
+  getMyWishlistMovies(),
+  getMyMovieLists(),
+  getIncomingFriendRequests(),
+  getAcceptedFriends(currentUser.id),
+  getMyNotifications()
+]);
+
+
+ 
+const [
+  reviewsResult,
+  wishlistResult,
+  listsResult,
+  friendRequestsResult,
+  friendsResult,
+  notificationsResult
+] = results;
+
 
   /* Critiques */
 
@@ -1524,6 +1899,32 @@ async function loadMyProfilePage() {
       myCircleCount.textContent = "0";
     }
   }
+
+  /* Activité */
+
+  if (notificationsResult.status === "fulfilled") {
+    renderActivityFeed(notificationsResult.value);
+  } else {
+    console.error(
+      "Erreur de chargement des notifications :",
+      notificationsResult.reason
+    );
+
+    if (activityFeed) {
+      activityFeed.innerHTML = `
+        <div class="activity-empty-state">
+          Impossible de charger ton activité pour le moment.
+        </div>
+      `;
+    }
+
+    if (activityUnreadCount) {
+      activityUnreadCount.hidden = true;
+    }
+  }
+
+
+  
 }
 
 /* =====================================================
