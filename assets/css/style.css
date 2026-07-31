@@ -5387,3 +5387,139 @@ a.activity-content-link:hover .activity-detail {
   }
 }
 
+/* =====================================================
+   NOTE SEULE — VERSION ULTRA COMPACTE
+   ===================================================== */
+
+.movie-card-note-only {
+  min-height: 115px;
+  box-shadow: none;
+}
+
+.movie-card-note-only:hover {
+  box-shadow: 0 8px 18px rgba(61, 43, 32, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Affiche plus discrète : une note ne doit pas ressembler
+   à une critique éditoriale complète. */
+
+.movie-card-note-only .poster {
+  width: 78px;
+  min-width: 78px;
+  height: 115px;
+  padding: 8px;
+}
+
+.movie-card-note-only .poster .movie-title {
+  font-size: 0.82rem;
+}
+
+.movie-card-note-only .poster .year {
+  margin-bottom: 3px;
+  font-size: 0.56rem;
+}
+
+/* Contenu ramassé. */
+
+.movie-card-note-only .movie-content {
+  padding: 11px 13px 8px;
+}
+
+.movie-card-note-only .movie-card-heading {
+  gap: 10px;
+}
+
+.movie-card-note-only .movie-card-title {
+  margin: 0 0 2px;
+  font-size: 0.94rem;
+  line-height: 1.1;
+}
+
+.movie-card-note-only .movie-card-director {
+  font-size: 0.64rem;
+}
+
+/* Étoiles plus présentes mais sans créer une grosse pastille. */
+
+.movie-card-note-only .rating {
+  padding: 4px 7px;
+  background: transparent;
+  font-size: 0.72rem;
+}
+
+/* Le statut est une annotation légère. */
+
+.movie-card-note-only .review-note-only {
+  margin: 8px 0 auto;
+  padding: 3px 7px;
+  font-size: 0.61rem;
+  line-height: 1.25;
+}
+
+/* Bas de carte très compact. */
+
+.movie-card-note-only .card-bottom {
+  min-height: 21px;
+  padding-top: 5px;
+}
+
+.movie-card-note-only .review-author {
+  gap: 5px;
+}
+
+.movie-card-note-only .review-author-avatar {
+  width: 19px;
+  height: 19px;
+}
+
+.movie-card-note-only .author {
+  font-size: 0.62rem;
+}
+
+.movie-card-note-only .card-actions {
+  gap: 7px;
+}
+
+.movie-card-note-only .edit-review,
+.movie-card-note-only .add-review-content,
+.movie-card-note-only .delete-review {
+  font-size: 0.62rem;
+}
+
+/* Sur une fiche film, la note reste compacte,
+   sans les décalages réservés aux grandes critiques. */
+
+.movie-card-film-review.movie-card-note-only .movie-content {
+  padding: 12px 15px 9px;
+}
+
+.movie-card-film-review.movie-card-note-only .review-note-only {
+  margin: 8px 0 0;
+}
+
+@media (max-width: 650px) {
+  .movie-card-note-only {
+    flex-direction: row;
+    min-height: 105px;
+  }
+
+  .movie-card-note-only .poster {
+    width: 70px;
+    min-width: 70px;
+    height: 105px;
+  }
+
+  .movie-card-note-only .movie-content {
+    padding: 10px 11px 7px;
+  }
+
+  .movie-card-note-only .movie-card-title {
+    font-size: 0.88rem;
+  }
+
+  .movie-card-note-only .review-note-only {
+    margin-top: 6px;
+  }
+}
+
