@@ -103,16 +103,9 @@ const editReviewMovieTitle = document.getElementById(
   "editReviewMovieTitle"
 );
 
-const editReviewRating = document.getElementById(
-  "editReviewRating"
-);
 
-const editReviewContent = document.getElementById(
-  "editReviewContent"
-);
-
-const editReviewCharacterCounter = document.getElementById(
-  "editReviewCharacterCounter"
+const editReviewRatingInput = document.getElementById(
+  "editReviewRatingInput"
 );
 
 const saveEditReviewButton = document.getElementById(
@@ -327,30 +320,13 @@ function hideListForm() {
    ÉDITION DES NOTES ET MICROCRITIQUES
    ===================================================== */
 
-function updateEditReviewCharacterCounter() {
-  if (!editReviewContent || !editReviewCharacterCounter) {
-    return;
-  }
-
-  const maximum = Number(editReviewContent.maxLength) || 140;
-  const length = editReviewContent.value.length;
-
-  editReviewCharacterCounter.textContent =
-    `${length} / ${maximum}`;
-
-  editReviewCharacterCounter.classList.toggle(
-    "limit-reached",
-    length >= maximum
-  );
-}
 
 function openEditReviewModal(button) {
   if (
     !editReviewModal ||
-    !editReviewContent ||
     !editReviewTitle ||
     !editReviewMovieTitle ||
-    !editReviewRating ||
+    !editReviewRatingInput ||
     !saveEditReviewButton
   ) {
     return;
@@ -361,42 +337,26 @@ function openEditReviewModal(button) {
   const movieTitle =
     button.dataset.reviewTitle || "Film sans titre";
 
-  const rating = Number(button.dataset.reviewRating) || 0;
-
-  const currentContent =
-    button.dataset.reviewContent || "";
-
-  const hasExistingContent = Boolean(
-    currentContent.trim()
+  const rating = String(
+    Number(button.dataset.reviewRating) || 1
   );
 
-  editReviewTitle.textContent = hasExistingContent
-    ? "Modifier mes mots"
-    : "Ajouter quelques mots";
+  editReviewTitle.textContent = "Modifier ma note";
 
   editReviewMovieTitle.textContent = movieTitle;
 
-  /*
-    stars() renvoie volontairement du HTML.
-    Il faut donc innerHTML, et non textContent.
-  */
-  editReviewRating.innerHTML =
-    `${stars(rating)} <span>· ${rating}/5</span>`;
+  editReviewRatingInput.value = rating;
 
-  editReviewContent.value = currentContent;
-
-  saveEditReviewButton.textContent = hasExistingContent
-    ? "Enregistrer mes modifications"
-    : "Ajouter à ma note";
-
-  updateEditReviewCharacterCounter();
+  saveEditReviewButton.textContent = "Enregistrer ma note";
 
   editReviewModal.classList.add("visible");
 
   window.setTimeout(() => {
-    editReviewContent.focus();
+    editReviewRatingInput.focus();
   }, 50);
 }
+
+
 
 function closeEditReviewModal() {
   if (!editReviewModal) {
@@ -406,13 +366,8 @@ function closeEditReviewModal() {
   editReviewModal.classList.remove("visible");
 
   editingReviewId = null;
-
-  if (editReviewContent) {
-    editReviewContent.value = "";
-  }
-
-  updateEditReviewCharacterCounter();
 }
+
 
 function setupReviewEditButtons() {
   document.querySelectorAll(".edit-review").forEach((button) => {
@@ -2118,12 +2073,13 @@ function setupProfilePage() {
     });
   }
 
+
   if (
     closeEditReviewModalButton &&
     cancelEditReviewButton &&
-    editReviewContent &&
     editReviewModal &&
     editReviewForm &&
+    editReviewRatingInput &&
     saveEditReviewButton
   ) {
     closeEditReviewModalButton.addEventListener(
@@ -2134,11 +2090,6 @@ function setupProfilePage() {
     cancelEditReviewButton.addEventListener(
       "click",
       closeEditReviewModal
-    );
-
-    editReviewContent.addEventListener(
-      "input",
-      updateEditReviewCharacterCounter
     );
 
     editReviewModal.addEventListener("click", (event) => {
@@ -2154,32 +2105,30 @@ function setupProfilePage() {
         return;
       }
 
-      const content = editReviewContent.value.trim();
+      const rating = editReviewRatingInput.value;
 
       saveEditReviewButton.disabled = true;
       saveEditReviewButton.textContent = "Enregistrement…";
 
       try {
-        await updateReviewContent(editingReviewId, content);
+        await updateReviewRating(editingReviewId, rating);
 
         closeEditReviewModal();
+
         await loadMyProfilePage();
       } catch (error) {
         console.error(
-          "Erreur de modification de la microcritique :",
+          "Erreur de modification de la note :",
           error
         );
 
         alert(
-          `Impossible d’enregistrer tes mots : ${error.message}`
+          `Impossible d’enregistrer ta note : ${error.message}`
         );
       } finally {
         saveEditReviewButton.disabled = false;
-
-        if (editingReviewId) {
-          saveEditReviewButton.textContent =
-            "Enregistrer mes modifications";
-        }
+        saveEditReviewButton.textContent =
+          "Enregistrer ma note";
       }
     });
 
@@ -2192,6 +2141,7 @@ function setupProfilePage() {
       }
     });
   }
+
 }
 
 document.addEventListener("authChanged", () => {
