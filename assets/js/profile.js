@@ -909,8 +909,8 @@ function renderWishlistMovies(items) {
     return;
   }
 
-  /* On limite l’aperçu du profil à six films. */
-  const visibleItems = items.slice(0, 6);
+  /* On limite l’aperçu du profil à quatre films. */
+  const visibleItems = items.slice(0, 4);
 
   const wishlistId = items[0]?.wishlist_id || "";
 
