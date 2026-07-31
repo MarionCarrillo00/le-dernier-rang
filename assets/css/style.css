@@ -5637,3 +5637,25 @@ a.activity-content-link:hover .activity-detail {
 .movie-card-note-only .movie-card-heading .rating {
   display: none !important;
 }
+
+/* =====================================================
+   NOTE SEULE — ACTIONS JUSTE APRÈS LA NOTE
+   Évite le grand espace vide sous les étoiles.
+   ===================================================== */
+
+.movie-card-note-only {
+  min-height: 0;
+}
+
+.movie-card-note-only .movie-content {
+  min-height: 0;
+}
+
+.movie-card-note-only .card-bottom {
+  margin-top: 10px;
+}
+
+.movie-card-note-only .card-bottom-own-profile {
+  justify-content: flex-end;
+  padding-top: 9px;
+}
