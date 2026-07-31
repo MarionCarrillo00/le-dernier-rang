@@ -1070,6 +1070,7 @@ function getActivityMessage(notification) {
   };
 }
 
+
 function renderActivityItem(notification) {
   const message = getActivityMessage(notification);
 
@@ -1091,6 +1092,8 @@ function renderActivityItem(notification) {
       <a
         class="activity-content-link"
         href="${message.destination}"
+        data-notification-link
+        data-notification-id="${notification.id}"
       >
         ${mainContent}
       </a>
@@ -1106,6 +1109,7 @@ function renderActivityItem(notification) {
       class="activity-item ${
         notification.read_at ? "" : "is-unread"
       }"
+      data-notification-id="${notification.id}"
     >
       ${
         notification.actor?.id
@@ -1141,6 +1145,75 @@ function renderActivityItem(notification) {
   `;
 }
 
+
+async function markNotificationAsRead(notificationId) {
+  if (!currentUser || !notificationId) {
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("notifications")
+    .update({
+      read_at: new Date().toISOString()
+    })
+    .eq("id", notificationId)
+    .eq("recipient_id", currentUser.id)
+    .is("read_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+function refreshActivityUnreadCount() {
+  if (!activityUnreadCount) {
+    return;
+  }
+
+  const unreadCount = document.querySelectorAll(
+    ".activity-item.is-unread"
+  ).length;
+
+  activityUnreadCount.textContent = String(unreadCount);
+  activityUnreadCount.hidden = unreadCount === 0;
+}
+
+function setupActivityNotificationLinks() {
+  document
+    .querySelectorAll("[data-notification-link]")
+    .forEach((link) => {
+      link.addEventListener("click", async (event) => {
+        event.preventDefault();
+
+        const notificationId = link.dataset.notificationId;
+        const destination = link.getAttribute("href");
+
+        const activityItem = document.querySelector(
+          `.activity-item[data-notification-id="${notificationId}"]`
+        );
+
+        try {
+          await markNotificationAsRead(notificationId);
+
+          if (activityItem) {
+            activityItem.classList.remove("is-unread");
+          }
+
+          refreshActivityUnreadCount();
+        } catch (error) {
+          console.error(
+            "Impossible de marquer la notification comme lue :",
+            error
+          );
+        } finally {
+          if (destination) {
+            window.location.href = destination;
+          }
+        }
+      });
+    });
+}
+
 function renderActivityFeed(notifications) {
   if (!activityFeed || !activityUnreadCount) {
     return;
@@ -1171,9 +1244,13 @@ function renderActivityFeed(notifications) {
     return;
   }
 
-  activityFeed.innerHTML = notifications
-    .map(renderActivityItem)
-    .join("");
+
+activityFeed.innerHTML = notifications
+  .map(renderActivityItem)
+  .join("");
+
+setupActivityNotificationLinks();
+
 }
 
 /* =====================================================
