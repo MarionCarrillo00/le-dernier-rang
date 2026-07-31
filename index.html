@@ -127,7 +127,40 @@
         </div>
       </div>
 
-      <div class="movies-grid" id="moviesGrid"></div>
+      
+<div class="home-content-layout">
+  <div class="home-reviews-column">
+    <div
+      class="movies-grid"
+      id="moviesGrid"
+    ></div>
+  </div>
+
+  <aside
+    id="circleActivitySidebar"
+    class="circle-activity-sidebar"
+  >
+    <div class="section-title circle-activity-heading">
+      <div>
+        <div class="eyebrow red-eyebrow">
+          Dans mon cercle
+        </div>
+
+        <h2>Activité des amis</h2>
+      </div>
+    </div>
+
+    <div
+      id="circleActivityFeed"
+      class="circle-activity-feed"
+    >
+      <div class="circle-activity-loading">
+        Chargement de l’activité…
+      </div>
+    </div>
+  </aside>
+</div>
+
     </section>
 
     <section id="a-propos" class="about-section">
@@ -375,6 +408,7 @@
   <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/reviews.js"></script>
+  <script src="assets/js/friends.js"></script>
   <script src="assets/js/home.js"></script>
 </body>
 </html>
