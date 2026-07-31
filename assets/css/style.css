@@ -3489,44 +3489,6 @@ footer {
    DEMANDES D'AMIS — ESPACE PERSONNEL
    ===================================================== */
 
-.friend-requests-section {
-  margin: 0 0 46px;
-  padding: 24px;
-  background: var(--cream);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: 0 7px 20px rgba(62, 44, 34, 0.04);
-}
-
-.friend-requests-section[hidden] {
-  display: none !important;
-}
-
-.friend-requests-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 16px;
-  margin-bottom: 18px;
-}
-
-.friend-requests-heading h2 {
-  font-size: clamp(1.8rem, 3vw, 2.5rem);
-}
-
-.friend-requests-count {
-  display: inline-grid;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 auto;
-  color: white;
-  background: var(--red);
-  border-radius: 50%;
-  font-family: Arial, sans-serif;
-  font-size: 0.78rem;
-  font-weight: bold;
-  place-items: center;
-}
 
 .friend-requests-grid {
   display: grid;
@@ -4065,38 +4027,6 @@ footer {
    MON CERCLE — AMIS ACCEPTÉS
    ===================================================== */
 
-.my-circle-section {
-  margin: 0 0 52px;
-  padding: 28px;
-  background: var(--cream);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: 0 7px 20px rgba(62, 44, 34, 0.04);
-}
-
-.my-circle-section[hidden] {
-  display: none !important;
-}
-
-.my-circle-heading,
-.member-friends-heading {
-  margin-bottom: 21px;
-}
-
-.my-circle-count {
-  display: inline-grid;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 auto;
-  color: white;
-  background: var(--deep-red);
-  border-radius: 50%;
-  font-family: Arial, sans-serif;
-  font-size: 0.78rem;
-  font-weight: bold;
-  place-items: center;
-}
-
 .circle-friends-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4251,3 +4181,230 @@ footer {
   }
 }
 
+
+/* =====================================================
+   PROFIL — MON CERCLE
+   Une seule section sociale, plus éditoriale et légère.
+   ===================================================== */
+
+.profile-circle-section {
+  margin: 0 0 58px;
+  padding: 0;
+}
+
+.profile-circle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 20px;
+  margin-bottom: 20px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid var(--line);
+}
+
+.profile-circle-header .eyebrow {
+  margin-bottom: 10px;
+}
+
+.profile-circle-header h2 {
+  max-width: 650px;
+  font-size: clamp(2rem, 3.4vw, 2.9rem);
+  line-height: 1.05;
+}
+
+.profile-circle-count {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  color: white;
+  background: var(--red);
+  border-radius: 50%;
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: bold;
+  place-items: center;
+}
+
+/* Les cartes d'amis n'occupent plus toute la largeur :
+   elles forment un petit cercle, plus chaleureux. */
+
+.profile-circle-friends-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 18px;
+}
+
+.profile-circle-friends-grid .circle-friend-card {
+  background: var(--cream);
+  border-color: var(--line);
+}
+
+.profile-circle-friends-grid .circle-friend-card:hover {
+  border-color: rgba(184, 68, 68, 0.42);
+}
+
+/* État vide plus discret : il ne doit pas ressembler
+   à une très grande erreur ou à une carte massive. */
+
+.profile-circle-friends-grid .circle-empty-state {
+  padding: 22px 0 8px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+}
+
+/* -----------------------------------------------------
+   DEMANDE D'AMI : notification légère dans le cercle
+   ----------------------------------------------------- */
+
+.circle-pending-section {
+  margin-top: 20px;
+  padding: 15px 16px;
+  background: rgba(184, 68, 68, 0.055);
+  border-top: 1px solid rgba(184, 68, 68, 0.22);
+  border-bottom: 1px solid rgba(184, 68, 68, 0.22);
+}
+
+.circle-pending-section[hidden] {
+  display: none !important;
+}
+
+.circle-pending-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.circle-pending-heading p {
+  margin: 4px 0 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.circle-pending-kicker {
+  color: var(--red);
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+  font-weight: bold;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+}
+
+.circle-pending-count {
+  display: inline-grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  color: white;
+  background: var(--red);
+  border-radius: 50%;
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+  font-weight: bold;
+  place-items: center;
+}
+
+/* La demande ne doit plus sembler perdue dans un immense
+   rectangle. Elle prend seulement l'espace utile. */
+
+.circle-pending-section .friend-requests-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.circle-pending-section .friend-request-card {
+  gap: 12px;
+  padding: 11px;
+  background: var(--cream);
+  border-color: var(--line);
+}
+
+.circle-pending-section .friend-request-avatar {
+  width: 44px;
+  height: 44px;
+}
+
+.circle-pending-section .friend-request-content p {
+  font-size: 0.88rem;
+}
+
+.circle-pending-section .friend-request-actions {
+  gap: 10px;
+  margin-top: 7px;
+}
+
+.circle-pending-section .friend-request-accept {
+  padding: 7px 11px;
+  background: var(--red);
+  border-color: var(--red);
+}
+
+.circle-pending-section .friend-request-refuse {
+  padding: 7px 2px;
+}
+
+/* -----------------------------------------------------
+   Unification des accents rouges du cercle
+   ----------------------------------------------------- */
+
+.profile-circle-section .circle-friend-link,
+.profile-circle-section .friend-request-username,
+.profile-circle-section .wishlist-remove-button {
+  color: var(--red);
+}
+
+.profile-circle-section .circle-friend-avatar-placeholder,
+.profile-circle-section .friend-request-avatar-placeholder {
+  background: var(--red);
+}
+
+.profile-circle-section .circle-friend-content h3 a:hover,
+.profile-circle-section .friend-request-username:hover {
+  color: var(--deep-red);
+}
+
+/* -----------------------------------------------------
+   Responsive
+   ----------------------------------------------------- */
+
+@media (max-width: 950px) {
+  .profile-circle-friends-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .profile-circle-section {
+    margin-bottom: 46px;
+  }
+
+  .profile-circle-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .profile-circle-header h2 {
+    font-size: 2rem;
+  }
+
+  .profile-circle-friends-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .circle-pending-heading {
+    align-items: flex-start;
+  }
+
+  .circle-pending-section {
+    padding: 14px;
+  }
+
+  .circle-pending-section .friend-request-card {
+    align-items: flex-start;
+  }
+}
