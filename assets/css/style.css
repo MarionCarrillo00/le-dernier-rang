@@ -4448,3 +4448,199 @@ footer {
 .wishlist-see-all-link:hover {
   color: var(--red);
 }
+
+
+/* =====================================================
+   PROFIL — JOURNAL CENTRAL + COLONNE PERSONNELLE
+   ===================================================== */
+
+.profile-journal-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: start;
+  gap: 46px;
+  margin-top: 58px;
+}
+
+/* -----------------------------------------------------
+   Colonne principale : critiques
+   ----------------------------------------------------- */
+
+.profile-journal-layout .profile-reviews-section {
+  min-width: 0;
+  margin: 0;
+}
+
+.profile-reviews-heading {
+  margin-bottom: 23px;
+}
+
+.profile-reviews-grid {
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+/* Les cartes de critiques deviennent le contenu central :
+   elles sont plus calmes et plus lisibles sur une colonne. */
+
+.profile-reviews-grid .movie-card {
+  min-height: 205px;
+}
+
+/* -----------------------------------------------------
+   Colonne secondaire : wishlist et collections
+   ----------------------------------------------------- */
+
+.profile-sidebar {
+  display: grid;
+  gap: 42px;
+  min-width: 0;
+  padding-left: 28px;
+  border-left: 1px solid var(--line);
+}
+
+.profile-sidebar .profile-wishlist-section {
+  position: static;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.profile-sidebar .profile-lists-section {
+  margin: 0;
+}
+
+.profile-sidebar-heading {
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.profile-sidebar-heading .eyebrow {
+  margin-bottom: 8px;
+}
+
+.profile-sidebar h2 {
+  font-size: clamp(1.55rem, 2vw, 2rem);
+  letter-spacing: -0.8px;
+}
+
+/* Wishlist : deux affiches par rangée dans la sidebar. */
+
+.profile-sidebar .wishlist-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 12px;
+}
+
+.profile-sidebar .wishlist-movie-content h3 {
+  font-size: 0.82rem;
+}
+
+.profile-sidebar .wishlist-movie-content p {
+  font-size: 0.62rem;
+}
+
+/* Collections : une seule carte par ligne dans la sidebar. */
+
+.profile-sidebar-lists-grid {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.profile-sidebar .movie-list-card {
+  min-height: 0;
+  padding: 16px;
+}
+
+.profile-sidebar .movie-list-card h3 {
+  margin: 16px 0 7px;
+  font-size: 1.22rem;
+}
+
+.profile-sidebar .movie-list-card p {
+  font-size: 0.82rem;
+}
+
+.profile-sidebar .movie-list-card-bottom {
+  padding-top: 12px;
+}
+
+/* Le formulaire reste utilisable dans la colonne étroite. */
+
+.profile-sidebar .list-form {
+  padding: 17px;
+}
+
+.profile-sidebar .list-form-actions {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-sidebar .button-primary {
+  padding: 9px 12px;
+  font-size: 0.76rem;
+}
+
+/* -----------------------------------------------------
+   Responsive
+   ----------------------------------------------------- */
+
+@media (max-width: 950px) {
+  .profile-journal-layout {
+    grid-template-columns: minmax(0, 1fr) 250px;
+    gap: 28px;
+  }
+
+  .profile-sidebar {
+    padding-left: 20px;
+  }
+}
+
+@media (max-width: 750px) {
+  .profile-journal-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    margin-top: 46px;
+  }
+
+  .profile-sidebar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    padding: 28px 0 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .profile-sidebar .profile-wishlist-section,
+  .profile-sidebar .profile-lists-section {
+    min-width: 0;
+  }
+
+  .profile-sidebar .wishlist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 550px) {
+  .profile-sidebar {
+    grid-template-columns: 1fr;
+    gap: 38px;
+  }
+
+  .profile-sidebar .wishlist-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .profile-reviews-grid .movie-card {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 400px) {
+  .profile-sidebar .wishlist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
