@@ -2181,6 +2181,89 @@ function setupProfilePage() {
   }
 
 
+  /* ---------------------------------
+     Modale : ajouter une microcritique
+     à une note existante
+  --------------------------------- */
+
+  if (
+    addReviewContentModal &&
+    addReviewContentForm &&
+    addReviewContentInput &&
+    saveAddReviewContentButton
+  ) {
+    closeAddReviewContentModalButton?.addEventListener(
+      "click",
+      closeAddReviewContentModal
+    );
+
+    cancelAddReviewContentButton?.addEventListener(
+      "click",
+      closeAddReviewContentModal
+    );
+
+    addReviewContentInput.addEventListener(
+      "input",
+      updateAddReviewContentCharacterCounter
+    );
+
+    addReviewContentModal.addEventListener("click", (event) => {
+      if (event.target === addReviewContentModal) {
+        closeAddReviewContentModal();
+      }
+    });
+
+    addReviewContentForm.addEventListener(
+      "submit",
+      async (event) => {
+        event.preventDefault();
+
+        if (!addingContentReviewId) {
+          return;
+        }
+
+        const content = addReviewContentInput.value.trim();
+
+        if (!content) {
+          alert("Écris quelques mots avant de publier.");
+          addReviewContentInput.focus();
+          return;
+        }
+
+        saveAddReviewContentButton.disabled = true;
+        saveAddReviewContentButton.textContent = "Publication…";
+
+        try {
+          await addReviewContent(
+            addingContentReviewId,
+            content
+          );
+
+          closeAddReviewContentModal();
+
+          await loadMyProfilePage();
+
+          alert(
+            "Ta microcritique est publiée. Ses mots sont désormais définitifs. ✨"
+          );
+        } catch (error) {
+          console.error(
+            "Erreur d’ajout de la microcritique :",
+            error
+          );
+
+          alert(
+            `Impossible de publier tes mots : ${error.message}`
+          );
+        } finally {
+          saveAddReviewContentButton.disabled = false;
+          saveAddReviewContentButton.textContent =
+            "Publier mes mots";
+        }
+      }
+    );
+  }
+
  
 
   /* ---------------------------------
