@@ -3,12 +3,20 @@ const memberPageContent = document.getElementById(
   "memberPageContent"
 );
 
+/* =====================================================
+   UTILITAIRES
+   ===================================================== */
+
 function getMemberIdFromUrl() {
   const params = new URLSearchParams(window.location.search);
   return params.get("id");
 }
 
 function renderMemberError(message) {
+  if (!memberPageContent) {
+    return;
+  }
+
   memberPageContent.innerHTML = `
     <div class="film-error">
       <h1>Ce profil est introuvable.</h1>
@@ -24,16 +32,19 @@ function renderMemberError(message) {
 
 function getMemberInitial(profile) {
   const username = profile?.username || "Membre";
-  return username.charAt(0).toUpperCase();
+
+  return username.charAt(0).toUpperCase() || "?";
 }
 
 function renderMemberAvatar(profile) {
-  if (profile.avatar_url) {
+  const username = profile?.username || "Membre";
+
+  if (profile?.avatar_url) {
     return `
       <img
         class="member-avatar-large"
         src="${escapeHTML(profile.avatar_url)}"
-        alt="Photo de profil de ${escapeHTML(profile.username)}"
+        alt="Photo de profil de ${escapeHTML(username)}"
       />
     `;
   }
@@ -49,20 +60,14 @@ function renderMemberAvatar(profile) {
 }
 
 /* =====================================================
-   AMITIÉS
+   AMITIÉS — RELATION ENTRE MOI ET LE MEMBRE
    ===================================================== */
-
 
 async function getFriendshipWithMember(memberId) {
   if (!currentUser || !memberId || currentUser.id === memberId) {
     return null;
   }
 
-  /*
-    On récupère toutes les relations du membre connecté :
-    les règles RLS autorisent cette lecture pour les demandes
-    envoyées et reçues.
-  */
   const { data: friendships, error } = await supabaseClient
     .from("friendships")
     .select(`
@@ -81,23 +86,20 @@ async function getFriendshipWithMember(memberId) {
     throw error;
   }
 
-  /*
-    On conserve uniquement la relation avec le profil consulté,
-    quel que soit le sens de la demande.
-  */
-  return (friendships || []).find(
-    (friendship) =>
-      (
-        friendship.requester_id === currentUser.id &&
-        friendship.recipient_id === memberId
-      ) ||
-      (
-        friendship.requester_id === memberId &&
-        friendship.recipient_id === currentUser.id
-      )
-  ) || null;
+  return (
+    (friendships || []).find(
+      (friendship) =>
+        (
+          friendship.requester_id === currentUser.id &&
+          friendship.recipient_id === memberId
+        ) ||
+        (
+          friendship.requester_id === memberId &&
+          friendship.recipient_id === currentUser.id
+        )
+    ) || null
+  );
 }
-
 
 function getFriendshipState(memberId, friendship) {
   if (!currentUser || currentUser.id === memberId) {
@@ -229,13 +231,21 @@ async function sendFriendshipRequest(memberId) {
 }
 
 async function acceptFriendshipRequest(friendshipId) {
+  if (!currentUser) {
+    throw new Error(
+      "Tu dois être connectée pour accepter une demande d’amis."
+    );
+  }
+
   const { error } = await supabaseClient
     .from("friendships")
     .update({
       status: "accepted",
       accepted_at: new Date().toISOString()
     })
-    .eq("id", friendshipId);
+    .eq("id", friendshipId)
+    .eq("recipient_id", currentUser.id)
+    .eq("status", "pending");
 
   if (error) {
     throw error;
@@ -243,10 +253,19 @@ async function acceptFriendshipRequest(friendshipId) {
 }
 
 async function deleteFriendship(friendshipId) {
+  if (!currentUser) {
+    throw new Error(
+      "Tu dois être connectée pour modifier une relation d’amitié."
+    );
+  }
+
   const { error } = await supabaseClient
     .from("friendships")
     .delete()
-    .eq("id", friendshipId);
+    .eq("id", friendshipId)
+    .or(
+      `requester_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`
+    );
 
   if (error) {
     throw error;
@@ -313,12 +332,15 @@ function setupFriendshipButtons() {
 
 function renderPublicListCard(list) {
   const movieCount = Number(list.movie_count || 0);
-  const label = movieCount > 1 ? "films" : "film";
+
+  const label = movieCount > 1
+    ? "films"
+    : "film";
 
   return `
     <a
       class="movie-list-card member-list-card"
-      href="liste.html?id=${encodeURIComponent(list.id)}"
+      href="list.html?id=${encodeURIComponent(list.id)}"
     >
       <div class="movie-list-card-top">
         <span class="list-visibility public">
@@ -343,6 +365,10 @@ function renderPublicListCard(list) {
     </a>
   `;
 }
+
+/* =====================================================
+   WISHLIST PUBLIQUE
+   ===================================================== */
 
 function renderMemberWishlistCard(movie) {
   const title = movie.title || "Film sans titre";
@@ -405,7 +431,9 @@ async function getPublicCollectionsForMember(userId) {
     `)
     .eq("user_id", userId)
     .eq("is_public", true)
-    .order("created_at", { ascending: false });
+    .order("created_at", {
+      ascending: false
+    });
 
   if (error) {
     throw error;
@@ -440,7 +468,9 @@ async function getPublicCollectionsForMember(userId) {
       )
     `)
     .in("list_id", listIds)
-    .order("created_at", { ascending: false });
+    .order("created_at", {
+      ascending: false
+    });
 
   if (itemsError) {
     throw itemsError;
@@ -484,44 +514,6 @@ async function getPublicCollectionsForMember(userId) {
   };
 }
 
-async function getPublicReviewsForMember(userId) {
-  const { data: reviews, error } = await supabaseClient
-    .from("reviews")
-    .select(`
-      id,
-      user_id,
-      rating,
-      content,
-      created_at,
-      movies (
-        id,
-        title,
-        release_year,
-        director,
-        poster_url,
-        genres
-      )
-    `)
-    .eq("user_id", userId)
-    .eq("is_published", true)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw error;
-  }
-
-  const profilesById = await getProfilesByUserIds(
-    (reviews || []).map((review) => review.user_id)
-  );
-
-  const reviewsWithAuthors = addAuthorsToReviews(
-    reviews || [],
-    profilesById
-  );
-
-  return enrichReviews(reviewsWithAuthors);
-}
-
 function renderMemberWishlistSection(
   username,
   wishlist,
@@ -533,20 +525,25 @@ function renderMemberWishlistSection(
 
   const visibleMovies = wishlistMovies.slice(0, 6);
   const totalMovies = wishlistMovies.length;
-  const movieLabel = totalMovies > 1 ? "films" : "film";
+
+  const movieLabel = totalMovies > 1
+    ? "films"
+    : "film";
 
   return `
     <section class="member-section member-wishlist-section">
       <div class="section-title member-wishlist-heading">
         <div>
-          <div class="eyebrow red-eyebrow">Prochaines séances</div>
+          <div class="eyebrow red-eyebrow">
+            Prochaines séances
+          </div>
 
           <h2>À voir chez ${escapeHTML(username)}</h2>
         </div>
 
         <a
           class="button-secondary"
-          href="liste.html?id=${encodeURIComponent(wishlist.id)}"
+          href="list.html?id=${encodeURIComponent(wishlist.id)}"
         >
           Voir la liste
         </a>
@@ -570,6 +567,94 @@ function renderMemberWishlistSection(
 }
 
 /* =====================================================
+   AMIS PUBLICS — SON CERCLE
+   getAcceptedFriends() et createFriendsMarkup()
+   sont disponibles grâce à friends.js.
+   ===================================================== */
+
+function renderMemberFriendsSection(friends) {
+  return `
+    <section class="member-section member-friends-section">
+      <div class="section-title member-friends-heading">
+        <div>
+          <div class="eyebrow red-eyebrow">
+            Son cercle
+          </div>
+
+          <h2>Ses amis</h2>
+        </div>
+
+        <span
+          class="my-circle-count member-friends-count"
+          aria-label="Nombre d’amis"
+        >
+          ${friends.length}
+        </span>
+      </div>
+
+      <div class="circle-friends-grid member-friends-grid">
+        ${createFriendsMarkup(
+          friends,
+          `
+            <strong>Ce cercle attend encore ses premiers visages.</strong>
+            <br /><br />
+            Les liens de cinéma se construisent doucement.
+          `
+        )}
+      </div>
+    </section>
+  `;
+}
+
+/* =====================================================
+   MICROCRITIQUES PUBLIQUES
+   ===================================================== */
+
+async function getPublicReviewsForMember(userId) {
+  const { data: reviews, error } = await supabaseClient
+    .from("reviews")
+    .select(`
+      id,
+      user_id,
+      rating,
+      content,
+      created_at,
+      movies (
+        id,
+        title,
+        release_year,
+        director,
+        poster_url,
+        genres
+      )
+    `)
+    .eq("user_id", userId)
+    .eq("is_published", true)
+    .order("created_at", {
+      ascending: false
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  const profilesById = await getProfilesByUserIds(
+    (reviews || []).map((review) => review.user_id)
+  );
+
+  const reviewsWithAuthors = addAuthorsToReviews(
+    reviews || [],
+    profilesById
+  );
+
+  /*
+    Garde ton nom de fonction existant :
+    dans ton reviews.js actuel, enrichReviews() est déjà utilisé.
+  */
+  return enrichReviews(reviewsWithAuthors);
+}
+
+/* =====================================================
    RENDU DU PROFIL PUBLIC
    ===================================================== */
 
@@ -577,8 +662,13 @@ function renderMemberPage(
   profile,
   reviews,
   collections,
-  friendship
+  friendship,
+  friends
 ) {
+  if (!memberPageContent) {
+    return;
+  }
+
   const username = profile.username || "Membre";
 
   const bio = profile.bio?.trim() ||
@@ -591,6 +681,8 @@ function renderMemberPage(
     publicListCount
   } = collections;
 
+  const friendCount = friends.length;
+
   document.title = `${username} — Le dernier rang`;
 
   memberPageContent.innerHTML = `
@@ -599,7 +691,9 @@ function renderMemberPage(
         ${renderMemberAvatar(profile)}
 
         <div>
-          <div class="eyebrow red-eyebrow">Carnet de cinéma</div>
+          <div class="eyebrow red-eyebrow">
+            Carnet de cinéma
+          </div>
 
           <h1>${escapeHTML(username)}</h1>
 
@@ -613,6 +707,7 @@ function renderMemberPage(
         <div class="member-statistics">
           <div class="member-stat">
             <strong>${reviews.length}</strong>
+
             <small>
               microcritique${reviews.length > 1 ? "s" : ""}
             </small>
@@ -620,10 +715,19 @@ function renderMemberPage(
 
           <div class="member-stat">
             <strong>${publicListCount}</strong>
+
             <small>
               liste${publicListCount > 1 ? "s" : ""} publique${
                 publicListCount > 1 ? "s" : ""
               }
+            </small>
+          </div>
+
+          <div class="member-stat">
+            <strong>${friendCount}</strong>
+
+            <small>
+              ami${friendCount > 1 ? "s" : ""}
             </small>
           </div>
         </div>
@@ -639,7 +743,9 @@ function renderMemberPage(
     <section class="member-section">
       <div class="section-title">
         <div>
-          <div class="eyebrow red-eyebrow">Ses listes</div>
+          <div class="eyebrow red-eyebrow">
+            Ses listes
+          </div>
 
           <h2>
             Les petites collections de ${escapeHTML(username)}
@@ -663,10 +769,14 @@ function renderMemberPage(
       </div>
     </section>
 
+    ${renderMemberFriendsSection(friends)}
+
     <section class="member-section">
       <div class="section-title">
         <div>
-          <div class="eyebrow red-eyebrow">Son journal</div>
+          <div class="eyebrow red-eyebrow">
+            Son journal
+          </div>
 
           <h2>
             Les microcritiques de ${escapeHTML(username)}
@@ -698,6 +808,10 @@ function renderMemberPage(
   setupFriendshipButtons();
 }
 
+/* =====================================================
+   LIKES
+   ===================================================== */
+
 function setupMemberLikeButtons() {
   document.querySelectorAll(".favorite").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -721,7 +835,9 @@ function setupMemberLikeButtons() {
       } catch (error) {
         console.error("Erreur de like :", error);
 
-        alert(`Impossible de modifier ton like : ${error.message}`);
+        alert(
+          `Impossible de modifier ton like : ${error.message}`
+        );
       } finally {
         button.disabled = false;
       }
@@ -730,23 +846,27 @@ function setupMemberLikeButtons() {
 }
 
 /* =====================================================
-   CHARGEMENT
+   CHARGEMENT DE LA PAGE
    ===================================================== */
 
 async function loadMemberPage() {
   const memberId = getMemberIdFromUrl();
 
   if (!memberId) {
-    renderMemberError("Aucun identifiant de membre n’a été transmis.");
+    renderMemberError(
+      "Aucun identifiant de membre n’a été transmis."
+    );
+
     return;
   }
 
   try {
-    const { data: profile, error: profileError } = await supabaseClient
-      .from("profiles")
-      .select("id, username, bio, avatar_url")
-      .eq("id", memberId)
-      .maybeSingle();
+    const { data: profile, error: profileError } =
+      await supabaseClient
+        .from("profiles")
+        .select("id, username, bio, avatar_url")
+        .eq("id", memberId)
+        .maybeSingle();
 
     if (profileError) {
       throw profileError;
@@ -760,26 +880,80 @@ async function loadMemberPage() {
       return;
     }
 
-    const [reviews, collections, friendship] = await Promise.all([
+    /*
+      Le cercle est séparé des données principales :
+      si une policy RLS manque temporairement sur friendships,
+      le profil du membre reste entièrement lisible.
+    */
+    const [
+      reviewsResult,
+      collectionsResult,
+      friendshipResult,
+      friendsResult
+    ] = await Promise.allSettled([
       getPublicReviewsForMember(profile.id),
       getPublicCollectionsForMember(profile.id),
-      getFriendshipWithMember(profile.id)
+      getFriendshipWithMember(profile.id),
+      getAcceptedFriends(profile.id)
     ]);
+
+    if (reviewsResult.status === "rejected") {
+      throw reviewsResult.reason;
+    }
+
+    if (collectionsResult.status === "rejected") {
+      throw collectionsResult.reason;
+    }
+
+    const reviews = reviewsResult.value;
+    const collections = collectionsResult.value;
+
+    const friendship =
+      friendshipResult.status === "fulfilled"
+        ? friendshipResult.value
+        : null;
+
+    const friends =
+      friendsResult.status === "fulfilled"
+        ? friendsResult.value
+        : [];
+
+    if (friendshipResult.status === "rejected") {
+      console.error(
+        "Impossible de charger la relation d’amitié :",
+        friendshipResult.reason
+      );
+    }
+
+    if (friendsResult.status === "rejected") {
+      console.error(
+        "Impossible de charger le cercle du membre :",
+        friendsResult.reason
+      );
+    }
 
     renderMemberPage(
       profile,
       reviews,
       collections,
-      friendship
+      friendship,
+      friends
     );
   } catch (error) {
-    console.error("Erreur de chargement du profil public :", error);
+    console.error(
+      "Erreur de chargement du profil public :",
+      error
+    );
 
     renderMemberError(
       "Une erreur est survenue pendant le chargement de ce profil."
     );
   }
 }
+
+/* =====================================================
+   INITIALISATION
+   ===================================================== */
 
 document.addEventListener("authChanged", () => {
   loadMemberPage();
