@@ -881,8 +881,8 @@ return (data || [])
 
 }
 
+
 function renderWishlistMovies(items) {
-  
   if (!myWishlistGrid) {
     return;
   }
@@ -909,95 +909,85 @@ function renderWishlistMovies(items) {
     return;
   }
 
-  myWishlistGrid.innerHTML = items
-    .map(({ wishlist_item_id, movie }) => {
+  /* On limite l’aperçu du profil à six films. */
+  const visibleItems = items.slice(0, 6);
 
-const visibleItems = items.slice(0, 6);
+  const wishlistId = items[0]?.wishlist_id || "";
 
-const remainingCount = items.length - visibleItems.length;
+  myWishlistGrid.innerHTML = `
+    ${visibleItems
+      .map(({ wishlist_item_id, movie }) => {
+        const title = movie.title || "Film sans titre";
 
-const wishlist = items.length
-  ? items[0]
-  : null;
+        const releaseYear = movie.release_year || "—";
 
-myWishlistGrid.innerHTML = `
-  ${visibleItems
-    .map(({ wishlist_item_id, movie }) => {
-      const title = movie.title || "Film sans titre";
-      const releaseYear = movie.release_year || "—";
+        const director =
+          movie.director || "Réalisation non renseignée";
 
-      const director =
-        movie.director || "Réalisation non renseignée";
+        const posterMarkup = movie.poster_url
+          ? `
+            <img
+              src="${escapeHTML(movie.poster_url)}"
+              alt="Affiche de ${escapeHTML(title)}"
+              loading="lazy"
+            />
+          `
+          : `
+            <div class="wishlist-poster-placeholder">
+              <span>${escapeHTML(String(releaseYear))}</span>
+              <strong>${escapeHTML(title)}</strong>
+            </div>
+          `;
 
-      const posterMarkup = movie.poster_url
-        ? `
-          <img
-            src="${escapeHTML(movie.poster_url)}"
-            alt="Affiche de ${escapeHTML(title)}"
-            loading="lazy"
-          />
-        `
-        : `
-          <div class="wishlist-poster-placeholder">
-            <span>${escapeHTML(String(releaseYear))}</span>
-            <strong>${escapeHTML(title)}</strong>
-          </div>
-        `;
-
-      return `
-        <article class="wishlist-movie-card">
-          <a
-            class="wishlist-poster-link"
-            href="film.html?id=${encodeURIComponent(movie.id)}"
-            title="Voir la fiche de ${escapeHTML(title)}"
-          >
-            ${posterMarkup}
-          </a>
-
-          <div class="wishlist-movie-content">
-            <h3>
-              <a href="film.html?id=${encodeURIComponent(movie.id)}">
-                ${escapeHTML(title)}
-              </a>
-            </h3>
-
-            <p>
-              ${escapeHTML(String(releaseYear))} ·
-              ${escapeHTML(director)}
-            </p>
-
-            <button
-              class="button-text wishlist-remove-button"
-              type="button"
-              data-wishlist-item-id="${wishlist_item_id}"
-              title="Retirer ${escapeHTML(title)} de ma liste À voir"
+        return `
+          <article class="wishlist-movie-card">
+            <a
+              class="wishlist-poster-link"
+              href="film.html?id=${encodeURIComponent(movie.id)}"
+              title="Voir la fiche de ${escapeHTML(title)}"
             >
-              Retirer
-            </button>
-          </div>
-        </article>
-      `;
-    })
-    .join("")}
+              ${posterMarkup}
+            </a>
 
-  ${
-    remainingCount > 0
-      ? `
-        <a
-          class="wishlist-see-all-link"
-          href="list.html?id=${encodeURIComponent(
-            wishlist?.wishlist_id || ""
-          )}"
-        >
-          Voir les ${items.length} films à voir →
-        </a>
-      `
-      : ""
-  }
-`;
+            <div class="wishlist-movie-content">
+              <h3>
+                <a href="film.html?id=${encodeURIComponent(movie.id)}">
+                  ${escapeHTML(title)}
+                </a>
+              </h3>
 
-    })
-    .join("");
+              <p>
+                ${escapeHTML(String(releaseYear))} ·
+                ${escapeHTML(director)}
+              </p>
+
+              <button
+                class="button-text wishlist-remove-button"
+                type="button"
+                data-wishlist-item-id="${wishlist_item_id}"
+                title="Retirer ${escapeHTML(title)} de ma liste À voir"
+              >
+                Retirer
+              </button>
+            </div>
+          </article>
+        `;
+      })
+      .join("")}
+
+    ${
+      items.length > visibleItems.length && wishlistId
+        ? `
+          <a
+            class="wishlist-see-all-link"
+            href="list.html?id=${encodeURIComponent(wishlistId)}"
+          >
+            Voir les ${items.length} films à voir →
+          </a>
+        `
+        : ""
+    }
+  `;
 
   document
     .querySelectorAll(".wishlist-remove-button")
@@ -1005,6 +995,10 @@ myWishlistGrid.innerHTML = `
       button.addEventListener("click", async () => {
         const wishlistItemId =
           button.dataset.wishlistItemId;
+
+        if (!wishlistItemId) {
+          return;
+        }
 
         button.disabled = true;
         button.textContent = "Retrait…";
@@ -1036,6 +1030,7 @@ myWishlistGrid.innerHTML = `
       });
     });
 }
+
 
 /* =====================================================
    LISTES PERSONNALISÉES
