@@ -869,16 +869,20 @@ async function getMyWishlistMovies() {
     throw error;
   }
 
-  return (data || [])
-    .filter((item) => item.movies)
-    .map((item) => ({
-      wishlist_item_id: item.id,
-      added_at: item.created_at,
-      movie: item.movies
-    }));
+
+return (data || [])
+  .filter((item) => item.movies)
+  .map((item) => ({
+    wishlist_id: wishlist.id,
+    wishlist_item_id: item.id,
+    added_at: item.created_at,
+    movie: item.movies
+  }));
+
 }
 
 function renderWishlistMovies(items) {
+  
   if (!myWishlistGrid) {
     return;
   }
@@ -906,6 +910,18 @@ function renderWishlistMovies(items) {
   }
 
   myWishlistGrid.innerHTML = items
+    .map(({ wishlist_item_id, movie }) => {
+
+const visibleItems = items.slice(0, 6);
+
+const remainingCount = items.length - visibleItems.length;
+
+const wishlist = items.length
+  ? items[0]
+  : null;
+
+myWishlistGrid.innerHTML = `
+  ${visibleItems
     .map(({ wishlist_item_id, movie }) => {
       const title = movie.title || "Film sans titre";
       const releaseYear = movie.release_year || "—";
@@ -961,6 +977,25 @@ function renderWishlistMovies(items) {
           </div>
         </article>
       `;
+    })
+    .join("")}
+
+  ${
+    remainingCount > 0
+      ? `
+        <a
+          class="wishlist-see-all-link"
+          href="list.html?id=${encodeURIComponent(
+            wishlist?.wishlist_id || ""
+          )}"
+        >
+          Voir les ${items.length} films à voir →
+        </a>
+      `
+      : ""
+  }
+`;
+
     })
     .join("");
 
