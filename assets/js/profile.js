@@ -1012,22 +1012,29 @@ async function getMyNotifications() {
   }));
 }
 
+
 function getActivityMessage(notification) {
   const actorName =
     notification.actor?.username || "Un membre";
 
+  const movieId =
+    notification.review?.movies?.id || "";
+
   const movieTitle =
     notification.review?.movies?.title || "une critique";
+
+  const reviewDestination =
+    movieId && notification.review_id
+      ? `film.html?id=${encodeURIComponent(
+          movieId
+        )}#review-${encodeURIComponent(notification.review_id)}`
+      : "";
 
   if (notification.type === "review_like") {
     return {
       main: `${actorName} a aimé ta critique`,
       detail: `« ${movieTitle} »`,
-      destination: notification.actor?.id
-        ? `membre.html?id=${encodeURIComponent(
-            notification.actor.id
-          )}`
-        : ""
+      destination: reviewDestination
     };
   }
 
@@ -1035,11 +1042,7 @@ function getActivityMessage(notification) {
     return {
       main: `${actorName} a répondu à ta critique`,
       detail: `« ${movieTitle} »`,
-      destination: notification.actor?.id
-        ? `membre.html?id=${encodeURIComponent(
-            notification.actor.id
-          )}`
-        : ""
+      destination: reviewDestination
     };
   }
 
@@ -1069,6 +1072,7 @@ function getActivityMessage(notification) {
     destination: ""
   };
 }
+
 
 
 function renderActivityItem(notification) {
