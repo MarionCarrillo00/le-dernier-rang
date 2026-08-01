@@ -355,7 +355,7 @@ function renderReviewCommentSection(review) {
 
               <div class="review-comment-form-bottom">
                 <span class="review-comment-counter">
-                  0 / 280
+                  0 / 1000
                 </span>
 
                 <button
