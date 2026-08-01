@@ -347,7 +347,7 @@ function renderReviewCommentSection(review) {
             >
               <textarea
                 class="review-comment-input"
-                maxlength="280"
+                maxlength="1000"
                 required
                 placeholder="Répondre avec quelques mots…"
                 aria-label="Répondre à cette microcritique"
