@@ -5754,3 +5754,31 @@ a.activity-content-link:hover .activity-detail {
 .movie-card.movie-card-note-only .review-note-only {
   display: none !important;
 }
+
+/* Page publique : films qui attendent leur séance */
+.list-movies-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 1100px) {
+  .list-movies-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 750px) {
+  .list-movies-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (max-width: 500px) {
+  .list-movies-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
