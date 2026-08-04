@@ -2,6 +2,8 @@
 const adminPageContent = document.getElementById("adminPageContent");
 
 let adminInitialised = false;
+let adminData = null;
+let adminReviewFilter = "all";
 
 function adminEscapeHTML(value) {
   if (typeof escapeHTML === "function") {
@@ -31,6 +33,20 @@ function formatAdminDate(dateValue) {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(date);
+}
+
+function truncateAdminText(value, maxLength = 110) {
+  const text = String(value || "").trim();
+
+  if (!text) {
+    return "Note seule";
+  }
+
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength).trim()}…`;
 }
 
 function renderAdminMessage(title, text, isError = false) {
@@ -65,9 +81,9 @@ function renderAdminLoading() {
 async function getAdminDashboardData() {
   const [
     membersResult,
-    reviewsResult,
-    listsResult,
-    recentReviewsResult,
+    publishedReviewsResult,
+    publicListsResult,
+    adminReviewsResult,
     recentProfilesResult
   ] = await Promise.all([
     supabaseClient
@@ -84,24 +100,9 @@ async function getAdminDashboardData() {
       .select("*", { count: "exact", head: true })
       .eq("is_public", true),
 
-    supabaseClient
-      .from("reviews")
-      .select(`
-        id,
-        user_id,
-        movie_id,
-        rating,
-        content,
-        is_published,
-        created_at,
-        movies (
-          id,
-          title,
-          release_year
-        )
-      `)
-      .order("created_at", { ascending: false })
-      .limit(20),
+    supabaseClient.rpc("admin_get_reviews", {
+      p_limit: 200
+    }),
 
     supabaseClient
       .from("profiles")
@@ -112,9 +113,9 @@ async function getAdminDashboardData() {
 
   const errors = [
     membersResult.error,
-    reviewsResult.error,
-    listsResult.error,
-    recentReviewsResult.error,
+    publishedReviewsResult.error,
+    publicListsResult.error,
+    adminReviewsResult.error,
     recentProfilesResult.error
   ].filter(Boolean);
 
@@ -122,81 +123,95 @@ async function getAdminDashboardData() {
     throw errors[0];
   }
 
-  const recentReviews = recentReviewsResult.data || [];
-
-  const reviewUserIds = [
-    ...new Set(
-      recentReviews
-        .map((review) => review.user_id)
-        .filter(Boolean)
-    )
-  ];
-
-  let profilesById = {};
-
-  if (reviewUserIds.length) {
-    const { data: profiles, error: profilesError } = await supabaseClient
-      .from("profiles")
-      .select("id, username, avatar_url")
-      .in("id", reviewUserIds);
-
-    if (profilesError) {
-      throw profilesError;
+  const reviews = (adminReviewsResult.data || []).map((review) => ({
+    id: review.review_id,
+    user_id: review.review_user_id,
+    movie_id: review.review_movie_id,
+    rating: review.review_rating,
+    content: review.review_content,
+    is_published: review.review_is_published,
+    created_at: review.review_created_at,
+    movies: {
+      title: review.movie_title,
+      release_year: review.movie_release_year
+    },
+    author: {
+      username: review.author_username
     }
-
-    profilesById = (profiles || []).reduce((accumulator, profile) => {
-      accumulator[profile.id] = profile;
-      return accumulator;
-    }, {});
-  }
+  }));
 
   return {
     stats: {
       members: membersResult.count || 0,
-      reviews: reviewsResult.count || 0,
-      lists: listsResult.count || 0
+      publishedReviews: publishedReviewsResult.count || 0,
+      allReviews: reviews.length,
+      lists: publicListsResult.count || 0
     },
-    recentReviews: recentReviews.map((review) => ({
-      ...review,
-      author: profilesById[review.user_id] || null
-    })),
+    reviews,
     recentProfiles: recentProfilesResult.data || []
   };
 }
 
-function renderAdminReviewCard(review) {
+function getFilteredAdminReviews() {
+  if (!adminData?.reviews) {
+    return [];
+  }
+
+  if (adminReviewFilter === "published") {
+    return adminData.reviews.filter((review) => review.is_published);
+  }
+
+  if (adminReviewFilter === "unpublished") {
+    return adminData.reviews.filter((review) => !review.is_published);
+  }
+
+  return adminData.reviews;
+}
+
+function renderAdminReviewRow(review) {
   const authorName = review.author?.username || "Membre";
-  const movie = review.movies || {};
-  const movieTitle = movie.title || "Film sans titre";
-  const releaseYear = movie.release_year || "";
+  const movieTitle = review.movies?.title || "Film sans titre";
+  const releaseYear = review.movies?.release_year || "";
   const content = String(review.content || "").trim();
 
   return `
-    <article class="admin-review-card">
-      <div class="admin-review-card-header">
-        <div>
-          <p class="admin-review-film">
-            <a href="film.html?id=${encodeURIComponent(review.movie_id)}">
-              ${adminEscapeHTML(movieTitle)}
-            </a>
+    <tr>
+      <td>
+        <a href="member.html?id=${encodeURIComponent(review.user_id)}">
+          ${adminEscapeHTML(authorName)}
+        </a>
+      </td>
 
-            ${
-              releaseYear
-                ? `<span>(${adminEscapeHTML(releaseYear)})</span>`
-                : ""
-            }
-          </p>
+      <td>
+        <a href="film.html?id=${encodeURIComponent(review.movie_id)}">
+          ${adminEscapeHTML(movieTitle)}
+        </a>
+        ${
+          releaseYear
+            ? `<span class="admin-table-year">(${adminEscapeHTML(releaseYear)})</span>`
+            : ""
+        }
+      </td>
 
-          <p class="admin-review-meta">
-            Par
-            <a href="member.html?id=${encodeURIComponent(review.user_id)}">
-              ${adminEscapeHTML(authorName)}
-            </a>
-            · ${formatAdminDate(review.created_at)}
-            · ${adminEscapeHTML(review.rating)} / 5
-          </p>
-        </div>
+      <td class="admin-table-rating">
+        ${adminEscapeHTML(review.rating)} / 5
+      </td>
 
+      <td class="admin-table-content">
+        <span title="${adminEscapeHTML(content || "Note seule")}">
+          ${
+            content
+              ? adminEscapeHTML(truncateAdminText(content))
+              : "<em>Note seule</em>"
+          }
+        </span>
+      </td>
+
+      <td class="admin-table-date">
+        ${formatAdminDate(review.created_at)}
+      </td>
+
+      <td>
         <span
           class="admin-status-badge ${
             review.is_published
@@ -206,31 +221,9 @@ function renderAdminReviewCard(review) {
         >
           ${review.is_published ? "Publiée" : "Dépubliée"}
         </span>
-      </div>
+      </td>
 
-      <p class="admin-review-content">
-        ${
-          content
-            ? adminEscapeHTML(content)
-            : "<em>Note seule — sans microcritique.</em>"
-        }
-      </p>
-
-      <div class="admin-review-actions">
-        <a
-          class="button-text"
-          href="member.html?id=${encodeURIComponent(review.user_id)}"
-        >
-          Voir le profil
-        </a>
-
-        <a
-          class="button-text"
-          href="film.html?id=${encodeURIComponent(review.movie_id)}"
-        >
-          Voir le film
-        </a>
-
+      <td class="admin-table-actions">
         ${
           review.is_published
             ? `
@@ -261,8 +254,42 @@ function renderAdminReviewCard(review) {
         >
           Supprimer
         </button>
+      </td>
+    </tr>
+  `;
+}
+
+function renderAdminReviewTable() {
+  const reviews = getFilteredAdminReviews();
+
+  if (!reviews.length) {
+    return `
+      <div class="empty-state">
+        Aucune critique dans cette sélection.
       </div>
-    </article>
+    `;
+  }
+
+  return `
+    <div class="admin-table-wrapper">
+      <table class="admin-review-table">
+        <thead>
+          <tr>
+            <th>Auteur·rice</th>
+            <th>Film</th>
+            <th>Note</th>
+            <th>Microcritique</th>
+            <th>Date</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${reviews.map(renderAdminReviewRow).join("")}
+        </tbody>
+      </table>
+    </div>
   `;
 }
 
@@ -278,9 +305,7 @@ function renderAdminMemberCard(profile) {
         loading="lazy"
       />
     `
-    : `
-      <span>${adminEscapeHTML(initial)}</span>
-    `;
+    : `<span>${adminEscapeHTML(initial)}</span>`;
 
   return `
     <article class="admin-member-card">
@@ -303,26 +328,26 @@ function renderAdminMemberCard(profile) {
   `;
 }
 
-function renderAdminDashboard(data) {
-  if (!adminPageContent) {
+function renderAdminDashboard() {
+  if (!adminPageContent || !adminData) {
     return;
   }
 
-  const reviewsMarkup = data.recentReviews.length
-    ? data.recentReviews.map(renderAdminReviewCard).join("")
-    : `
-      <div class="empty-state">
-        Aucune microcritique à modérer pour le moment.
-      </div>
-    `;
-
-  const membersMarkup = data.recentProfiles.length
-    ? data.recentProfiles.map(renderAdminMemberCard).join("")
+  const membersMarkup = adminData.recentProfiles.length
+    ? adminData.recentProfiles.map(renderAdminMemberCard).join("")
     : `
       <div class="empty-state">
         Aucun membre inscrit pour le moment.
       </div>
     `;
+
+  const publishedCount = adminData.reviews.filter(
+    (review) => review.is_published
+  ).length;
+
+  const unpublishedCount = adminData.reviews.filter(
+    (review) => !review.is_published
+  ).length;
 
   adminPageContent.innerHTML = `
     <section class="admin-hero">
@@ -342,28 +367,18 @@ function renderAdminDashboard(data) {
 
     <section class="admin-stats-grid" aria-label="Indicateurs du site">
       <article class="admin-stat-card">
-        <span class="admin-stat-number">${data.stats.members}</span>
-        <span class="admin-stat-label">
-          membre${data.stats.members > 1 ? "s" : ""}
-        </span>
+        <span class="admin-stat-number">${adminData.stats.members}</span>
+        <span class="admin-stat-label">membres</span>
       </article>
 
       <article class="admin-stat-card">
-        <span class="admin-stat-number">${data.stats.reviews}</span>
-        <span class="admin-stat-label">
-          microcritique${data.stats.reviews > 1 ? "s" : ""} publiée${
-            data.stats.reviews > 1 ? "s" : ""
-          }
-        </span>
+        <span class="admin-stat-number">${publishedCount}</span>
+        <span class="admin-stat-label">microcritiques publiées</span>
       </article>
 
       <article class="admin-stat-card">
-        <span class="admin-stat-number">${data.stats.lists}</span>
-        <span class="admin-stat-label">
-          liste${data.stats.lists > 1 ? "s" : ""} publique${
-            data.stats.lists > 1 ? "s" : ""
-          }
-        </span>
+        <span class="admin-stat-number">${unpublishedCount}</span>
+        <span class="admin-stat-label">microcritiques dépubliées</span>
       </article>
     </section>
 
@@ -371,7 +386,7 @@ function renderAdminDashboard(data) {
       <div class="admin-section-heading">
         <div>
           <p class="eyebrow">Modération</p>
-          <h2>Dernières critiques</h2>
+          <h2>Toutes les critiques</h2>
         </div>
 
         <button
@@ -383,9 +398,39 @@ function renderAdminDashboard(data) {
         </button>
       </div>
 
-      <div class="admin-reviews-list">
-        ${reviewsMarkup}
+      <div class="admin-filters" aria-label="Filtrer les critiques">
+        <button
+          class="admin-filter-button ${
+            adminReviewFilter === "all" ? "active" : ""
+          }"
+          type="button"
+          data-admin-filter="all"
+        >
+          Toutes (${adminData.reviews.length})
+        </button>
+
+        <button
+          class="admin-filter-button ${
+            adminReviewFilter === "published" ? "active" : ""
+          }"
+          type="button"
+          data-admin-filter="published"
+        >
+          Publiées (${publishedCount})
+        </button>
+
+        <button
+          class="admin-filter-button ${
+            adminReviewFilter === "unpublished" ? "active" : ""
+          }"
+          type="button"
+          data-admin-filter="unpublished"
+        >
+          Dépubliées (${unpublishedCount})
+        </button>
       </div>
+
+      ${renderAdminReviewTable()}
     </section>
 
     <section class="admin-section">
@@ -409,8 +454,8 @@ async function refreshAdminDashboard() {
   renderAdminLoading();
 
   try {
-    const data = await getAdminDashboardData();
-    renderAdminDashboard(data);
+    adminData = await getAdminDashboardData();
+    renderAdminDashboard();
   } catch (error) {
     console.error("Erreur de chargement de la régie :", error);
 
@@ -423,11 +468,6 @@ async function refreshAdminDashboard() {
   }
 }
 
-/*
-  Dépublier / republier :
-  appel de la fonction PostgreSQL sécurisée.
-  On ne met plus à jour reviews directement depuis le navigateur.
-*/
 async function setReviewPublication(reviewId, isPublished, button) {
   if (!reviewId) {
     return;
@@ -470,10 +510,6 @@ async function setReviewPublication(reviewId, isPublished, button) {
   }
 }
 
-/*
-  Suppression :
-  appel de la fonction PostgreSQL sécurisée.
-*/
 async function deleteAdminReview(reviewId, movieTitle, button) {
   if (!reviewId) {
     return;
@@ -527,6 +563,13 @@ function setupAdminActions() {
   if (refreshButton) {
     refreshButton.addEventListener("click", refreshAdminDashboard);
   }
+
+  document.querySelectorAll(".admin-filter-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      adminReviewFilter = button.dataset.adminFilter || "all";
+      renderAdminDashboard();
+    });
+  });
 
   document.querySelectorAll(".admin-unpublish-button").forEach((button) => {
     button.addEventListener("click", () => {
