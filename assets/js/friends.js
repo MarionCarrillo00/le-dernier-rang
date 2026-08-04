@@ -1,10 +1,59 @@
 
 /* =====================================================
-   AMITIÉS — MODULE PARTAGÉ
-   Utilisé par profil.html et member.html
+   AMITIÉS ET ACTIVITÉ DU CERCLE — MODULE PARTAGÉ
+   Utilisé par profil.html, membre.html et index.html
    ===================================================== */
 
 const MEMBER_PROFILE_PAGE = "membre.html";
+
+/* =====================================================
+   OUTILS
+   ===================================================== */
+
+function escapeFriendHTML(value) {
+  if (typeof escapeHTML === "function") {
+    return escapeHTML(value);
+  }
+
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatFriendDate(dateValue) {
+  if (!dateValue) {
+    return "";
+  }
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  }).format(date);
+}
+
+function renderCircleActivityMessage(message) {
+  const circleActivityFeed = document.getElementById("circleActivityFeed");
+
+  if (!circleActivityFeed) {
+    return;
+  }
+
+  circleActivityFeed.innerHTML = `
+    <div class="circle-activity-empty">
+      ${escapeFriendHTML(message)}
+    </div>
+  `;
+}
 
 /* =====================================================
    LECTURE DES AMITIÉS ACCEPTÉES
@@ -26,9 +75,7 @@ async function getAcceptedFriends(userId) {
       created_at
     `)
     .eq("status", "accepted")
-    .or(
-      `requester_id.eq.${userId},recipient_id.eq.${userId}`
-    )
+    .or(`requester_id.eq.${userId},recipient_id.eq.${userId}`)
     .order("accepted_at", {
       ascending: false
     });
@@ -57,16 +104,15 @@ async function getAcceptedFriends(userId) {
     return [];
   }
 
-  const { data: profiles, error: profilesError } =
-    await supabaseClient
-      .from("profiles")
-      .select(`
-        id,
-        username,
-        bio,
-        avatar_url
-      `)
-      .in("id", friendIds);
+  const { data: profiles, error: profilesError } = await supabaseClient
+    .from("profiles")
+    .select(`
+      id,
+      username,
+      bio,
+      avatar_url
+    `)
+    .in("id", friendIds);
 
   if (profilesError) {
     throw profilesError;
@@ -81,11 +127,14 @@ async function getAcceptedFriends(userId) {
 
   return friendIds
     .map((friendId) => {
-      const friendship = friendships.find(
-        (item) =>
-          item.requester_id === friendId ||
-          item.recipient_id === friendId
-      );
+      const friendship = friendships.find((item) => {
+        return (
+          (item.requester_id === userId &&
+            item.recipient_id === friendId) ||
+          (item.recipient_id === userId &&
+            item.requester_id === friendId)
+        );
+      });
 
       const profile = profilesById[friendId];
 
@@ -122,8 +171,8 @@ function renderFriendAvatar(friend) {
     return `
       <img
         class="circle-friend-avatar"
-        src="${escapeHTML(friend.avatar_url)}"
-        alt="Photo de profil de ${escapeHTML(username)}"
+        src="${escapeFriendHTML(friend.avatar_url)}"
+        alt="Photo de profil de ${escapeFriendHTML(username)}"
         loading="lazy"
       />
     `;
@@ -134,7 +183,7 @@ function renderFriendAvatar(friend) {
       class="circle-friend-avatar circle-friend-avatar-placeholder"
       aria-hidden="true"
     >
-      ${escapeHTML(getFriendInitial(friend))}
+      ${escapeFriendHTML(getFriendInitial(friend))}
     </div>
   `;
 }
@@ -148,7 +197,7 @@ function createFriendCard(friend) {
   const biography = friend?.bio?.trim()
     ? `
       <p class="circle-friend-bio">
-        ${escapeHTML(friend.bio.trim())}
+        ${escapeFriendHTML(friend.bio.trim())}
       </p>
     `
     : `
@@ -162,7 +211,7 @@ function createFriendCard(friend) {
       <a
         class="circle-friend-avatar-link"
         href="${profileUrl}"
-        title="Voir le profil de ${escapeHTML(username)}"
+        title="Voir le profil de ${escapeFriendHTML(username)}"
       >
         ${renderFriendAvatar(friend)}
       </a>
@@ -170,7 +219,7 @@ function createFriendCard(friend) {
       <div class="circle-friend-content">
         <h3>
           <a href="${profileUrl}">
-            ${escapeHTML(username)}
+            ${escapeFriendHTML(username)}
           </a>
         </h3>
 
@@ -197,4 +246,205 @@ function createFriendsMarkup(friends, emptyMessage) {
   }
 
   return friends.map(createFriendCard).join("");
+}
+
+/* =====================================================
+   ACTIVITÉ DU CERCLE — ACCUEIL
+   ===================================================== */
+
+function createCircleActivityCard(review) {
+  const author = review.author || {};
+  const movie = review.movies || {};
+
+  const username = author.username || "Un membre";
+  const movieTitle = movie.title || "un film";
+  const releaseYear = movie.release_year || "";
+  const reviewText = String(review.content || "").trim();
+
+  const profileUrl =
+    `${MEMBER_PROFILE_PAGE}?id=${encodeURIComponent(review.user_id)}`;
+
+  const filmUrl =
+    `film.html?id=${encodeURIComponent(review.movie_id)}`;
+
+  const avatarMarkup = author.avatar_url
+    ? `
+      <img
+        src="${escapeFriendHTML(author.avatar_url)}"
+        alt="Photo de profil de ${escapeFriendHTML(username)}"
+        loading="lazy"
+      />
+    `
+    : `
+      <span>
+        ${escapeFriendHTML(username.charAt(0).toUpperCase() || "M")}
+      </span>
+    `;
+
+  return `
+    <article class="circle-activity-card">
+      <a
+        class="circle-activity-avatar"
+        href="${profileUrl}"
+        title="Voir le profil de ${escapeFriendHTML(username)}"
+      >
+        ${avatarMarkup}
+      </a>
+
+      <div class="circle-activity-content">
+        <p class="circle-activity-meta">
+          <a href="${profileUrl}">
+            ${escapeFriendHTML(username)}
+          </a>
+          a ajouté à son carnet
+        </p>
+
+        <h3>
+          <a href="${filmUrl}">
+            ${escapeFriendHTML(movieTitle)}
+          </a>
+          ${
+            releaseYear
+              ? `<span>(${escapeFriendHTML(releaseYear)})</span>`
+              : ""
+          }
+        </h3>
+
+        <p class="circle-activity-rating">
+          ${escapeFriendHTML(review.rating)} / 5
+          ${
+            formatFriendDate(review.created_at)
+              ? ` · ${formatFriendDate(review.created_at)}`
+              : ""
+          }
+        </p>
+
+        ${
+          reviewText
+            ? `
+              <p class="circle-activity-review">
+                “${escapeFriendHTML(reviewText)}”
+              </p>
+            `
+            : `
+              <p class="circle-activity-review circle-activity-note-only">
+                Note seule
+              </p>
+            `
+        }
+      </div>
+    </article>
+  `;
+}
+
+async function getCircleActivity(userId) {
+  const friends = await getAcceptedFriends(userId);
+
+  const friendIds = friends
+    .map((friend) => friend.id)
+    .filter(Boolean);
+
+  if (!friendIds.length) {
+    return [];
+  }
+
+  const { data: reviews, error } = await supabaseClient
+    .from("reviews")
+    .select(`
+      id,
+      user_id,
+      movie_id,
+      rating,
+      content,
+      created_at,
+      movies (
+        id,
+        title,
+        release_year
+      )
+    `)
+    .eq("is_published", true)
+    .in("user_id", friendIds)
+    .order("created_at", {
+      ascending: false
+    })
+    .limit(10);
+
+  if (error) {
+    throw error;
+  }
+
+  const profilesById = Object.fromEntries(
+    friends.map((friend) => [friend.id, friend])
+  );
+
+  return (reviews || []).map((review) => ({
+    ...review,
+    author: profilesById[review.user_id] || null
+  }));
+}
+
+async function loadCircleActivity() {
+  const circleActivityFeed = document.getElementById("circleActivityFeed");
+
+  /*
+    Cette fonction ne s'exécute que sur l'accueil,
+    car les autres pages ne possèdent pas ce conteneur.
+  */
+  if (!circleActivityFeed) {
+    return;
+  }
+
+  if (!currentUser) {
+    renderCircleActivityMessage(
+      "Connecte-toi pour retrouver l’activité de ton cercle."
+    );
+    return;
+  }
+
+  circleActivityFeed.innerHTML = `
+    <div class="circle-activity-loading">
+      Chargement de l’activité…
+    </div>
+  `;
+
+  try {
+    const activity = await getCircleActivity(currentUser.id);
+
+    if (!activity.length) {
+      renderCircleActivityMessage(
+        "Les prochaines séances de ton cercle apparaîtront ici."
+      );
+      return;
+    }
+
+    circleActivityFeed.innerHTML = activity
+      .map(createCircleActivityCard)
+      .join("");
+  } catch (error) {
+    console.error(
+      "Erreur lors du chargement de l’activité du cercle :",
+      error
+    );
+
+    renderCircleActivityMessage(
+      "Impossible de charger l’activité du cercle pour le moment."
+    );
+  }
+}
+
+/* =====================================================
+   INITIALISATION
+   ===================================================== */
+
+document.addEventListener("authChanged", () => {
+  loadCircleActivity();
+});
+
+/*
+  Utile si la session est déjà initialisée au chargement
+  de friends.js.
+*/
+if (typeof currentUser !== "undefined" && currentUser) {
+  loadCircleActivity();
 }
