@@ -6192,3 +6192,131 @@ a.activity-content-link:hover .activity-detail {
     gap: 10px;
   }
 }
+
+/* ==========================================================
+   TABLEAU DE MODÉRATION · LA RÉGIE
+   ========================================================== */
+
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.admin-filter-button {
+  padding: 9px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--grey);
+  background: var(--cream);
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.admin-filter-button:hover,
+.admin-filter-button.active {
+  border-color: var(--red);
+  color: var(--cream);
+  background: var(--red);
+}
+
+.admin-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--cream);
+}
+
+.admin-review-table {
+  width: 100%;
+  min-width: 1040px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-review-table th,
+.admin-review-table td {
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.admin-review-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-review-table th {
+  color: var(--grey);
+  background: #f1ebe3;
+  font-family: Arial, sans-serif;
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-review-table td {
+  color: var(--ink);
+  font-family: Arial, sans-serif;
+  font-size: 0.82rem;
+}
+
+.admin-review-table td a {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.admin-review-table tbody tr:hover {
+  background: rgba(215, 167, 93, 0.08);
+}
+
+.admin-table-year,
+.admin-table-date {
+  color: var(--grey);
+  font-size: 0.74rem;
+}
+
+.admin-table-rating {
+  white-space: nowrap;
+  color: var(--deep-red) !important;
+  font-weight: 700;
+}
+
+.admin-table-content {
+  min-width: 220px;
+  max-width: 340px;
+  color: var(--grey) !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-style: italic;
+}
+
+.admin-table-actions {
+  min-width: 145px;
+  white-space: nowrap;
+}
+
+.admin-table-actions .button-text {
+  display: inline;
+  margin-right: 10px;
+  padding: 0;
+  color: var(--red);
+  font-family: Arial, sans-serif;
+  font-size: 0.77rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.admin-table-actions .button-text:last-child {
+  margin-right: 0;
+  color: var(--deep-red);
+}
+
+.admin-table-actions .button-text:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
