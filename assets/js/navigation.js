@@ -16,8 +16,20 @@ function renderNavigation() {
     return;
   }
 
+  const isHomePage = isCurrentPage("index.html");
   const isProfilePage = isCurrentPage("profil.html");
   const isAdminPage = isCurrentPage("admin.html");
+
+  /*
+    Sur l'accueil :
+    - home.js intercepte le clic sur #openModal
+    - la modale de publication s'ouvre.
+
+    Sur les autres pages :
+    - la modale de publication n'existe pas forcément ;
+    - le lien ramène donc proprement vers l'accueil.
+  */
+  const writeReviewHref = isHomePage ? "#reviewModal" : "index.html";
 
   siteHeader.className = "site-header";
 
@@ -28,7 +40,11 @@ function renderNavigation() {
       </a>
 
       <div class="site-navigation-actions">
-        <a class="button-primary site-write-button" href="index.html">
+        <a
+          id="openModal"
+          class="button-primary site-write-button"
+          href="${writeReviewHref}"
+        >
           Écrire une critique
         </a>
 
