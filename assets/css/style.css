@@ -6320,3 +6320,168 @@ a.activity-content-link:hover .activity-detail {
   opacity: 0.55;
   cursor: wait;
 }
+
+/* ==========================================================
+   NAVIGATION PARTAGÉE · LE DERNIER RANG
+   ========================================================== */
+
+.site-header {
+  position: sticky;
+  z-index: 100;
+  top: 0;
+  border-bottom: 1px solid var(--line);
+  background: rgba(246, 241, 234, 0.96);
+  backdrop-filter: blur(10px);
+}
+
+.site-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  width: min(1280px, calc(100% - 80px));
+  min-height: 92px;
+  margin: 0 auto;
+}
+
+.site-logo {
+  flex: none;
+  color: var(--deep-red);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-logo:hover {
+  color: var(--red);
+}
+
+.site-navigation-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.site-write-button {
+  flex: none;
+  white-space: nowrap;
+}
+
+.site-login-button {
+  flex: none;
+  white-space: nowrap;
+}
+
+.site-user-menu {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  white-space: nowrap;
+}
+
+.site-user-menu a {
+  color: var(--ink);
+  font-family: Arial, sans-serif;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.site-user-menu a:hover {
+  color: var(--red);
+}
+
+.site-user-menu .site-nav-current {
+  color: var(--deep-red);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--red);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.site-user-menu #userGreeting {
+  color: var(--red);
+  font-family: Arial, sans-serif;
+  font-size: 0.9rem;
+}
+
+.site-user-menu .nav-avatar {
+  width: 35px;
+  height: 35px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.site-logout-button {
+  padding: 8px 12px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 999px !important;
+  color: var(--grey) !important;
+  font-family: Arial, sans-serif !important;
+  font-size: 0.83rem !important;
+  text-decoration: none !important;
+  background: transparent !important;
+  cursor: pointer;
+}
+
+.site-logout-button:hover {
+  border-color: var(--red) !important;
+  color: var(--deep-red) !important;
+}
+
+/* Tablette */
+
+@media (max-width: 950px) {
+  .site-navigation {
+    gap: 18px;
+    width: min(100% - 44px, 1280px);
+  }
+
+  .site-navigation-actions {
+    gap: 12px;
+  }
+
+  .site-user-menu {
+    gap: 10px;
+  }
+
+  .site-user-menu #userGreeting {
+    display: none;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 700px) {
+  .site-navigation {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+    min-height: auto;
+    padding: 17px 0;
+  }
+
+  .site-navigation-actions {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-left: 0;
+  }
+
+  .site-user-menu {
+    flex-wrap: wrap;
+    gap: 11px;
+  }
+
+  .site-logo {
+    font-size: 1.35rem;
+  }
+}
