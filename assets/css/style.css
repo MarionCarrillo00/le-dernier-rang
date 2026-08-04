@@ -6585,3 +6585,124 @@ a.activity-content-link:hover .activity-detail {
   line-height: 1.5;
 }
 
+
+/* ---------------------------------
+   Accueil : activité du cercle
+   Prévention des débordements
+--------------------------------- */
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.home-reviews-layout,
+.reviews-layout,
+.home-content-layout {
+  min-width: 0;
+}
+
+/*
+  Si ton conteneur parent des critiques + sidebar
+  porte l'une de ces classes, cette règle évite que
+  la colonne principale soit comprimée par la sidebar.
+*/
+.home-reviews-layout,
+.reviews-layout,
+.home-content-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 2.5rem;
+  align-items: start;
+}
+
+/* Colonne des microcritiques */
+.home-reviews-main,
+.reviews-main,
+#moviesGrid {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Sidebar "Activité des amis" */
+#circleActivitySidebar {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+#circleActivityFeed,
+.circle-activity-item,
+.circle-activity-content {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Avatar : largeur parfaitement fixe */
+.circle-activity-avatar-link {
+  display: block;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+}
+
+.circle-activity-avatar {
+  display: flex;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.circle-activity-avatar img {
+  display: block;
+  width: 42px !important;
+  height: 42px !important;
+  max-width: none !important;
+  object-fit: cover;
+}
+
+/*
+  C’est le point essentiel :
+  les titres, liens et critiques longues doivent pouvoir
+  revenir à la ligne au lieu d’agrandir la page.
+*/
+.circle-activity-main,
+.circle-activity-review,
+.circle-activity-content a,
+.circle-activity-content span,
+.circle-activity-content p {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.circle-activity-review {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* La grille des critiques doit garder de l'espace disponible */
+#moviesGrid {
+  width: 100%;
+}
+
+/* Version mobile : la sidebar repasse sous les critiques */
+@media (max-width: 950px) {
+  .home-reviews-layout,
+  .reviews-layout,
+  .home-content-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #circleActivitySidebar {
+    width: 100%;
+  }
+}
