@@ -123,6 +123,7 @@ async function getAdminDashboardData() {
   }
 
   const recentReviews = recentReviewsResult.data || [];
+
   const reviewUserIds = [
     ...new Set(
       recentReviews
@@ -178,6 +179,7 @@ function renderAdminReviewCard(review) {
             <a href="film.html?id=${encodeURIComponent(review.movie_id)}">
               ${adminEscapeHTML(movieTitle)}
             </a>
+
             ${
               releaseYear
                 ? `<span>(${adminEscapeHTML(releaseYear)})</span>`
@@ -307,9 +309,7 @@ function renderAdminDashboard(data) {
   }
 
   const reviewsMarkup = data.recentReviews.length
-    ? data.recentReviews
-        .map(renderAdminReviewCard)
-        .join("")
+    ? data.recentReviews.map(renderAdminReviewCard).join("")
     : `
       <div class="empty-state">
         Aucune microcritique à modérer pour le moment.
@@ -317,9 +317,7 @@ function renderAdminDashboard(data) {
     `;
 
   const membersMarkup = data.recentProfiles.length
-    ? data.recentProfiles
-        .map(renderAdminMemberCard)
-        .join("")
+    ? data.recentProfiles.map(renderAdminMemberCard).join("")
     : `
       <div class="empty-state">
         Aucun membre inscrit pour le moment.
@@ -425,6 +423,11 @@ async function refreshAdminDashboard() {
   }
 }
 
+/*
+  Dépublier / republier :
+  appel de la fonction PostgreSQL sécurisée.
+  On ne met plus à jour reviews directement depuis le navigateur.
+*/
 async function setReviewPublication(reviewId, isPublished, button) {
   if (!reviewId) {
     return;
@@ -438,10 +441,13 @@ async function setReviewPublication(reviewId, isPublished, button) {
   }
 
   try {
-    const { error } = await supabaseClient
-      .from("reviews")
-      .update({ is_published: isPublished })
-      .eq("id", reviewId);
+    const { error } = await supabaseClient.rpc(
+      "admin_set_review_publication",
+      {
+        p_review_id: reviewId,
+        p_is_published: isPublished
+      }
+    );
 
     if (error) {
       throw error;
@@ -450,6 +456,7 @@ async function setReviewPublication(reviewId, isPublished, button) {
     await refreshAdminDashboard();
   } catch (error) {
     console.error("Erreur de modération :", error);
+
     alert(
       `Impossible de ${
         isPublished ? "republier" : "dépublier"
@@ -463,6 +470,10 @@ async function setReviewPublication(reviewId, isPublished, button) {
   }
 }
 
+/*
+  Suppression :
+  appel de la fonction PostgreSQL sécurisée.
+*/
 async function deleteAdminReview(reviewId, movieTitle, button) {
   if (!reviewId) {
     return;
@@ -484,10 +495,12 @@ async function deleteAdminReview(reviewId, movieTitle, button) {
   }
 
   try {
-    const { error } = await supabaseClient
-      .from("reviews")
-      .delete()
-      .eq("id", reviewId);
+    const { error } = await supabaseClient.rpc(
+      "admin_delete_review",
+      {
+        p_review_id: reviewId
+      }
+    );
 
     if (error) {
       throw error;
@@ -496,6 +509,7 @@ async function deleteAdminReview(reviewId, movieTitle, button) {
     await refreshAdminDashboard();
   } catch (error) {
     console.error("Erreur de suppression admin :", error);
+
     alert(
       `Impossible de supprimer cette critique : ${error.message}`
     );
@@ -538,10 +552,6 @@ function setupAdminActions() {
 }
 
 function handleAdminAuthChanged() {
-  /*
-    auth.js émet cet événement lorsque la session
-    et le profil Supabase ont fini de se charger.
-  */
   if (!currentUser) {
     renderAdminMessage(
       "La régie est privée",
@@ -566,4 +576,3 @@ function handleAdminAuthChanged() {
 }
 
 document.addEventListener("authChanged", handleAdminAuthChanged);
-
