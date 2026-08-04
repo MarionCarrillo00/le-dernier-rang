@@ -18,7 +18,8 @@ function getAuthElements() {
     userMenu: document.getElementById("userMenu"),
     userGreeting: document.getElementById("userGreeting"),
     navAvatar: document.getElementById("navAvatar"),
-    logoutButton: document.getElementById("logoutButton")
+    logoutButton: document.getElementById("logoutButton"),
+    adminLink: document.getElementById("adminLink")
   };
 }
 
@@ -140,6 +141,7 @@ function updateNavigation() {
     authButton,
     userMenu,
     userGreeting,
+    adminLink,
     navAvatar
   } = getAuthElements();
 
@@ -160,9 +162,14 @@ function updateNavigation() {
     const username =
       currentProfile?.username || fallbackUsername;
 
+if (adminLink) {
+  adminLink.hidden = !Boolean(currentUser && currentProfile?.is_admin);
+}
+
     if (userGreeting) {
       userGreeting.textContent = `Bonjour, ${username}`;
     }
+    
 
     const avatarUrl = currentProfile?.avatar_url;
 
