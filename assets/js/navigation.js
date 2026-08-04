@@ -1,7 +1,6 @@
 
 function getCurrentPageName() {
-  const path = window.location.pathname;
-  const fileName = path.split("/").pop();
+  const fileName = window.location.pathname.split("/").pop();
 
   return fileName || "index.html";
 }
@@ -20,66 +19,65 @@ function renderNavigation() {
   const isProfilePage = isCurrentPage("profil.html");
   const isAdminPage = isCurrentPage("admin.html");
 
-  siteHeader.className = "menu";
+  siteHeader.className = "site-header";
 
   siteHeader.innerHTML = `
-    <a class="logo" href="index.html">Le dernier rang</a>
-
-    <nav class="nav-links" aria-label="Navigation principale">
-      <a href="index.html#critiques">Microcritiques</a>
-      <a href="index.html#a-propos">À propos</a>
-    </nav>
-
-    <div class="menu-actions">
-      <a class="button-primary" href="index.html">
-        Écrire une critique
+    <nav class="site-navigation" aria-label="Navigation principale">
+      <a class="site-logo" href="index.html">
+        Le dernier rang
       </a>
 
-      <button
-        id="authButton"
-        class="button-secondary"
-        type="button"
-      >
-        Connexion
-      </button>
-
-      <div id="userMenu" class="user-menu" hidden>
-        <img
-          id="navAvatar"
-          class="nav-avatar"
-          alt=""
-          hidden
-        />
-
-        <span id="userGreeting"></span>
-
-        <a
-          href="profil.html"
-          class="${isProfilePage ? "nav-current" : ""}"
-          ${isProfilePage ? 'aria-current="page"' : ""}
-        >
-          Mon espace
-        </a>
-
-        <a
-          id="adminLink"
-          href="admin.html"
-          class="${isAdminPage ? "nav-current" : ""}"
-          ${isAdminPage ? 'aria-current="page"' : ""}
-          hidden
-        >
-          La régie
+      <div class="site-navigation-actions">
+        <a class="button-primary site-write-button" href="index.html">
+          Écrire une critique
         </a>
 
         <button
-          id="logoutButton"
-          class="button-text"
+          id="authButton"
+          class="button-secondary site-login-button"
           type="button"
         >
-          Déconnexion
+          Connexion
         </button>
+
+        <div id="userMenu" class="site-user-menu" hidden>
+          <img
+            id="navAvatar"
+            class="nav-avatar"
+            alt=""
+            hidden
+          />
+
+          <span id="userGreeting"></span>
+
+          <a
+            href="profil.html"
+            class="${isProfilePage ? "site-nav-current" : ""}"
+            ${isProfilePage ? 'aria-current="page"' : ""}
+          >
+            Mon espace
+          </a>
+
+          <a
+            id="adminLink"
+            href="admin.html"
+            class="${isAdminPage ? "site-nav-current" : ""}"
+            ${isAdminPage ? 'aria-current="page"' : ""}
+            hidden
+          >
+            La régie
+          </a>
+
+          <button
+            id="logoutButton"
+            class="button-text site-logout-button"
+            type="button"
+          >
+            Déconnexion
+          </button>
+        </div>
       </div>
-    </div>
+    </nav>
   `;
 }
 
