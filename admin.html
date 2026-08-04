@@ -1,1 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>La régie · Le dernier rang</title>
 
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+
+  <body>
+    <header class="menu">
+      <a class="logo" href="index.html">Le dernier rang</a>
+
+      <nav class="nav-links" aria-label="Navigation principale">
+        <a href="index.html#critiques">Microcritiques</a>
+        <a href="index.html#a-propos">À propos</a>
+      </nav>
+
+      <div class="menu-actions">
+        <a class="button-primary" href="index.html">
+          Écrire une critique
+        </a>
+
+        <button
+          id="authButton"
+          class="button-secondary"
+          type="button"
+        >
+          Connexion
+        </button>
+
+        <div id="userMenu" class="user-menu" hidden>
+          <img
+            id="navAvatar"
+            class="nav-avatar"
+            alt=""
+            hidden
+          />
+
+          <span id="userGreeting"></span>
+
+          <a href="profil.html">Mon espace</a>
+
+          <a id="adminLink" href="admin.html" hidden>
+            La régie
+          </a>
+
+          <button
+            id="logoutButton"
+            class="button-text"
+            type="button"
+          >
+            Déconnexion
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-page">
+      <a class="back-link" href="index.html#critiques">
+        ← Retour aux microcritiques
+      </a>
+
+      <section
+        id="adminPageContent"
+        class="admin-page-content"
+        aria-live="polite"
+      >
+        <div class="admin-loading">
+          Chargement de la régie…
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        Le dernier rang · Veiller sur les films, les mots et les visages.
+      </p>
+    </footer>
+
+    <!-- Modale d’authentification -->
+    <div
+      id="authModal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="authTitle"
+    >
+      <div class="modal-content auth-modal-content">
+        <button
+          id="closeAuthModal"
+          class="modal-close"
+          type="button"
+          aria-label="Fermer"
+        >
+          ×
+        </button>
+
+        <div class="auth-tabs">
+          <button
+            class="auth-tab active"
+            type="button"
+            data-auth-mode="login"
+          >
+            Connexion
+          </button>
+
+          <button
+            class="auth-tab"
+            type="button"
+            data-auth-mode="signup"
+          >
+            Inscription
+          </button>
+        </div>
+
+        <h2 id="authTitle">Bienvenue</h2>
+
+        <form id="authForm">
+          <div id="usernameField" class="form-group" hidden>
+            <label for="username">Pseudo</label>
+            <input
+              id="username"
+              type="text"
+              minlength="3"
+              maxlength="30"
+              autocomplete="username"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="authEmail">E-mail</label>
+            <input
+              id="authEmail"
+              type="email"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="authPassword">Mot de passe</label>
+            <input
+              id="authPassword"
+              type="password"
+              required
+              minlength="6"
+              autocomplete="current-password"
+            />
+          </div>
+
+          <p id="authMessage" class="status-message"></p>
+
+          <button
+            id="authSubmitButton"
+            class="button-primary"
+            type="submit"
+          >
+            Se connecter
+          </button>
+
+          <p id="authNote" class="auth-note">
+            Connecte-toi pour publier une microcritique et retrouver tes films.
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Scripts : ordre important -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/reviews.js"></script>
+    <script src="assets/js/admin.js"></script>
+  </body>
+</html>
