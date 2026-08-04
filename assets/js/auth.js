@@ -118,7 +118,7 @@ async function loadCurrentProfile() {
 
   const { data, error } = await supabaseClient
     .from("profiles")
-    .select("username, bio, avatar_url")
+    .select("id, username, bio, avatar_url, is_admin")
     .eq("id", currentUser.id)
     .single();
 
@@ -145,7 +145,10 @@ function updateNavigation() {
     navAvatar
   } = getAuthElements();
 
-  if (currentUser) {
+  const isLoggedIn = Boolean(currentUser);
+  const isAdmin = Boolean(currentUser && currentProfile?.is_admin);
+
+  if (isLoggedIn) {
     if (authButton) {
       authButton.hidden = true;
       authButton.style.display = "none";
@@ -162,14 +165,17 @@ function updateNavigation() {
     const username =
       currentProfile?.username || fallbackUsername;
 
-if (adminLink) {
-  adminLink.hidden = !Boolean(currentUser && currentProfile?.is_admin);
-}
-
     if (userGreeting) {
       userGreeting.textContent = `Bonjour, ${username}`;
     }
-    
+
+    /*
+      Le lien "La régie" ne devient visible
+      que pour les profils ayant is_admin = true.
+    */
+    if (adminLink) {
+      adminLink.hidden = !isAdmin;
+    }
 
     const avatarUrl = currentProfile?.avatar_url;
 
@@ -201,6 +207,14 @@ if (adminLink) {
 
     if (userGreeting) {
       userGreeting.textContent = "";
+    }
+
+    /*
+      Important : on re-cache le lien admin
+      à la déconnexion.
+    */
+    if (adminLink) {
+      adminLink.hidden = true;
     }
 
     if (navAvatar) {
