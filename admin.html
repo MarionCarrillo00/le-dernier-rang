@@ -12,53 +12,50 @@
   </head>
 
   <body>
-    <header class="menu">
-      <a class="logo" href="index.html">Le dernier rang</a>
 
-      <nav class="nav-links" aria-label="Navigation principale">
-        <a href="index.html#critiques">Microcritiques</a>
-        <a href="index.html#a-propos">À propos</a>
-      </nav>
+<header class="menu admin-menu">
+  <a class="logo" href="index.html">Le dernier rang</a>
 
-      <div class="menu-actions">
-        <a class="button-primary" href="index.html">
-          Écrire une critique
-        </a>
+  <div class="menu-actions">
+    <a class="button-primary" href="index.html">
+      Écrire une critique
+    </a>
 
-        <button
-          id="authButton"
-          class="button-secondary"
-          type="button"
-        >
-          Connexion
-        </button>
+    <button
+      id="authButton"
+      class="button-secondary"
+      type="button"
+    >
+      Connexion
+    </button>
 
-        <div id="userMenu" class="user-menu" hidden>
-          <img
-            id="navAvatar"
-            class="nav-avatar"
-            alt=""
-            hidden
-          />
+    <div id="userMenu" class="user-menu" hidden>
+      <img
+        id="navAvatar"
+        class="nav-avatar"
+        alt=""
+        hidden
+      />
 
-          <span id="userGreeting"></span>
+      <span id="userGreeting"></span>
 
-          <a href="profil.html">Mon espace</a>
+      <a href="profil.html">Mon espace</a>
 
-          <a id="adminLink" href="admin.html" hidden>
-            La régie
-          </a>
+      <a id="adminLink" href="admin.html" hidden>
+        La régie
+      </a>
 
-          <button
-            id="logoutButton"
-            class="button-text"
-            type="button"
-          >
-            Déconnexion
-          </button>
-        </div>
-      </div>
-    </header>
+      <button
+        id="logoutButton"
+        class="button-text"
+        type="button"
+      >
+        Déconnexion
+      </button>
+    </div>
+  </div>
+</header>
+
 
     <main class="admin-page">
       <a class="back-link" href="index.html#critiques">
