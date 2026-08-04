@@ -543,7 +543,7 @@ function renderMemberWishlistSection(
 
         <a
           class="button-secondary"
-          href="list.html?id=${encodeURIComponent(wishlist.id)}"
+          href="liste.html?id=${encodeURIComponent(wishlist.id)}"
         >
           Voir la liste
         </a>
