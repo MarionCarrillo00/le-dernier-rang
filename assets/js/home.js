@@ -6,6 +6,7 @@ let isLoadingWriteTmdb = false;
 
 let homeTmdbSearchTimeout = null;
 let lastHomeTmdbQuery = "";
+let homeSearchQuery = "";
 
 const grid = document.getElementById("moviesGrid");
 const searchInput = document.getElementById("searchInput");
@@ -25,8 +26,11 @@ const circleActivityFeed = document.getElementById(
   "circleActivityFeed"
 );
 
+/* ---------------------------------
+   Modale de publication
+--------------------------------- */
+
 const reviewModal = document.getElementById("reviewModal");
-const openModal = document.getElementById("openModal");
 const closeModal = document.getElementById("closeModal");
 const reviewForm = document.getElementById("reviewForm");
 
@@ -39,7 +43,6 @@ const selectedMovieCard = document.getElementById("selectedMovieCard");
 const selectedMoviePoster = document.getElementById("selectedMoviePoster");
 const selectedMovieTitle = document.getElementById("selectedMovieTitle");
 const selectedMovieMeta = document.getElementById("selectedMovieMeta");
-
 const selectedMovieOverview = document.getElementById(
   "selectedMovieOverview"
 );
@@ -71,20 +74,25 @@ function updateReviewCharacterCounter() {
 }
 
 /* ---------------------------------
-   Recherche et sélection TMDB
-   dans la modale de publication
+   TMDB : modale publication
 --------------------------------- */
 
 function clearTmdbSearchMessage() {
-  tmdbSearchMessage.textContent = "";
+  if (tmdbSearchMessage) {
+    tmdbSearchMessage.textContent = "";
+  }
 }
 
 function showTmdbSearchMessage(message) {
-  tmdbSearchMessage.textContent = message;
+  if (tmdbSearchMessage) {
+    tmdbSearchMessage.textContent = message;
+  }
 }
 
 function clearTmdbResults() {
-  tmdbResults.replaceChildren();
+  if (tmdbResults) {
+    tmdbResults.replaceChildren();
+  }
 }
 
 function getPrimarySiteGenre(tmdbGenres) {
@@ -113,59 +121,92 @@ function getPrimarySiteGenre(tmdbGenres) {
 function resetSelectedTmdbMovie() {
   selectedTmdbMovie = null;
 
-  selectedMovieCard.hidden = true;
+  if (selectedMovieCard) {
+    selectedMovieCard.hidden = true;
+  }
 
-  selectedMoviePoster.hidden = true;
-  selectedMoviePoster.removeAttribute("src");
-  selectedMoviePoster.alt = "";
+  if (selectedMoviePoster) {
+    selectedMoviePoster.hidden = true;
+    selectedMoviePoster.removeAttribute("src");
+    selectedMoviePoster.alt = "";
+  }
 
-  selectedMovieTitle.textContent = "";
-  selectedMovieMeta.textContent = "";
-  selectedMovieOverview.textContent = "";
+  if (selectedMovieTitle) selectedMovieTitle.textContent = "";
+  if (selectedMovieMeta) selectedMovieMeta.textContent = "";
+  if (selectedMovieOverview) selectedMovieOverview.textContent = "";
 
-  document.getElementById("title").value = "";
-  document.getElementById("year").value = "";
-  document.getElementById("director").value = "";
-  document.getElementById("genre").value = "";
+  const title = document.getElementById("title");
+  const year = document.getElementById("year");
+  const director = document.getElementById("director");
+  const genre = document.getElementById("genre");
+
+  if (title) title.value = "";
+  if (year) year.value = "";
+  if (director) director.value = "";
+  if (genre) genre.value = "";
 }
 
 function displaySelectedTmdbMovie(movie) {
+  if (!movie) {
+    return;
+  }
+
   const genres = movie.genres || [];
   const primaryGenre = getPrimarySiteGenre(genres);
 
-  document.getElementById("title").value = movie.title || "";
-  document.getElementById("year").value = movie.release_year || "";
+  const titleInput = document.getElementById("title");
+  const yearInput = document.getElementById("year");
+  const directorInput = document.getElementById("director");
+  const genreInput = document.getElementById("genre");
 
-  document.getElementById("director").value =
-    movie.director || "Réalisateur·rice non précisé·e";
+  if (titleInput) titleInput.value = movie.title || "";
+  if (yearInput) yearInput.value = movie.release_year || "";
 
-  document.getElementById("genre").value = primaryGenre;
-
-  selectedMovieTitle.textContent =
-    `${movie.title || "Film sans titre"}${
-      movie.release_year ? ` (${movie.release_year})` : ""
-    }`;
-
-  selectedMovieMeta.textContent = [
-    movie.director || "Réalisateur·rice non précisé·e",
-    genres.join(" · ")
-  ]
-    .filter(Boolean)
-    .join(" — ");
-
-  selectedMovieOverview.textContent =
-    movie.overview || "Synopsis non disponible.";
-
-  if (movie.poster_url) {
-    selectedMoviePoster.src = movie.poster_url;
-    selectedMoviePoster.alt = `Affiche de ${movie.title || "ce film"}`;
-    selectedMoviePoster.hidden = false;
-  } else {
-    selectedMoviePoster.hidden = true;
-    selectedMoviePoster.removeAttribute("src");
+  if (directorInput) {
+    directorInput.value =
+      movie.director || "Réalisateur·rice non précisé·e";
   }
 
-  selectedMovieCard.hidden = false;
+  if (genreInput) {
+    genreInput.value = primaryGenre;
+  }
+
+  if (selectedMovieTitle) {
+    selectedMovieTitle.textContent =
+      `${movie.title || "Film sans titre"}${
+        movie.release_year ? ` (${movie.release_year})` : ""
+      }`;
+  }
+
+  if (selectedMovieMeta) {
+    selectedMovieMeta.textContent = [
+      movie.director || "Réalisateur·rice non précisé·e",
+      genres.join(" · ")
+    ]
+      .filter(Boolean)
+      .join(" — ");
+  }
+
+  if (selectedMovieOverview) {
+    selectedMovieOverview.textContent =
+      movie.overview || "Synopsis non disponible.";
+  }
+
+  if (selectedMoviePoster) {
+    if (movie.poster_url) {
+      selectedMoviePoster.src = movie.poster_url;
+      selectedMoviePoster.alt =
+        `Affiche de ${movie.title || "ce film"}`;
+      selectedMoviePoster.hidden = false;
+    } else {
+      selectedMoviePoster.hidden = true;
+      selectedMoviePoster.removeAttribute("src");
+    }
+  }
+
+  if (selectedMovieCard) {
+    selectedMovieCard.hidden = false;
+  }
 }
 
 async function loadTmdbMovieDetails(tmdbId) {
@@ -190,6 +231,10 @@ async function loadTmdbMovieDetails(tmdbId) {
 }
 
 async function selectTmdbMovie(movie) {
+  if (!movie?.tmdb_id) {
+    return;
+  }
+
   clearTmdbResults();
   showTmdbSearchMessage("Chargement des détails du film…");
 
@@ -221,7 +266,6 @@ function displayTmdbResults(results) {
     showTmdbSearchMessage(
       "Aucun film trouvé. Essaie avec un autre titre."
     );
-
     return;
   }
 
@@ -233,29 +277,32 @@ function displayTmdbResults(results) {
     resultButton.type = "button";
     resultButton.className = "tmdb-result";
 
-    const title = movie.title || "Film sans titre";
-    const year = movie.release_year || "—";
-    const overview = movie.overview || "Synopsis non disponible.";
-
     resultButton.innerHTML = `
       <strong></strong>
       <span></span>
     `;
 
     resultButton.querySelector("strong").textContent =
-      `${title} (${year})`;
+      `${movie.title || "Film sans titre"} (${
+        movie.release_year || "—"
+      })`;
 
-    resultButton.querySelector("span").textContent = overview;
+    resultButton.querySelector("span").textContent =
+      movie.overview || "Synopsis non disponible.";
 
     resultButton.addEventListener("click", () => {
       selectTmdbMovie(movie);
     });
 
-    tmdbResults.appendChild(resultButton);
+    tmdbResults?.appendChild(resultButton);
   });
 }
 
 async function searchTmdbMovies() {
+  if (!tmdbSearchInput || !tmdbSearchButton) {
+    return;
+  }
+
   const query = tmdbSearchInput.value.trim();
 
   resetSelectedTmdbMovie();
@@ -266,7 +313,6 @@ async function searchTmdbMovies() {
     showTmdbSearchMessage(
       "Saisis au moins 2 caractères pour rechercher un film."
     );
-
     return;
   }
 
@@ -325,7 +371,12 @@ function removeWriteTmdbFromUrl() {
 }
 
 async function openReviewModalWithTmdbMovie(tmdbId) {
-  if (!currentUser || isLoadingWriteTmdb) {
+  if (
+    !currentUser ||
+    isLoadingWriteTmdb ||
+    !reviewModal ||
+    !tmdbSearchButton
+  ) {
     return;
   }
 
@@ -349,7 +400,9 @@ async function openReviewModalWithTmdbMovie(tmdbId) {
 
     displaySelectedTmdbMovie(selectedTmdbMovie);
 
-    tmdbSearchInput.value = tmdbMovie.title || "";
+    if (tmdbSearchInput) {
+      tmdbSearchInput.value = tmdbMovie.title || "";
+    }
 
     showTmdbSearchMessage(
       "Film sélectionné. Tu peux maintenant ajouter une note, avec ou sans texte."
@@ -357,7 +410,7 @@ async function openReviewModalWithTmdbMovie(tmdbId) {
 
     removeWriteTmdbFromUrl();
 
-    document.getElementById("rating").focus();
+    document.getElementById("rating")?.focus();
   } catch (error) {
     console.error(
       "Erreur de préchargement du film depuis la fiche :",
@@ -412,11 +465,19 @@ function displayHomeTmdbMessage(message) {
 }
 
 function openFilmFromHomeTmdb(movie) {
+  if (!movie?.tmdb_id) {
+    return;
+  }
+
   window.location.href =
     `film.html?tmdb=${encodeURIComponent(movie.tmdb_id)}`;
 }
 
 function writeReviewFromHomeTmdb(movie) {
+  if (!movie?.tmdb_id) {
+    return;
+  }
+
   window.location.href =
     `index.html?writeTmdb=${encodeURIComponent(movie.tmdb_id)}`;
 }
@@ -428,7 +489,6 @@ function displayHomeTmdbResults(results) {
     displayHomeTmdbMessage(
       "Aucun autre film trouvé dans le catalogue TMDB."
     );
-
     return;
   }
 
@@ -437,35 +497,26 @@ function displayHomeTmdbResults(results) {
   heading.className = "home-tmdb-heading";
   heading.textContent = "Découvrir dans le cinéma";
 
-  homeTmdbResults.appendChild(heading);
+  homeTmdbResults?.appendChild(heading);
 
   results.slice(0, 5).forEach((movie) => {
     const item = document.createElement("article");
+    const details = document.createElement("div");
+    const title = document.createElement("strong");
+    const overview = document.createElement("p");
+    const actions = document.createElement("div");
 
     item.className = "home-tmdb-item";
-
-    const details = document.createElement("div");
-
     details.className = "home-tmdb-details";
-
-    const title = document.createElement("strong");
+    actions.className = "home-tmdb-actions";
 
     title.textContent =
       `${movie.title || "Film sans titre"} (${
         movie.release_year || "—"
       })`;
 
-    const overview = document.createElement("p");
-
     overview.textContent =
       movie.overview || "Synopsis non disponible.";
-
-    details.appendChild(title);
-    details.appendChild(overview);
-
-    const actions = document.createElement("div");
-
-    actions.className = "home-tmdb-actions";
 
     const filmButton = document.createElement("button");
 
@@ -487,16 +538,19 @@ function displayHomeTmdbResults(results) {
       writeReviewFromHomeTmdb(movie);
     });
 
+    details.appendChild(title);
+    details.appendChild(overview);
+
     actions.appendChild(filmButton);
     actions.appendChild(writeButton);
 
     item.appendChild(details);
     item.appendChild(actions);
 
-    homeTmdbResults.appendChild(item);
+    homeTmdbResults?.appendChild(item);
   });
 
-  homeTmdbResults.classList.add("visible");
+  homeTmdbResults?.classList.add("visible");
 }
 
 async function searchTmdbFromHome(query) {
@@ -544,9 +598,18 @@ async function searchTmdbFromHome(query) {
   }
 }
 
-
 function handleHomeSearchInput() {
+  if (!searchInput) {
+    return;
+  }
+
   const query = searchInput.value.trim();
+
+  /*
+    Recherche immédiate parmi les critiques existantes.
+  */
+  homeSearchQuery = query;
+  renderHomeReviews();
 
   clearTimeout(homeTmdbSearchTimeout);
 
@@ -557,8 +620,7 @@ function handleHomeSearchInput() {
   }
 
   /*
-    La barre de recherche est désormais réservée à TMDB :
-    elle ne filtre plus les microcritiques affichées.
+    Recherche complémentaire dans TMDB.
   */
   homeTmdbSearchTimeout = setTimeout(() => {
     searchTmdbFromHome(query);
@@ -631,34 +693,34 @@ function renderCircleMemberAvatar(profile) {
 
   if (profile?.avatar_url) {
     return `
-      <img
-        class="circle-activity-avatar"
-        src="${escapeHTML(profile.avatar_url)}"
-        alt="Photo de profil de ${escapeHTML(username)}"
-        loading="lazy"
-      />
+      <span class="circle-activity-avatar">
+        <img
+          src="${escapeHTML(profile.avatar_url)}"
+          alt="Photo de profil de ${escapeHTML(username)}"
+          loading="lazy"
+        />
+      </span>
     `;
   }
 
   return `
-    <div
+    <span
       class="circle-activity-avatar circle-activity-avatar-placeholder"
       aria-hidden="true"
     >
       ${escapeHTML(getCircleMemberInitial(profile))}
-    </div>
+    </span>
   `;
 }
 
-
 async function getCircleActivityEvents() {
-  if (!currentUser) {
+  if (!currentUser || typeof getAcceptedFriends !== "function") {
     return [];
   }
 
   const friends = await getAcceptedFriends(currentUser.id);
 
-  if (!friends.length) {
+  if (!friends?.length) {
     return [];
   }
 
@@ -695,7 +757,7 @@ async function getCircleActivityEvents() {
     throw error;
   }
 
-  if (!events || events.length === 0) {
+  if (!events?.length) {
     return [];
   }
 
@@ -738,10 +800,7 @@ async function getCircleActivityEvents() {
               )
             `)
             .in("id", reviewIds)
-        : Promise.resolve({
-            data: [],
-            error: null
-          }),
+        : Promise.resolve({ data: [], error: null }),
 
       movieIds.length
         ? supabaseClient
@@ -753,10 +812,7 @@ async function getCircleActivityEvents() {
               poster_url
             `)
             .in("id", movieIds)
-        : Promise.resolve({
-            data: [],
-            error: null
-          }),
+        : Promise.resolve({ data: [], error: null }),
 
       listIds.length
         ? supabaseClient
@@ -769,23 +825,12 @@ async function getCircleActivityEvents() {
               list_type
             `)
             .in("id", listIds)
-        : Promise.resolve({
-            data: [],
-            error: null
-          })
+        : Promise.resolve({ data: [], error: null })
     ]);
 
-  if (reviewsResult.error) {
-    throw reviewsResult.error;
-  }
-
-  if (moviesResult.error) {
-    throw moviesResult.error;
-  }
-
-  if (listsResult.error) {
-    throw listsResult.error;
-  }
+  if (reviewsResult.error) throw reviewsResult.error;
+  if (moviesResult.error) throw moviesResult.error;
+  if (listsResult.error) throw listsResult.error;
 
   const reviewsById = Object.fromEntries(
     (reviewsResult.data || []).map((review) => [
@@ -808,11 +853,6 @@ async function getCircleActivityEvents() {
     ])
   );
 
-  /*
-    Si un film, une critique ou une liste a été supprimé(e)
-    depuis l'événement, on garde l'événement visible avec
-    ses informations disponibles.
-  */
   return events.map((event) => ({
     ...event,
     actor: friendsById[event.actor_id] || null,
@@ -830,11 +870,7 @@ function renderCircleActivityItem(event) {
     `membre.html?id=${encodeURIComponent(event.actor_id)}`;
 
   const reviewMovie = event.review?.movies || null;
-
-  const movie =
-    reviewMovie ||
-    event.movie ||
-    null;
+  const movie = reviewMovie || event.movie || null;
 
   const movieTitle = movie?.title || "un film";
 
@@ -860,20 +896,12 @@ function renderCircleActivityItem(event) {
     const content = event.review?.content?.trim();
 
     mainMarkup = `
-      <a href="${profileUrl}">
-        ${escapeHTML(username)}
-      </a>
+      <a href="${profileUrl}">${escapeHTML(username)}</a>
       <span>a publié une critique sur</span>
       ${
         movieUrl
-          ? `
-            <a href="${movieUrl}">
-              ${escapeHTML(movieTitle)}
-            </a>
-          `
-          : `
-            <span>${escapeHTML(movieTitle)}</span>
-          `
+          ? `<a href="${movieUrl}">${escapeHTML(movieTitle)}</a>`
+          : `<span>${escapeHTML(movieTitle)}</span>`
       }
     `;
 
@@ -886,20 +914,12 @@ function renderCircleActivityItem(event) {
 
   if (event.type === "wishlist_added") {
     mainMarkup = `
-      <a href="${profileUrl}">
-        ${escapeHTML(username)}
-      </a>
+      <a href="${profileUrl}">${escapeHTML(username)}</a>
       <span>a ajouté</span>
       ${
         movieUrl
-          ? `
-            <a href="${movieUrl}">
-              ${escapeHTML(movieTitle)}
-            </a>
-          `
-          : `
-            <span>${escapeHTML(movieTitle)}</span>
-          `
+          ? `<a href="${movieUrl}">${escapeHTML(movieTitle)}</a>`
+          : `<span>${escapeHTML(movieTitle)}</span>`
       }
       <span>à sa liste À voir</span>
     `;
@@ -910,24 +930,17 @@ function renderCircleActivityItem(event) {
 
   if (event.type === "list_created") {
     mainMarkup = `
-      <a href="${profileUrl}">
-        ${escapeHTML(username)}
-      </a>
+      <a href="${profileUrl}">${escapeHTML(username)}</a>
       <span>a créé la collection</span>
       ${
         listUrl
-          ? `
-            <a href="${listUrl}">
-              ${escapeHTML(listTitle)}
-            </a>
-          `
-          : `
-            <span>${escapeHTML(listTitle)}</span>
-          `
+          ? `<a href="${listUrl}">${escapeHTML(listTitle)}</a>`
+          : `<span>${escapeHTML(listTitle)}</span>`
       }
     `;
 
-    detailMarkup = event.list?.description?.trim() ||
+    detailMarkup =
+      event.list?.description?.trim() ||
       "Une nouvelle collection à découvrir.";
 
     destination = listUrl;
@@ -939,10 +952,7 @@ function renderCircleActivityItem(event) {
 
   const contentMarkup = destination
     ? `
-      <a
-        class="circle-activity-review"
-        href="${destination}"
-      >
+      <a class="circle-activity-review" href="${destination}">
         ${escapeHTML(detailMarkup)}
       </a>
     `
@@ -973,9 +983,7 @@ function renderCircleActivityItem(event) {
           class="circle-activity-date"
           datetime="${escapeHTML(event.created_at)}"
         >
-          ${escapeHTML(
-            formatCircleActivityDate(event.created_at)
-          )}
+          ${escapeHTML(formatCircleActivityDate(event.created_at))}
         </time>
       </div>
     </article>
@@ -1050,10 +1058,8 @@ async function refreshCircleActivity() {
   }
 }
 
-
-
 /* ---------------------------------
-   Accueil et affichage des critiques
+   Accueil : critiques
 --------------------------------- */
 
 function allHomeReviews() {
@@ -1061,19 +1067,44 @@ function allHomeReviews() {
 }
 
 function getPrimaryGenre(review) {
-  return review.movies?.genres?.[0] || "Cinéma";
+  return getPrimarySiteGenre(review.movies?.genres || []);
 }
 
 function renderHomeReviews() {
+  if (!grid || !movieCount) {
+    return;
+  }
+
+  const normalizedSearch = homeSearchQuery
+    .trim()
+    .toLocaleLowerCase("fr-FR");
 
   const filteredReviews = allHomeReviews().filter((review) => {
     const primaryGenre = getPrimaryGenre(review);
+
     const matchesGenre =
-      selectedGenre === "Tous" || primaryGenre === selectedGenre;
+      selectedGenre === "Tous" ||
+      primaryGenre === selectedGenre;
 
-    
-return matchesGenre;
+    if (!normalizedSearch) {
+      return matchesGenre;
+    }
 
+    const searchableText = [
+      review.movies?.title,
+      review.movies?.original_title,
+      review.movies?.director,
+      review.content,
+      review.author?.username,
+      ...(review.movies?.genres || []),
+      ...(review.tags || [])
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLocaleLowerCase("fr-FR");
+
+    return matchesGenre &&
+      searchableText.includes(normalizedSearch);
   });
 
   movieCount.textContent =
@@ -1084,9 +1115,9 @@ return matchesGenre;
   if (filteredReviews.length === 0) {
     grid.innerHTML = `
       <div class="empty-state">
-        <strong>Aucune séance ne correspond à ta recherche.</strong>
+        <strong>Aucune séance ne correspond à cette recherche.</strong>
         <br /><br />
-        Essaie un autre titre, un genre différent ou découvre un film dans les résultats ci-dessus.
+        Essaie un autre titre, un autre genre ou découvre un film dans les résultats TMDB ci-dessus.
       </div>
     `;
 
@@ -1113,6 +1144,10 @@ return matchesGenre;
 
       const reviewId = button.dataset.reviewId;
 
+      if (!reviewId) {
+        return;
+      }
+
       button.disabled = true;
 
       try {
@@ -1130,12 +1165,34 @@ return matchesGenre;
 }
 
 async function refreshHomeReviews() {
-  publicReviews = await getPublicReviews();
-  renderHomeReviews();
+  if (!grid || !movieCount) {
+    return;
+  }
+
+  try {
+    publicReviews = await getPublicReviews();
+
+    renderHomeReviews();
+  } catch (error) {
+    console.error(
+      "Erreur de chargement des dernières critiques :",
+      error
+    );
+
+    movieCount.textContent = "";
+
+    grid.innerHTML = `
+      <div class="empty-state">
+        <strong>Les dernières critiques ne peuvent pas être chargées.</strong>
+        <br /><br />
+        Actualise la page ou réessaie dans quelques instants.
+      </div>
+    `;
+  }
 }
 
 /* ---------------------------------
-   Modale de publication
+   Modale
 --------------------------------- */
 
 function openReviewModal() {
@@ -1151,150 +1208,214 @@ function openReviewModal() {
     return;
   }
 
-  reviewModal.classList.add("visible");
+  reviewModal?.classList.add("visible");
 }
 
 function closeReviewModal() {
-  reviewModal.classList.remove("visible");
+  reviewModal?.classList.remove("visible");
 }
 
 /* ---------------------------------
-   Événements et publication
+   Événements
 --------------------------------- */
 
 function setupHome() {
-  tmdbSearchButton.addEventListener("click", searchTmdbMovies);
+  if (tmdbSearchButton) {
+    tmdbSearchButton.addEventListener(
+      "click",
+      searchTmdbMovies
+    );
+  }
 
-  tmdbSearchInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      searchTmdbMovies();
-    }
-  });
+  if (tmdbSearchInput) {
+    tmdbSearchInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        searchTmdbMovies();
+      }
+    });
+  }
 
-  reviewInput.addEventListener("input", updateReviewCharacterCounter);
+  if (reviewInput) {
+    reviewInput.addEventListener(
+      "input",
+      updateReviewCharacterCounter
+    );
+  }
 
   updateReviewCharacterCounter();
 
-  openModal.addEventListener("click", openReviewModal);
+  /*
+    Le bouton #openModal est créé dynamiquement
+    par navigation.js. On utilise donc une délégation.
+  */
+  document.addEventListener("click", (event) => {
+    const openReviewButton = event.target.closest("#openModal");
 
-  closeModal.addEventListener("click", closeReviewModal);
-
-  reviewModal.addEventListener("click", (event) => {
-    if (event.target === reviewModal) {
-      closeReviewModal();
-    }
-  });
-
-  filters.addEventListener("click", (event) => {
-    if (!event.target.classList.contains("filter")) {
+    if (!openReviewButton) {
       return;
     }
 
-    document.querySelectorAll(".filter").forEach((button) => {
-      button.classList.remove("active");
-    });
-
-    event.target.classList.add("active");
-    selectedGenre = event.target.dataset.genre;
-
-    renderHomeReviews();
-  });
-
-  searchInput.addEventListener("input", handleHomeSearchInput);
-
-  reviewForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    openReviewModal();
+  });
 
-    if (!currentUser) {
-      closeReviewModal();
-      openAuthModal();
-      return;
-    }
+  if (closeModal) {
+    closeModal.addEventListener("click", closeReviewModal);
+  }
 
-    const submitButton = reviewForm.querySelector(
-      'button[type="submit"]'
-    );
+  if (reviewModal) {
+    reviewModal.addEventListener("click", (event) => {
+      if (event.target === reviewModal) {
+        closeReviewModal();
+      }
+    });
+  }
 
-    submitButton.disabled = true;
-    submitButton.textContent = "Ajout…";
+  if (filters) {
+    filters.addEventListener("click", (event) => {
+      const filterButton = event.target.closest(".filter");
 
-    try {
-      if (!selectedTmdbMovie) {
-        throw new Error(
-          "Choisis un film dans les résultats TMDB avant d’ajouter une note."
-        );
+      if (!filterButton) {
+        return;
       }
 
-      const content = reviewInput.value.trim();
-
-      const payload = {
-        title: document.getElementById("title").value.trim(),
-        tmdbMovie: selectedTmdbMovie,
-        year: document.getElementById("year").value,
-        director: document.getElementById("director").value,
-        genre: document.getElementById("genre").value,
-        rating: document.getElementById("rating").value,
-
-        /*
-          Le texte est volontairement null quand aucun mot
-          n'est ajouté : la note seule est une entrée valide.
-        */
-        content: content || null,
-
-        tags: document
-          .getElementById("tags")
-          .value
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter(Boolean)
-      };
-
-      await publishReview(payload);
-
-      reviewForm.reset();
-      updateReviewCharacterCounter();
-
-      resetSelectedTmdbMovie();
-
-      tmdbSearchInput.value = "";
-      clearTmdbResults();
-      clearTmdbSearchMessage();
-
-      closeReviewModal();
-
-      selectedGenre = "Tous";
-
-      clearHomeTmdbResults();
-      lastHomeTmdbQuery = "";
-
       document.querySelectorAll(".filter").forEach((button) => {
-        button.classList.toggle(
-          "active",
-          button.dataset.genre === "Tous"
-        );
+        button.classList.remove("active");
       });
 
-      await refreshHomeReviews();
+      filterButton.classList.add("active");
 
-      document
-        .querySelector("#critiques")
-        .scrollIntoView({ behavior: "smooth" });
+      selectedGenre =
+        filterButton.dataset.genre || "Tous";
 
-      alert(
-        content
-          ? "Ta microcritique est publiée sur Le dernier rang. ✨"
-          : "Ta note est ajoutée à ton carnet. ✨"
+      renderHomeReviews();
+    });
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener(
+      "input",
+      handleHomeSearchInput
+    );
+  }
+
+  if (reviewForm) {
+    reviewForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!currentUser) {
+        closeReviewModal();
+        openAuthModal();
+        return;
+      }
+
+      const submitButton = reviewForm.querySelector(
+        'button[type="submit"]'
       );
-    } catch (error) {
-      console.error(error);
 
-      alert(`Impossible d’ajouter ce film à ton carnet : ${error.message}`);
-    } finally {
-      submitButton.disabled = false;
-      submitButton.textContent = "Ajouter à mon carnet";
-    }
-  });
+      if (!submitButton) {
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Ajout…";
+
+      try {
+        if (!selectedTmdbMovie) {
+          throw new Error(
+            "Choisis un film dans les résultats TMDB avant d’ajouter une note."
+          );
+        }
+
+        const content = reviewInput?.value.trim() || "";
+
+        const payload = {
+          title:
+            document.getElementById("title")?.value.trim() || "",
+
+          tmdbMovie: selectedTmdbMovie,
+
+          year: document.getElementById("year")?.value || "",
+
+          director:
+            document.getElementById("director")?.value || "",
+
+          genre:
+            document.getElementById("genre")?.value || "",
+
+          rating:
+            document.getElementById("rating")?.value || "",
+
+          content: content || null,
+
+          tags: (document.getElementById("tags")?.value || "")
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+        };
+
+        await publishReview(payload);
+
+        reviewForm.reset();
+        updateReviewCharacterCounter();
+
+        resetSelectedTmdbMovie();
+
+        if (tmdbSearchInput) {
+          tmdbSearchInput.value = "";
+        }
+
+        clearTmdbResults();
+        clearTmdbSearchMessage();
+
+        closeReviewModal();
+
+        selectedGenre = "Tous";
+        homeSearchQuery = "";
+        lastHomeTmdbQuery = "";
+
+        if (searchInput) {
+          searchInput.value = "";
+        }
+
+        clearHomeTmdbResults();
+
+        document.querySelectorAll(".filter").forEach((button) => {
+          button.classList.toggle(
+            "active",
+            button.dataset.genre === "Tous"
+          );
+        });
+
+        await refreshHomeReviews();
+
+        document
+          .querySelector("#critiques")
+          ?.scrollIntoView({
+            behavior: "smooth"
+          });
+
+        alert(
+          content
+            ? "Ta microcritique est publiée sur Le dernier rang. ✨"
+            : "Ta note est ajoutée à ton carnet. ✨"
+        );
+      } catch (error) {
+        console.error(
+          "Erreur de publication de la critique :",
+          error
+        );
+
+        alert(
+          `Impossible d’ajouter ce film à ton carnet : ${error.message}`
+        );
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "Ajouter à mon carnet";
+      }
+    });
+  }
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
@@ -1302,23 +1423,20 @@ function setupHome() {
     }
   });
 
+  document.addEventListener("authChanged", async () => {
+    await Promise.allSettled([
+      refreshHomeReviews(),
+      refreshCircleActivity()
+    ]);
 
-document.addEventListener("authChanged", async () => {
-  await Promise.all([
-    refreshHomeReviews(),
-    refreshCircleActivity()
-  ]);
-
-  await handleWriteTmdbFromUrl();
-});
-
+    await handleWriteTmdbFromUrl();
+  });
 }
-
 
 async function initialiseHome() {
   setupHome();
 
-  await Promise.all([
+  await Promise.allSettled([
     refreshHomeReviews(),
     refreshCircleActivity()
   ]);
