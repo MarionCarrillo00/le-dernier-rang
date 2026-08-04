@@ -6122,3 +6122,73 @@ a.activity-content-link:hover .activity-detail {
     flex-direction: column;
   }
 }
+
+/* ==========================================================
+   NAVIGATION · LA RÉGIE
+   ========================================================== */
+
+.admin-menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  width: 100%;
+  min-height: 92px;
+  padding: 0 56px;
+  box-sizing: border-box;
+}
+
+.admin-menu .logo {
+  flex: none;
+  white-space: nowrap;
+}
+
+.admin-menu .menu-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.admin-menu .user-menu {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  white-space: nowrap;
+}
+
+.admin-menu .user-menu a {
+  white-space: nowrap;
+}
+
+.admin-menu #logoutButton {
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* Version mobile : la navigation peut respirer sans se casser */
+@media (max-width: 750px) {
+  .admin-menu {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+    min-height: auto;
+    padding: 18px 20px;
+  }
+
+  .admin-menu .menu-actions {
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-left: 0;
+  }
+
+  .admin-menu .user-menu {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
