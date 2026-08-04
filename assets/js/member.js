@@ -340,7 +340,7 @@ function renderPublicListCard(list) {
   return `
     <a
       class="movie-list-card member-list-card"
-      href="list.html?id=${encodeURIComponent(list.id)}"
+      href="liste.html?id=${encodeURIComponent(list.id)}"
     >
       <div class="movie-list-card-top">
         <span class="list-visibility public">
