@@ -38,45 +38,6 @@ function showAuthMessage(message, type = "success") {
   }
 }
 
-/*
-  Ferme toute autre modale ouverte avant l'ouverture
-  de la modale d'authentification.
-
-  Cela évite qu'un overlay de "Ajouter à mon carnet",
-  "Écrire une critique", etc. reste au-dessus et bloque
-  les clics de la modale de connexion.
-*/
-function closeOtherVisibleModals() {
-  const { authModal } = getAuthElements();
-
-  document
-    .querySelectorAll(
-      ".modal.visible, .modal-overlay.visible, [data-modal].visible"
-    )
-    .forEach((modal) => {
-      if (modal === authModal) {
-        return;
-      }
-
-      modal.classList.remove("visible");
-      modal.hidden = true;
-      modal.setAttribute("aria-hidden", "true");
-    });
-
-  /*
-    Événement optionnel : les scripts film.js / home.js
-    peuvent l'écouter pour fermer proprement leurs panneaux,
-    réinitialiser leur état ou retirer leurs classes.
-  */
-  document.dispatchEvent(
-    new CustomEvent("closeAppModals", {
-      detail: {
-        except: "authModal"
-      }
-    })
-  );
-}
-
 function setAuthMode(mode) {
   authMode = mode === "signup" ? "signup" : "login";
 
@@ -91,23 +52,14 @@ function setAuthMode(mode) {
   const isSignup = authMode === "signup";
 
   document.querySelectorAll(".auth-tab").forEach((tab) => {
-    tab.classList.toggle(
-      "active",
-      tab.dataset.authMode === authMode
-    );
+    const isActive = tab.dataset.authMode === authMode;
 
-    tab.setAttribute(
-      "aria-selected",
-      String(tab.dataset.authMode === authMode)
-    );
+    tab.classList.toggle("active", isActive);
+    tab.setAttribute("aria-selected", String(isActive));
   });
 
   if (usernameField) {
     usernameField.hidden = !isSignup;
-    usernameField.setAttribute(
-      "aria-hidden",
-      String(!isSignup)
-    );
   }
 
   if (usernameInput) {
@@ -139,40 +91,54 @@ function setAuthMode(mode) {
   showAuthMessage("");
 }
 
+function updateModalBodyState() {
+  const authModal = document.getElementById("authModal");
+  const reviewModal = document.getElementById("reviewModal");
+
+  const authIsOpen = authModal?.classList.contains("visible");
+  const reviewIsOpen = reviewModal?.classList.contains("visible");
+
+  document.body.classList.toggle(
+    "modal-open",
+    Boolean(authIsOpen || reviewIsOpen)
+  );
+}
+
 function openAuthModal(mode = "login") {
   const { authModal, authForm } = getAuthElements();
+  const reviewModal = document.getElementById("reviewModal");
 
   if (!authModal) {
     return;
   }
 
   /*
-    Très important : on force le bon affichage avant
-    d'afficher la modale. Ainsi, le champ Pseudo est caché
-    à chaque ouverture en mode connexion.
+    Une seule modale doit être ouverte à la fois.
+    Si la fenêtre « Ajouter à mon carnet » est ouverte,
+    elle est fermée avant l'affichage de l'authentification.
   */
-  setAuthMode(mode);
-
-  closeOtherVisibleModals();
+  if (reviewModal) {
+    reviewModal.classList.remove("visible");
+  }
 
   if (authForm) {
     authForm.reset();
   }
 
-  authModal.hidden = false;
+  setAuthMode(mode);
+
   authModal.classList.add("visible");
   authModal.setAttribute("aria-hidden", "false");
 
-  document.body.classList.add("modal-open");
-
-  showAuthMessage("");
+  updateModalBodyState();
 
   window.setTimeout(() => {
-    const targetInput = document.getElementById(
-      authMode === "signup" ? "username" : "authEmail"
-    );
+    const inputId =
+      authMode === "signup"
+        ? "username"
+        : "authEmail";
 
-    targetInput?.focus();
+    document.getElementById(inputId)?.focus();
   }, 50);
 }
 
@@ -181,7 +147,6 @@ function closeAuthModal() {
 
   if (authModal) {
     authModal.classList.remove("visible");
-    authModal.hidden = true;
     authModal.setAttribute("aria-hidden", "true");
   }
 
@@ -189,9 +154,9 @@ function closeAuthModal() {
     authForm.reset();
   }
 
-  document.body.classList.remove("modal-open");
-
   showAuthMessage("");
+
+  updateModalBodyState();
 }
 
 async function loadCurrentProfile() {
@@ -427,6 +392,7 @@ function setupAuth() {
         );
       } finally {
         authSubmitButton.disabled = false;
+
         authSubmitButton.textContent =
           authMode === "signup"
             ? "Créer mon compte"
@@ -478,11 +444,6 @@ function setupAuth() {
 
 async function initialiseAuth() {
   setupAuth();
-
-  /*
-    État initial cohérent, même si un autre script ouvre
-    directement la modale plus tard.
-  */
   setAuthMode("login");
 
   const {
@@ -492,6 +453,16 @@ async function initialiseAuth() {
   currentUser = session?.user || null;
 
   await loadCurrentProfile();
+
+  /*
+    Si Supabase restaure une session existante,
+    une ancienne modale de connexion ne doit jamais
+    rester affichée.
+  */
+  if (currentUser) {
+    closeAuthModal();
+  }
+
   emitAuthChanged();
 
   supabaseClient.auth.onAuthStateChange(
@@ -499,6 +470,11 @@ async function initialiseAuth() {
       currentUser = session?.user || null;
 
       await loadCurrentProfile();
+
+      if (currentUser) {
+        closeAuthModal();
+      }
+
       emitAuthChanged();
     }
   );
