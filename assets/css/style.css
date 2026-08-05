@@ -6707,16 +6707,21 @@ body {
   }
 }
 
-/* =================================
-   MODALES — toujours au-dessus du site
-================================= */
 
+/* =====================================================
+   MODALES — GESTION UNIQUE ET CLIQUABLE
+   ===================================================== */
+
+/*
+  Une modale est cachée par défaut.
+  Seul JavaScript ajoute la classe .visible pour l'ouvrir.
+*/
 .modal {
   position: fixed !important;
   inset: 0 !important;
   z-index: 9999 !important;
 
-  display: none;
+  display: none !important;
   align-items: center;
   justify-content: center;
 
@@ -6728,10 +6733,16 @@ body {
   overflow-y: auto;
 
   background: rgba(32, 29, 29, 0.48);
+  pointer-events: none;
 }
 
+/*
+  La classe .visible est l'unique condition permettant
+  d'afficher et de rendre une modale interactive.
+*/
 .modal.visible {
   display: flex !important;
+  pointer-events: auto;
 }
 
 .modal-box {
@@ -6745,9 +6756,31 @@ body {
 }
 
 /*
-  Sur mobile ou fenêtre basse, la modale reste
-  accessible sans se retrouver sous le footer.
+  Respecte toujours l'attribut HTML hidden, notamment
+  pour le champ Pseudo et les éléments conditionnels.
 */
+[hidden] {
+  display: none !important;
+}
+
+/* Empêche le défilement du site derrière une modale ouverte. */
+body.modal-open {
+  overflow: hidden;
+}
+
+/*
+  Les modales d'édition de profil utilisent une structure
+  différente : .modal-overlay / .modal-content.
+*/
+.modal-overlay {
+  pointer-events: none;
+}
+
+.modal-overlay.visible {
+  pointer-events: auto;
+}
+
+/* Version mobile / fenêtres peu hautes */
 @media (max-width: 650px) {
   .modal {
     align-items: flex-start;
@@ -6757,109 +6790,4 @@ body {
   .modal-box {
     max-height: calc(100vh - 2rem);
   }
-}
-
-/* =================================
-   Correctif final : toutes les modales
-================================= */
-
-.modal,
-.edit-review-modal,
-.add-review-content-modal {
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: 10000 !important;
-
-  display: none;
-  align-items: center;
-  justify-content: center;
-
-  width: 100vw !important;
-  height: 100vh !important;
-  min-height: 100vh !important;
-
-  padding: 1.5rem;
-  overflow-y: auto;
-
-  background: rgba(32, 29, 29, 0.48);
-}
-
-/*
-  Compatibilité avec les classes visibles
-  sur tes éléments lorsque JavaScript ouvre une modale.
-*/
-.modal.visible,
-.edit-review-modal.visible,
-.add-review-content-modal.visible,
-.modal:not([hidden]),
-.edit-review-modal:not([hidden]),
-.add-review-content-modal:not([hidden]) {
-  display: flex !important;
-}
-
-.modal-box,
-.edit-review-modal-box,
-.add-review-content-modal-box {
-  position: relative;
-  z-index: 10001;
-
-  width: min(100%, 620px);
-  max-height: calc(100vh - 3rem);
-  margin: auto;
-  overflow-y: auto;
-}
-
-@media (max-width: 650px) {
-  .modal,
-  .edit-review-modal,
-  .add-review-content-modal {
-    align-items: flex-start;
-    padding: 1rem;
-  }
-
-  .modal-box,
-  .edit-review-modal-box,
-  .add-review-content-modal-box {
-    max-height: calc(100vh - 2rem);
-  }
-}
-
-/* L'attribut HTML hidden doit toujours réellement cacher un élément.
-   Cette règle corrige les conflits avec d'anciennes règles display:flex,
-   display:grid ou display:block appliquées aux champs de formulaires. */
-[hidden] {
-  display: none !important;
-}
-
-/* Évite le défilement de la page derrière une modale ouverte. */
-body.modal-open {
-  overflow: hidden;
-}
-
-/* La modale non visible ne doit jamais intercepter les clics. */
-.modal:not(.visible),
-.modal-overlay:not(.visible) {
-  pointer-events: none;
-}
-
-/* La modale visible peut recevoir les clics. */
-.modal.visible,
-.modal-overlay.visible {
-  pointer-events: auto;
-}
-
-[hidden] {
-  display: none !important;
-}
-
-.modal {
-  pointer-events: none;
-}
-
-.modal.visible {
-  pointer-events: auto;
-}
-
-body.modal-open {
-  overflow: hidden;
 }
