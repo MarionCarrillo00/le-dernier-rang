@@ -6847,3 +6847,19 @@ body.modal-open {
 .modal-overlay.visible {
   pointer-events: auto;
 }
+
+[hidden] {
+  display: none !important;
+}
+
+.modal {
+  pointer-events: none;
+}
+
+.modal.visible {
+  pointer-events: auto;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
