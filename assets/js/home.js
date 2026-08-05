@@ -54,6 +54,22 @@ const reviewCharacterCounter = document.getElementById(
 );
 
 /* ---------------------------------
+   Modales : état global
+--------------------------------- */
+
+function updateModalBodyState() {
+  const authModal = document.getElementById("authModal");
+
+  const authIsOpen = authModal?.classList.contains("visible");
+  const reviewIsOpen = reviewModal?.classList.contains("visible");
+
+  document.body.classList.toggle(
+    "modal-open",
+    Boolean(authIsOpen || reviewIsOpen)
+  );
+}
+
+/* ---------------------------------
    Compteur de caractères
 --------------------------------- */
 
@@ -380,9 +396,16 @@ async function openReviewModalWithTmdbMovie(tmdbId) {
     return;
   }
 
-  isLoadingWriteTmdb = true;
+  const authModal = document.getElementById("authModal");
+
+  if (authModal) {
+    authModal.classList.remove("visible");
+  }
 
   reviewModal.classList.add("visible");
+  updateModalBodyState();
+
+  isLoadingWriteTmdb = true;
 
   resetSelectedTmdbMovie();
   clearTmdbResults();
@@ -605,9 +628,6 @@ function handleHomeSearchInput() {
 
   const query = searchInput.value.trim();
 
-  /*
-    Recherche immédiate parmi les critiques existantes.
-  */
   homeSearchQuery = query;
   renderHomeReviews();
 
@@ -619,9 +639,6 @@ function handleHomeSearchInput() {
     return;
   }
 
-  /*
-    Recherche complémentaire dans TMDB.
-  */
   homeTmdbSearchTimeout = setTimeout(() => {
     searchTmdbFromHome(query);
   }, 450);
@@ -1103,8 +1120,10 @@ function renderHomeReviews() {
       .join(" ")
       .toLocaleLowerCase("fr-FR");
 
-    return matchesGenre &&
-      searchableText.includes(normalizedSearch);
+    return (
+      matchesGenre &&
+      searchableText.includes(normalizedSearch)
+    );
   });
 
   movieCount.textContent =
@@ -1131,8 +1150,9 @@ function renderHomeReviews() {
   document.querySelectorAll(".favorite").forEach((button) => {
     button.addEventListener("click", async () => {
       if (!currentUser) {
-        setAuthMode("login");
-        openAuthModal();
+        closeReviewModal();
+
+        openAuthModal("login");
 
         showAuthMessage(
           "Connecte-toi ou crée un compte pour aimer une microcritique.",
@@ -1196,9 +1216,12 @@ async function refreshHomeReviews() {
 --------------------------------- */
 
 function openReviewModal() {
+  const authModal = document.getElementById("authModal");
+
   if (!currentUser) {
-    setAuthMode("login");
-    openAuthModal();
+    closeReviewModal();
+
+    openAuthModal("login");
 
     showAuthMessage(
       "Connecte-toi ou crée un compte avant d’ajouter un film à ton carnet.",
@@ -1208,11 +1231,24 @@ function openReviewModal() {
     return;
   }
 
+  /*
+    Une personne connectée ne doit jamais conserver
+    une modale d'authentification ouverte derrière elle.
+  */
+  if (authModal) {
+    authModal.classList.remove("visible");
+    authModal.setAttribute("aria-hidden", "true");
+  }
+
   reviewModal?.classList.add("visible");
+
+  updateModalBodyState();
 }
 
 function closeReviewModal() {
   reviewModal?.classList.remove("visible");
+
+  updateModalBodyState();
 }
 
 /* ---------------------------------
@@ -1245,10 +1281,6 @@ function setupHome() {
 
   updateReviewCharacterCounter();
 
-  /*
-    Le bouton #openModal est créé dynamiquement
-    par navigation.js. On utilise donc une délégation.
-  */
   document.addEventListener("click", (event) => {
     const openReviewButton = event.target.closest("#openModal");
 
@@ -1306,7 +1338,14 @@ function setupHome() {
 
       if (!currentUser) {
         closeReviewModal();
-        openAuthModal();
+
+        openAuthModal("login");
+
+        showAuthMessage(
+          "Connecte-toi ou crée un compte avant d’ajouter un film à ton carnet.",
+          "error"
+        );
+
         return;
       }
 
@@ -1418,12 +1457,28 @@ function setupHome() {
   }
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
+    if (
+      event.key === "Escape" &&
+      reviewModal?.classList.contains("visible")
+    ) {
       closeReviewModal();
     }
   });
 
   document.addEventListener("authChanged", async () => {
+    /*
+      Après restauration ou connexion de session :
+      la modale de connexion ne doit pas subsister.
+    */
+    if (currentUser) {
+      const authModal = document.getElementById("authModal");
+
+      authModal?.classList.remove("visible");
+      authModal?.setAttribute("aria-hidden", "true");
+
+      updateModalBodyState();
+    }
+
     await Promise.allSettled([
       refreshHomeReviews(),
       refreshCircleActivity()
