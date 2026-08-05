@@ -38,8 +38,47 @@ function showAuthMessage(message, type = "success") {
   }
 }
 
+/*
+  Ferme toute autre modale ouverte avant l'ouverture
+  de la modale d'authentification.
+
+  Cela évite qu'un overlay de "Ajouter à mon carnet",
+  "Écrire une critique", etc. reste au-dessus et bloque
+  les clics de la modale de connexion.
+*/
+function closeOtherVisibleModals() {
+  const { authModal } = getAuthElements();
+
+  document
+    .querySelectorAll(
+      ".modal.visible, .modal-overlay.visible, [data-modal].visible"
+    )
+    .forEach((modal) => {
+      if (modal === authModal) {
+        return;
+      }
+
+      modal.classList.remove("visible");
+      modal.hidden = true;
+      modal.setAttribute("aria-hidden", "true");
+    });
+
+  /*
+    Événement optionnel : les scripts film.js / home.js
+    peuvent l'écouter pour fermer proprement leurs panneaux,
+    réinitialiser leur état ou retirer leurs classes.
+  */
+  document.dispatchEvent(
+    new CustomEvent("closeAppModals", {
+      detail: {
+        except: "authModal"
+      }
+    })
+  );
+}
+
 function setAuthMode(mode) {
-  authMode = mode;
+  authMode = mode === "signup" ? "signup" : "login";
 
   const {
     authTitle,
@@ -49,18 +88,34 @@ function setAuthMode(mode) {
     usernameInput
   } = getAuthElements();
 
-  document.querySelectorAll(".auth-tab").forEach((tab) => {
-    tab.classList.toggle("active", tab.dataset.authMode === mode);
-  });
+  const isSignup = authMode === "signup";
 
-  const isSignup = mode === "signup";
+  document.querySelectorAll(".auth-tab").forEach((tab) => {
+    tab.classList.toggle(
+      "active",
+      tab.dataset.authMode === authMode
+    );
+
+    tab.setAttribute(
+      "aria-selected",
+      String(tab.dataset.authMode === authMode)
+    );
+  });
 
   if (usernameField) {
     usernameField.hidden = !isSignup;
+    usernameField.setAttribute(
+      "aria-hidden",
+      String(!isSignup)
+    );
   }
 
   if (usernameInput) {
     usernameInput.required = isSignup;
+
+    if (!isSignup) {
+      usernameInput.value = "";
+    }
   }
 
   if (authTitle) {
@@ -78,21 +133,47 @@ function setAuthMode(mode) {
   if (authNote) {
     authNote.textContent = isSignup
       ? "Tu recevras un e-mail de confirmation avant de pouvoir te connecter."
-      : "Connecte-toi pour publier une microcritique et retrouver tes films.";
+      : "Connecte-toi pour publier une note ou une microcritique et retrouver tes films.";
   }
 
   showAuthMessage("");
 }
 
-function openAuthModal() {
-  const { authModal } = getAuthElements();
+function openAuthModal(mode = "login") {
+  const { authModal, authForm } = getAuthElements();
 
   if (!authModal) {
     return;
   }
 
+  /*
+    Très important : on force le bon affichage avant
+    d'afficher la modale. Ainsi, le champ Pseudo est caché
+    à chaque ouverture en mode connexion.
+  */
+  setAuthMode(mode);
+
+  closeOtherVisibleModals();
+
+  if (authForm) {
+    authForm.reset();
+  }
+
+  authModal.hidden = false;
   authModal.classList.add("visible");
+  authModal.setAttribute("aria-hidden", "false");
+
+  document.body.classList.add("modal-open");
+
   showAuthMessage("");
+
+  window.setTimeout(() => {
+    const targetInput = document.getElementById(
+      authMode === "signup" ? "username" : "authEmail"
+    );
+
+    targetInput?.focus();
+  }, 50);
 }
 
 function closeAuthModal() {
@@ -100,11 +181,15 @@ function closeAuthModal() {
 
   if (authModal) {
     authModal.classList.remove("visible");
+    authModal.hidden = true;
+    authModal.setAttribute("aria-hidden", "true");
   }
 
   if (authForm) {
     authForm.reset();
   }
+
+  document.body.classList.remove("modal-open");
 
   showAuthMessage("");
 }
@@ -146,7 +231,9 @@ function updateNavigation() {
   } = getAuthElements();
 
   const isLoggedIn = Boolean(currentUser);
-  const isAdmin = Boolean(currentUser && currentProfile?.is_admin);
+  const isAdmin = Boolean(
+    currentUser && currentProfile?.is_admin
+  );
 
   if (isLoggedIn) {
     if (authButton) {
@@ -169,10 +256,6 @@ function updateNavigation() {
       userGreeting.textContent = `Bonjour, ${username}`;
     }
 
-    /*
-      Le lien "La régie" ne devient visible
-      que pour les profils ayant is_admin = true.
-    */
     if (adminLink) {
       adminLink.hidden = !isAdmin;
     }
@@ -181,10 +264,6 @@ function updateNavigation() {
 
     if (navAvatar) {
       if (avatarUrl) {
-        /*
-          ?v= force le navigateur à recharger l'image
-          après un changement de photo.
-        */
         navAvatar.src = `${avatarUrl}?v=${Date.now()}`;
         navAvatar.alt = `Photo de profil de ${username}`;
         navAvatar.hidden = false;
@@ -194,34 +273,32 @@ function updateNavigation() {
         navAvatar.alt = "";
       }
     }
-  } else {
-    if (authButton) {
-      authButton.hidden = false;
-      authButton.style.display = "inline-block";
-    }
 
-    if (userMenu) {
-      userMenu.hidden = true;
-      userMenu.style.display = "none";
-    }
+    return;
+  }
 
-    if (userGreeting) {
-      userGreeting.textContent = "";
-    }
+  if (authButton) {
+    authButton.hidden = false;
+    authButton.style.display = "inline-block";
+  }
 
-    /*
-      Important : on re-cache le lien admin
-      à la déconnexion.
-    */
-    if (adminLink) {
-      adminLink.hidden = true;
-    }
+  if (userMenu) {
+    userMenu.hidden = true;
+    userMenu.style.display = "none";
+  }
 
-    if (navAvatar) {
-      navAvatar.hidden = true;
-      navAvatar.removeAttribute("src");
-      navAvatar.alt = "";
-    }
+  if (userGreeting) {
+    userGreeting.textContent = "";
+  }
+
+  if (adminLink) {
+    adminLink.hidden = true;
+  }
+
+  if (navAvatar) {
+    navAvatar.hidden = true;
+    navAvatar.removeAttribute("src");
+    navAvatar.alt = "";
   }
 }
 
@@ -249,8 +326,7 @@ function setupAuth() {
 
   if (authButton) {
     authButton.addEventListener("click", () => {
-      setAuthMode("login");
-      openAuthModal();
+      openAuthModal("login");
     });
   }
 
@@ -287,6 +363,16 @@ function setupAuth() {
         return;
       }
 
+      if (authMode === "signup" && !username) {
+        showAuthMessage(
+          "Choisis un pseudo pour créer ton compte.",
+          "error"
+        );
+
+        usernameInput?.focus();
+        return;
+      }
+
       authSubmitButton.disabled = true;
       authSubmitButton.textContent = "Un instant…";
 
@@ -314,6 +400,7 @@ function setupAuth() {
           );
 
           authForm.reset();
+          setAuthMode("login");
         } else {
           const { error } =
             await supabaseClient.auth.signInWithPassword({
@@ -328,11 +415,18 @@ function setupAuth() {
           closeAuthModal();
         }
       } catch (error) {
-        console.error("Erreur d’authentification :", error);
-        showAuthMessage(error.message, "error");
+        console.error(
+          "Erreur d’authentification :",
+          error
+        );
+
+        showAuthMessage(
+          error.message ||
+            "Une erreur est survenue. Réessaie dans un instant.",
+          "error"
+        );
       } finally {
         authSubmitButton.disabled = false;
-
         authSubmitButton.textContent =
           authMode === "signup"
             ? "Créer mon compte"
@@ -360,7 +454,10 @@ function setupAuth() {
           window.location.href = "index.html";
         }
       } catch (error) {
-        console.error("Erreur de déconnexion :", error);
+        console.error(
+          "Erreur de déconnexion :",
+          error
+        );
 
         alert(
           "La déconnexion n'a pas pu être effectuée. Réessaie."
@@ -370,7 +467,10 @@ function setupAuth() {
   }
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
+    if (
+      event.key === "Escape" &&
+      authModal?.classList.contains("visible")
+    ) {
       closeAuthModal();
     }
   });
@@ -378,6 +478,12 @@ function setupAuth() {
 
 async function initialiseAuth() {
   setupAuth();
+
+  /*
+    État initial cohérent, même si un autre script ouvre
+    directement la modale plus tard.
+  */
+  setAuthMode("login");
 
   const {
     data: { session }
