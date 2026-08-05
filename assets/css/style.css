@@ -6823,3 +6823,27 @@ body {
     max-height: calc(100vh - 2rem);
   }
 }
+
+/* L'attribut HTML hidden doit toujours réellement cacher un élément.
+   Cette règle corrige les conflits avec d'anciennes règles display:flex,
+   display:grid ou display:block appliquées aux champs de formulaires. */
+[hidden] {
+  display: none !important;
+}
+
+/* Évite le défilement de la page derrière une modale ouverte. */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* La modale non visible ne doit jamais intercepter les clics. */
+.modal:not(.visible),
+.modal-overlay:not(.visible) {
+  pointer-events: none;
+}
+
+/* La modale visible peut recevoir les clics. */
+.modal.visible,
+.modal-overlay.visible {
+  pointer-events: auto;
+}
