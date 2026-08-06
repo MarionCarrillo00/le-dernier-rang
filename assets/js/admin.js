@@ -177,7 +177,7 @@ function renderAdminReviewRow(review) {
   return `
     <tr>
       <td>
-        <a href="member.html?id=${encodeURIComponent(review.user_id)}">
+        <a href="membre.html?id=${encodeURIComponent(review.user_id)}">
           ${adminEscapeHTML(authorName)}
         </a>
       </td>
@@ -319,7 +319,7 @@ function renderAdminMemberCard(profile) {
 
         <a
           class="button-text"
-          href="member.html?id=${encodeURIComponent(profile.id)}"
+          href="membre.html?id=${encodeURIComponent(profile.id)}"
         >
           Voir le profil
         </a>
