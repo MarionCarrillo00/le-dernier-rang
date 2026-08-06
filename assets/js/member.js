@@ -658,6 +658,44 @@ async function getPublicReviewsForMember(userId) {
    RENDU DU PROFIL PUBLIC
    ===================================================== */
 
+async function getPublicFriendsForMember(userId) {
+  const { data: friendships, error } = await supabaseClient
+    .from("friendships")
+    .select("requester_id, recipient_id, status")
+    .eq("status", "accepted")
+    .or(`requester_id.eq.${userId},recipient_id.eq.${userId}`);
+
+  if (error) {
+    throw error;
+  }
+
+  const friendIds = [
+    ...new Set(
+      (friendships || []).map((friendship) =>
+        friendship.requester_id === userId
+          ? friendship.recipient_id
+          : friendship.requester_id
+      )
+    ),
+  ];
+
+  if (!friendIds.length) {
+    return [];
+  }
+
+  const { data: profiles, error: profilesError } = await supabaseClient
+    .from("profiles")
+    .select("id, username, bio, avatar_url")
+    .in("id", friendIds)
+    .order("username", { ascending: true });
+
+  if (profilesError) {
+    throw profilesError;
+  }
+
+  return profiles || [];
+}
+
 function renderMemberPage(
   profile,
   reviews,
