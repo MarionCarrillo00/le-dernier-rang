@@ -693,6 +693,10 @@ function renderFilmPage(
               : ""
           }
 
+          <button class="button-secondary recommendation-button" type="button" id="recommendFilmButton">
+            ♡ Suggérer à un ami
+          </button>
+
           <button
             class="button-secondary"
             type="button"
@@ -766,8 +770,14 @@ reviews
     </section>
   `;
 
-  setupFilmLikeButtons();
-  setupListButtons();
+
+setupFilmLikeButtons();
+setupListButtons();
+
+if (typeof setupFilmRecommendationButton === "function") {
+  setupFilmRecommendationButton();
+}
+
 }
 
 /* =====================================================
