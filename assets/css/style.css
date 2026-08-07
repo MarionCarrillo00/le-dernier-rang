@@ -6946,3 +6946,240 @@ body.modal-open {
   opacity: 1 !important;
 }
 
+/* =====================================================
+   PROFIL — FILMS SOUFFLÉS PAR LE CERCLE
+   ===================================================== */
+
+.profile-recommendations-section {
+  margin-top: 1.5rem;
+}
+
+.profile-recommendations-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.8rem;
+  height: 1.8rem;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  background: var(--red);
+  color: var(--cream);
+  font-family: Arial, sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.received-recommendations-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.received-recommendation-card {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 0.9rem;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  box-shadow: 0 8px 24px rgba(61, 43, 32, 0.06);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.received-recommendation-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+.received-recommendation-card.is-unseen {
+  border-left: 3px solid var(--red);
+}
+
+.recommendation-poster-link {
+  display: block;
+  width: 78px;
+  height: 116px;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+.recommendation-poster-link img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.recommendation-poster-placeholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  height: 100%;
+  padding: 0.55rem;
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.recommendation-poster-placeholder span {
+  margin-bottom: 0.3rem;
+  color: var(--gold);
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+}
+
+.recommendation-poster-placeholder strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.78rem;
+  line-height: 1.15;
+}
+
+.received-recommendation-content {
+  min-width: 0;
+}
+
+.recommendation-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.recommendation-card-top h3 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.recommendation-card-top h3 a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.recommendation-card-top h3 a:hover {
+  color: var(--deep-red);
+}
+
+.recommendation-movie-meta {
+  margin: 0.25rem 0 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.recommendation-new-badge {
+  flex: 0 0 auto;
+  padding: 0.24rem 0.42rem;
+  background: rgba(184, 68, 68, 0.1);
+  color: var(--deep-red);
+  font-family: Arial, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.recommendation-sender {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.recommendation-sender-link {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.recommendation-sender-avatar {
+  display: block;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.recommendation-sender-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold);
+  color: var(--cream);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.recommendation-sender p {
+  margin: 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.recommendation-sender p a {
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.recommendation-sender p a:hover {
+  color: var(--deep-red);
+}
+
+.recommendation-message {
+  margin: 0.75rem 0;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--gold);
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.86rem;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.recommendation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.recommendation-actions .button-primary {
+  padding: 0.52rem 0.7rem;
+  font-size: 0.72rem;
+}
+
+.recommendation-actions .button-text {
+  font-size: 0.74rem;
+}
+
+.recommendations-empty-state,
+.recommendations-loading {
+  padding: 1.15rem;
+  border: 1px dashed var(--line);
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 650px) {
+  .received-recommendation-card {
+    grid-template-columns: 66px minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .recommendation-poster-link {
+    width: 66px;
+    height: 99px;
+  }
+
+  .recommendation-actions {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+}
+
