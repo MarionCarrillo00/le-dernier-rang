@@ -1182,16 +1182,21 @@ function getActivityMessage(notification) {
     };
   }
 
-  if (notification.type === "movie_recommendation") {
-    const recommendedMovieTitle =
-      notification.movie?.title || "un film";
+  
+if (notification.type === "movie_recommendation") {
+  const recommendedMovieTitle =
+    notification.movie?.title || "un film";
 
-    return {
-      main: `${actorName} t’a soufflé un film`,
-      detail: `« ${recommendedMovieTitle} »`,
-      destination: "#receivedRecommendationsGrid"
-    };
-  }
+  const destination = notification.recommendation_id
+    ? `#recommendation-${notification.recommendation_id}`
+    : "#receivedRecommendationsGrid";
+
+  return {
+    main: `${actorName} t’a soufflé un film`,
+    detail: `« ${recommendedMovieTitle} »`,
+    destination
+  };
+}
 
   return {
     main: "Une nouvelle activité concerne ton carnet",
