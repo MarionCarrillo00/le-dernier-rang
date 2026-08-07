@@ -6791,3 +6791,127 @@ body.modal-open {
     max-height: calc(100vh - 2rem);
   }
 }
+
+
+/* =====================================================
+   SUGGESTIONS DE FILMS ENTRE AMIS
+   ===================================================== */
+
+.recommendation-modal-box {
+  max-width: 620px;
+}
+
+.recommendation-modal-intro {
+  margin: 0 0 1.25rem;
+  color: var(--grey);
+  line-height: 1.6;
+}
+
+.recommendation-friends {
+  margin: 1rem 0 1.4rem;
+}
+
+.recommendation-friends-label {
+  margin: 0 0 0.7rem;
+  font-family: Arial, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.recommendation-friends-list {
+  display: grid;
+  gap: 0.65rem;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.recommendation-friend-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--cream);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.recommendation-friend-option:hover {
+  border-color: var(--red);
+  background: #fff7f0;
+}
+
+.recommendation-friend-option input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+
+.recommendation-friend-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--red);
+  color: white;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: bold;
+}
+
+.recommendation-friend-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.recommendation-friend-name {
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.recommendation-character-count {
+  margin-top: 0.45rem;
+  text-align: right;
+}
+
+.recommendation-character-count .limit-reached {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.recommendation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.35rem;
+}
+
+.recommendation-empty-state {
+  margin: 0;
+  text-align: left;
+}
+
+@media (max-width: 650px) {
+  .recommendation-actions {
+    flex-direction: column-reverse;
+  }
+
+  .recommendation-actions .button-primary,
+  .recommendation-actions .button-secondary {
+    width: 100%;
+  }
+}
+
