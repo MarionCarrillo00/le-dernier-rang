@@ -91,11 +91,37 @@ function getTalentCreditFilterKey(label) {
     .replace(/\s+/g, "-");
 }
 
+function formatTalentJobLabel(job) {
+  const labels = {
+    Director: "Réalisation",
+    Writer: "Scénario",
+    Screenplay: "Scénario",
+    Story: "Histoire",
+    Producer: "Production",
+    "Executive Producer": "Production exécutive",
+    "Original Film Writer": "Scénario original",
+    Dialogue: "Dialogues",
+    "Key Grip": "Machinerie",
+    Grip: "Machinerie",
+    Editor: "Montage",
+    "Director of Photography": "Direction de la photographie",
+    "Animation Director": "Réalisation animation",
+    "Art Direction": "Direction artistique",
+    "Production Design": "Décors",
+    "Costume Design": "Costumes",
+    "Makeup Artist": "Maquillage",
+    "Sound Designer": "Conception sonore",
+    "Original Music Composer": "Musique originale"
+  };
+
+  return labels[job] || job;
+}
+
 function getTalentFilmographyFilters(credits) {
   const filters = [
     {
       key: "all",
-      label: "Tout"
+      label: "Toute la filmographie"
     }
   ];
 
@@ -120,12 +146,17 @@ function getTalentFilmographyFilters(credits) {
             .filter(Boolean)
         )
     )
-  ];
+  ].sort((first, second) =>
+    formatTalentJobLabel(first).localeCompare(
+      formatTalentJobLabel(second),
+      "fr"
+    )
+  );
 
   jobs.forEach((job) => {
     filters.push({
       key: `job-${getTalentCreditFilterKey(job)}`,
-      label: job
+      label: formatTalentJobLabel(job)
     });
   });
 
@@ -306,7 +337,6 @@ function renderTalentHero(person) {
   const biography = person.biography?.trim();
 
   const birthDate = formatTalentDate(person.birthday);
-
   const deathDate = formatTalentDate(person.deathday);
 
   const lifeDates = [
@@ -402,17 +432,12 @@ function renderTalentFilmography(
     )
   );
 
-  /*
-    Sécurité : si un filtre ne retourne plus de film,
-    retour automatique à l’affichage complet.
-  */
   if (
     selectedTalentCreditFilter !== "all" &&
     filteredCredits.length === 0
   ) {
     selectedTalentCreditFilter = "all";
     visibleTalentFilmCount = TALENT_FILMOGRAPHY_PAGE_SIZE;
-
     filteredCredits = credits;
   }
 
@@ -428,50 +453,40 @@ function renderTalentFilmography(
     ${
       filters.length > 1
         ? `
-          <div
-            class="talent-filmography-filters"
-            aria-label="Filtrer la filmographie par poste"
-          >
-            ${filters
-              .map(
-                (filter) => `
-                  <button
-                    class="talent-filmography-filter ${
-                      filter.key === selectedTalentCreditFilter
-                        ? "is-active"
-                        : ""
-                    }"
-                    type="button"
-                    data-talent-credit-filter="${escapeHTML(
-                      filter.key
-                    )}"
-                    aria-pressed="${
-                      filter.key === selectedTalentCreditFilter
-                        ? "true"
-                        : "false"
-                    }"
-                  >
-                    ${escapeHTML(filter.label)}
-                  </button>
-                `
-              )
-              .join("")}
+          <div class="talent-filmography-filter-wrap">
+            <label
+              class="talent-filmography-filter-label"
+              for="talentFilmographyFilter"
+            >
+              Afficher
+            </label>
+
+            <select
+              id="talentFilmographyFilter"
+              class="talent-filmography-select"
+              aria-label="Filtrer la filmographie par poste"
+            >
+              ${filters
+                .map(
+                  (filter) => `
+                    <option
+                      value="${escapeHTML(filter.key)}"
+                      ${
+                        filter.key === selectedTalentCreditFilter
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      ${escapeHTML(filter.label)}
+                    </option>
+                  `
+                )
+                .join("")}
+            </select>
           </div>
         `
         : ""
     }
-
-    <p class="talent-filmography-summary">
-      ${
-        selectedTalentCreditFilter === "all"
-          ? `${filteredCredits.length} film${
-              filteredCredits.length > 1 ? "s" : ""
-            }`
-          : `${filteredCredits.length} film${
-              filteredCredits.length > 1 ? "s" : ""
-            } pour ce poste`
-      }
-    </p>
 
     <div class="talent-filmography-grid">
       ${visibleCredits
@@ -592,19 +607,21 @@ function renderTalentFilmographyArea() {
 }
 
 function setupTalentFilmographyInteractions() {
-  document
-    .querySelectorAll("[data-talent-credit-filter]")
-    .forEach((button) => {
-      button.addEventListener("click", () => {
-        selectedTalentCreditFilter =
-          button.dataset.talentCreditFilter || "all";
+  const filterSelect = document.getElementById(
+    "talentFilmographyFilter"
+  );
 
-        visibleTalentFilmCount =
-          TALENT_FILMOGRAPHY_PAGE_SIZE;
+  if (filterSelect) {
+    filterSelect.addEventListener("change", () => {
+      selectedTalentCreditFilter =
+        filterSelect.value || "all";
 
-        renderTalentFilmographyArea();
-      });
+      visibleTalentFilmCount =
+        TALENT_FILMOGRAPHY_PAGE_SIZE;
+
+      renderTalentFilmographyArea();
     });
+  }
 
   const showMoreButton = document.getElementById(
     "showMoreTalentFilmsButton"
@@ -657,7 +674,6 @@ function renderTalentPage(result, catalogMovies, reviews) {
   }
 
   const person = result.person || {};
-
   const credits = result.credits || [];
 
   const catalogMoviesByTmdbId = Object.fromEntries(
@@ -667,12 +683,7 @@ function renderTalentPage(result, catalogMovies, reviews) {
     ])
   );
 
-  /*
-    État de départ : toujours la filmographie complète,
-    avec les dix-huit premiers films visibles.
-  */
   talentFilmographyCredits = credits;
-
   talentCatalogMoviesByTmdbId =
     catalogMoviesByTmdbId;
 
