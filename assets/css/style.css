@@ -7769,3 +7769,51 @@ body.modal-open {
   }
 }
 
+/* =====================================================
+   TALENT — FILTRE DE FILMOGRAPHIE
+   ===================================================== */
+
+.talent-filmography-filter-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: fit-content;
+}
+
+.talent-filmography-filter-label {
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.76rem;
+}
+
+.talent-filmography-select {
+  max-width: min(100%, 330px);
+  padding: 0.6rem 2.3rem 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background-color: var(--cream);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+}
+
+.talent-filmography-select:hover,
+.talent-filmography-select:focus {
+  border-color: var(--red);
+  outline: none;
+}
+
+@media (max-width: 650px) {
+  .talent-filmography-filter-wrap {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .talent-filmography-select {
+    width: 100%;
+    max-width: none;
+  }
+}
+
