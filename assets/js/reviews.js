@@ -811,6 +811,7 @@ function setupReviewCommentInteractions() {
    CARTES DE MICROCRITIQUES
    ===================================================== */
 
+
 function createMovieCard(review, index, options = {}) {
   const movie = review.movies || {};
   const genres = movie.genres || [];
@@ -825,11 +826,18 @@ function createMovieCard(review, index, options = {}) {
 
   const authorInitial = author.charAt(0).toUpperCase() || "?";
 
+  /*
+    Le contenu doit être défini avant de calculer la date :
+    une note seule ne reçoit pas de date visible.
+  */
+  const reviewContent = String(review.content || "").trim();
+
   const reviewDate = reviewContent
     ? formatReviewCommentDate(review.created_at)
     : "";
 
   const authorProfileLink = review.user_id
+
     ? `membre.html?id=${encodeURIComponent(review.user_id)}`
     : "";
 
@@ -854,8 +862,6 @@ function createMovieCard(review, index, options = {}) {
 
     window.history.replaceState({}, "", cleanUrl);
   }
-
-  const reviewContent = String(review.content || "").trim();
   
 const isNoteOnly = !reviewContent;
 
