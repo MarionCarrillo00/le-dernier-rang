@@ -7283,3 +7283,44 @@ body.modal-open {
   line-height: 1.2;
 }
 
+
+/* =====================================================
+   MICROCRITIQUES — DATE DE PUBLICATION
+   ===================================================== */
+
+.review-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.review-author-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  min-width: 0;
+}
+
+.review-author .author {
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.76rem;
+  line-height: 1.2;
+}
+
+.review-author-link:hover .author {
+  color: var(--deep-red);
+}
+
+.review-date {
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.66rem;
+  line-height: 1.2;
+}
+
+.review-date-own-profile {
+  display: inline-block;
+  padding-top: 0.1rem;
+}
