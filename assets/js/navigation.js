@@ -36,7 +36,7 @@ function renderNavigation() {
   siteHeader.innerHTML = `
     <nav class="site-navigation" aria-label="Navigation principale">
       <a class="site-logo" href="index.html">
-        Le dernier rang
+        Ciné Mojito
       </a>
 
       <div class="site-navigation-actions">
