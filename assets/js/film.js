@@ -46,6 +46,7 @@ function renderFilmError(message) {
   `;
 }
 
+
 function renderCast(cast) {
   if (!cast || cast.length === 0) {
     return `
@@ -58,41 +59,65 @@ function renderCast(cast) {
   return `
     <div class="cast-grid">
       ${cast
-        .map(
-          (person) => `
-            <article class="cast-member">
-              ${
-                person.profile_url
-                  ? `
-                    <img
-                      src="${escapeHTML(person.profile_url)}"
-                      alt="${escapeHTML(person.name)}"
-                      loading="lazy"
-                    />
-                  `
-                  : `
-                    <div class="cast-placeholder">
-                      ${escapeHTML(person.name.charAt(0) || "?")}
-                    </div>
-                  `
-              }
+        .map((person) => {
+          const name =
+            person.name || "Interprète non précisé·e";
 
-              <div>
-                <strong>${escapeHTML(person.name)}</strong>
+          const talentUrl = person.tmdb_id
+            ? `talent.html?tmdb=${encodeURIComponent(
+                person.tmdb_id
+              )}`
+            : "";
 
-                ${
-                  person.character
-                    ? `<span>${escapeHTML(person.character)}</span>`
-                    : ""
-                }
+          const visualMarkup = person.profile_url
+            ? `
+              <img
+                src="${escapeHTML(person.profile_url)}"
+                alt="${escapeHTML(name)}"
+                loading="lazy"
+              />
+            `
+            : `
+              <div class="cast-placeholder">
+                ${escapeHTML(name.charAt(0) || "?")}
               </div>
-            </article>
-          `
-        )
+            `;
+
+          const textMarkup = `
+            <div>
+              <strong>${escapeHTML(name)}</strong>
+
+              ${
+                person.character
+                  ? `<span>${escapeHTML(person.character)}</span>`
+                  : ""
+              }
+            </div>
+          `;
+
+          return talentUrl
+            ? `
+              <a
+                class="cast-member cast-member-link"
+                href="${talentUrl}"
+                title="Voir la fiche de ${escapeHTML(name)}"
+              >
+                ${visualMarkup}
+                ${textMarkup}
+              </a>
+            `
+            : `
+              <article class="cast-member">
+                ${visualMarkup}
+                ${textMarkup}
+              </article>
+            `;
+        })
         .join("")}
     </div>
   `;
 }
+
 
 /* =====================================================
    LISTES PERSONNALISÉES
@@ -563,10 +588,28 @@ function renderFilmPage(
   const releaseYear =
     tmdbDetails?.release_year || movie.release_year || "—";
 
-  const director =
-    tmdbDetails?.director ||
-    movie.director ||
-    "Réalisateur·rice non précisé·e";
+
+const director =
+  tmdbDetails?.director ||
+  movie.director ||
+  "Réalisateur·rice non précisé·e";
+
+const directorPerson = tmdbDetails?.director_person || null;
+
+const directorMarkup = directorPerson?.tmdb_id
+  ? `
+    <a
+      class="film-talent-link"
+      href="talent.html?tmdb=${encodeURIComponent(
+        directorPerson.tmdb_id
+      )}"
+      title="Voir la fiche de ${escapeHTML(director)}"
+    >
+      ${escapeHTML(director)}
+    </a>
+  `
+  : escapeHTML(director);
+
 
   const overview =
     tmdbDetails?.overview ||
@@ -622,10 +665,12 @@ function renderFilmPage(
             : ""
         }
 
-        <p class="film-subtitle">
-          ${escapeHTML(String(releaseYear))} ·
-          ${escapeHTML(director)}
-        </p>
+
+<p class="film-subtitle">
+  ${escapeHTML(String(releaseYear))} ·
+  ${directorMarkup}
+</p>
+
 
         <div class="tags film-tags">
           ${
