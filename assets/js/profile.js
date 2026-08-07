@@ -978,6 +978,7 @@ function renderActivityAvatar(profile) {
   `;
 }
 
+
 async function getMyNotifications() {
   if (!currentUser) {
     return [];
@@ -993,6 +994,8 @@ async function getMyNotifications() {
       review_id,
       comment_id,
       friendship_id,
+      movie_id,
+      recommendation_id,
       created_at,
       read_at
     `)
@@ -1026,7 +1029,19 @@ async function getMyNotifications() {
     )
   ];
 
-  const [profilesResult, reviewsResult] = await Promise.all([
+  const movieIds = [
+    ...new Set(
+      notifications
+        .map((notification) => notification.movie_id)
+        .filter(Boolean)
+    )
+  ];
+
+  const [
+    profilesResult,
+    reviewsResult,
+    moviesResult
+  ] = await Promise.all([
     actorIds.length
       ? supabaseClient
           .from("profiles")
@@ -1045,6 +1060,17 @@ async function getMyNotifications() {
             )
           `)
           .in("id", reviewIds)
+      : Promise.resolve({ data: [], error: null }),
+
+    movieIds.length
+      ? supabaseClient
+          .from("movies")
+          .select(`
+            id,
+            title,
+            release_year
+          `)
+          .in("id", movieIds)
       : Promise.resolve({ data: [], error: null })
   ]);
 
@@ -1054,6 +1080,10 @@ async function getMyNotifications() {
 
   if (reviewsResult.error) {
     throw reviewsResult.error;
+  }
+
+  if (moviesResult.error) {
+    throw moviesResult.error;
   }
 
   const profilesById = Object.fromEntries(
@@ -1070,12 +1100,22 @@ async function getMyNotifications() {
     ])
   );
 
+  const moviesById = Object.fromEntries(
+    (moviesResult.data || []).map((movie) => [
+      movie.id,
+      movie
+    ])
+  );
+
   return notifications.map((notification) => ({
     ...notification,
     actor: profilesById[notification.actor_id] || null,
-    review: reviewsById[notification.review_id] || null
+    review: reviewsById[notification.review_id] || null,
+    movie: moviesById[notification.movie_id] || null
   }));
 }
+
+
 
 function getActivityMessage(notification) {
   const actorName =
@@ -1130,12 +1170,24 @@ function getActivityMessage(notification) {
     };
   }
 
+  if (notification.type === "movie_recommendation") {
+    const recommendedMovieTitle =
+      notification.movie?.title || "un film";
+
+    return {
+      main: `${actorName} t’a soufflé un film`,
+      detail: `« ${recommendedMovieTitle} »`,
+      destination: "#receivedRecommendationsGrid"
+    };
+  }
+
   return {
     main: "Une nouvelle activité concerne ton carnet",
     detail: "",
     destination: ""
   };
 }
+
 
 function renderActivityItem(notification) {
   const message = getActivityMessage(notification);
@@ -1636,12 +1688,15 @@ function renderReceivedRecommendations(recommendations) {
         `;
 
       return `
-        <article
-          class="received-recommendation-card ${
-            recommendation.seen_at ? "" : "is-unseen"
-          }"
-          data-recommendation-id="${recommendation.id}"
-        >
+
+  <article
+    id="recommendation-${recommendation.id}"
+    class="received-recommendation-card ${
+      recommendation.seen_at ? "" : "is-unseen"
+    }"
+    data-recommendation-id="${recommendation.id}"
+  >
+
           <a
             class="recommendation-poster-link"
             href="${movieUrl}"
