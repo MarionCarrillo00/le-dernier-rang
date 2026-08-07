@@ -7245,3 +7245,41 @@ body.modal-open {
   }
 }
 
+/* =====================================================
+   RÉPONSES AUX MICROCRITIQUES — AUTEUR ET DATE
+   ===================================================== */
+
+.review-comment-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.review-comment-author:hover strong {
+  color: var(--deep-red);
+}
+
+.review-comment-author-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.08rem;
+}
+
+.review-comment-author-meta strong {
+  color: var(--ink);
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.review-comment-date {
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
