@@ -7324,3 +7324,355 @@ body.modal-open {
   display: inline-block;
   padding-top: 0.1rem;
 }
+
+/* =====================================================
+   TALENT — FICHES ACTEURS, RÉALISATEUR·RICES ET CINÉMA
+   ===================================================== */
+
+.talent-page {
+  width: min(1180px, calc(100% - 3rem));
+  margin: 0 auto;
+  padding: 3.5rem 0 5rem;
+}
+
+.talent-page-content {
+  display: grid;
+  gap: 3.5rem;
+}
+
+.talent-loading,
+.talent-error {
+  padding: 3rem;
+  border: 1px solid var(--line);
+  background: var(--cream);
+}
+
+.talent-loading {
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.talent-error h1 {
+  margin-top: 0;
+  font-size: clamp(2rem, 5vw, 4rem);
+}
+
+.talent-error p {
+  max-width: 42rem;
+  margin-bottom: 1.8rem;
+}
+
+/* ---------------------------------
+   Hero
+--------------------------------- */
+
+.talent-hero-card {
+  display: grid;
+  grid-template-columns: minmax(180px, 280px) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: start;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  border: 1px solid var(--line);
+  background: var(--cream);
+  box-shadow: var(--shadow);
+}
+
+.talent-portrait {
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+.talent-portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.talent-portrait-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3rem, 7vw, 6rem);
+}
+
+.talent-main-info {
+  min-width: 0;
+  padding-top: 0.3rem;
+}
+
+.talent-main-info h1 {
+  margin: 0.35rem 0 0;
+  color: var(--ink);
+  font-size: clamp(2.5rem, 6vw, 5.4rem);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+}
+
+.talent-department {
+  margin: 1rem 0 0;
+  color: var(--red);
+  font-family: Arial, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.talent-life-dates {
+  margin: 0.75rem 0 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.talent-biography {
+  max-width: 47rem;
+  margin-top: 1.7rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--line);
+}
+
+.talent-biography p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  white-space: pre-line;
+}
+
+/* ---------------------------------
+   Sections
+--------------------------------- */
+
+.talent-section {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.talent-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.talent-section-heading h2 {
+  margin: 0.25rem 0 0;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-weight: 400;
+}
+
+.talent-filmography-count {
+  flex: 0 0 auto;
+  padding-bottom: 0.25rem;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.75rem;
+}
+
+/* ---------------------------------
+   Filmographie
+--------------------------------- */
+
+.talent-filmography-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.talent-film-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.talent-film-poster {
+  display: block;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+.talent-film-poster img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.talent-film-card:hover .talent-film-poster img {
+  transform: scale(1.035);
+}
+
+.talent-film-poster-placeholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.talent-film-poster-placeholder span {
+  margin-bottom: 0.35rem;
+  color: var(--gold);
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+}
+
+.talent-film-poster-placeholder strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  line-height: 1.15;
+}
+
+.talent-film-content {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.8rem 0.15rem 0;
+}
+
+.talent-film-content h3 {
+  margin: 0;
+  font-size: 1.03rem;
+  line-height: 1.15;
+}
+
+.talent-film-content h3 a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.talent-film-content h3 a:hover {
+  color: var(--deep-red);
+}
+
+.talent-film-year,
+.talent-film-credit {
+  margin: 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.talent-film-credit {
+  color: var(--red);
+}
+
+.talent-film-in-carnet {
+  width: fit-content;
+  margin-top: 0.25rem;
+  padding: 0.28rem 0.42rem;
+  background: rgba(184, 68, 68, 0.1);
+  color: var(--deep-red);
+  font-family: Arial, sans-serif;
+  font-size: 0.61rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.talent-carnet-section {
+  padding-top: 0.5rem;
+}
+
+.talent-reviews-grid {
+  grid-template-columns: 1fr;
+}
+
+.talent-reviews-empty-state {
+  max-width: none;
+}
+
+/* ---------------------------------
+   Liens talent depuis les fiches films
+--------------------------------- */
+
+.film-talent-link {
+  color: inherit;
+  text-decoration-color: rgba(184, 68, 68, 0.45);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.film-talent-link:hover {
+  color: var(--deep-red);
+  text-decoration-color: var(--deep-red);
+}
+
+.cast-member-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.cast-member-link:hover strong {
+  color: var(--deep-red);
+}
+
+/* ---------------------------------
+   Responsive
+--------------------------------- */
+
+@media (max-width: 950px) {
+  .talent-filmography-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .talent-page {
+    width: min(100% - 2rem, 1180px);
+    padding-top: 2rem;
+  }
+
+  .talent-page-content {
+    gap: 2.5rem;
+  }
+
+  .talent-hero-card {
+    grid-template-columns: 115px minmax(0, 1fr);
+    gap: 1.1rem;
+    padding: 1rem;
+  }
+
+  .talent-main-info h1 {
+    font-size: clamp(2.25rem, 13vw, 3.5rem);
+  }
+
+  .talent-biography {
+    grid-column: 1 / -1;
+    margin-top: 0.3rem;
+  }
+
+  .talent-filmography-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .talent-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .talent-filmography-count {
+    padding-bottom: 0;
+  }
+}
+
