@@ -3,6 +3,21 @@ const talentPageContent = document.getElementById(
   "talentPageContent"
 );
 
+/* =====================================================
+   ÉTAT DE LA FILMOGRAPHIE
+   ===================================================== */
+
+const TALENT_FILMOGRAPHY_PAGE_SIZE = 18;
+
+let talentFilmographyCredits = [];
+let talentCatalogMoviesByTmdbId = {};
+let selectedTalentCreditFilter = "all";
+let visibleTalentFilmCount = TALENT_FILMOGRAPHY_PAGE_SIZE;
+
+/* =====================================================
+   URL ET FORMATAGE
+   ===================================================== */
+
 function getTalentIdFromUrl() {
   const params = new URLSearchParams(window.location.search);
 
@@ -65,6 +80,85 @@ function formatTalentCredit(credit) {
   return labels.join(" · ");
 }
 
+/* =====================================================
+   FILTRES DE FILMOGRAPHIE
+   ===================================================== */
+
+function getTalentCreditFilterKey(label) {
+  return String(label || "")
+    .trim()
+    .toLocaleLowerCase("fr-FR")
+    .replace(/\s+/g, "-");
+}
+
+function getTalentFilmographyFilters(credits) {
+  const filters = [
+    {
+      key: "all",
+      label: "Tout"
+    }
+  ];
+
+  const hasActingCredits = credits.some(
+    (credit) => Boolean(credit.role)
+  );
+
+  if (hasActingCredits) {
+    filters.push({
+      key: "acting",
+      label: "Interprétation"
+    });
+  }
+
+  const jobs = [
+    ...new Set(
+      credits
+        .flatMap((credit) =>
+          String(credit.job || "")
+            .split(",")
+            .map((job) => job.trim())
+            .filter(Boolean)
+        )
+    )
+  ];
+
+  jobs.forEach((job) => {
+    filters.push({
+      key: `job-${getTalentCreditFilterKey(job)}`,
+      label: job
+    });
+  });
+
+  return filters;
+}
+
+function creditMatchesTalentFilter(credit, filterKey) {
+  if (filterKey === "all") {
+    return true;
+  }
+
+  if (filterKey === "acting") {
+    return Boolean(credit.role);
+  }
+
+  if (!filterKey.startsWith("job-")) {
+    return true;
+  }
+
+  const requestedJob = filterKey.replace("job-", "");
+
+  const creditJobs = String(credit.job || "")
+    .split(",")
+    .map((job) => getTalentCreditFilterKey(job))
+    .filter(Boolean);
+
+  return creditJobs.includes(requestedJob);
+}
+
+/* =====================================================
+   ERREURS
+   ===================================================== */
+
 function renderTalentError(message) {
   if (!talentPageContent) {
     return;
@@ -82,6 +176,10 @@ function renderTalentError(message) {
     </section>
   `;
 }
+
+/* =====================================================
+   DONNÉES TMDB
+   ===================================================== */
 
 async function getTmdbTalentDetails(personId) {
   const { data, error } = await supabaseClient.functions.invoke(
@@ -105,6 +203,10 @@ async function getTmdbTalentDetails(personId) {
 
   return data.result;
 }
+
+/* =====================================================
+   DONNÉES CINÉ MOJITO
+   ===================================================== */
 
 async function getCatalogMoviesForTalentCredits(credits) {
   const tmdbIds = [
@@ -190,6 +292,10 @@ async function getReviewsForTalentMovies(movies) {
   return enrichReviews(reviewsWithAuthors);
 }
 
+/* =====================================================
+   RENDU — HERO
+   ===================================================== */
+
 function renderTalentHero(person) {
   const name = person.name || "Talent non précisé·e";
 
@@ -271,7 +377,14 @@ function renderTalentHero(person) {
   `;
 }
 
-function renderTalentFilmography(credits, catalogMoviesByTmdbId) {
+/* =====================================================
+   RENDU — FILMOGRAPHIE
+   ===================================================== */
+
+function renderTalentFilmography(
+  credits,
+  catalogMoviesByTmdbId
+) {
   if (!credits.length) {
     return `
       <div class="empty-state">
@@ -280,9 +393,88 @@ function renderTalentFilmography(credits, catalogMoviesByTmdbId) {
     `;
   }
 
+  const filters = getTalentFilmographyFilters(credits);
+
+  let filteredCredits = credits.filter((credit) =>
+    creditMatchesTalentFilter(
+      credit,
+      selectedTalentCreditFilter
+    )
+  );
+
+  /*
+    Sécurité : si un filtre ne retourne plus de film,
+    retour automatique à l’affichage complet.
+  */
+  if (
+    selectedTalentCreditFilter !== "all" &&
+    filteredCredits.length === 0
+  ) {
+    selectedTalentCreditFilter = "all";
+    visibleTalentFilmCount = TALENT_FILMOGRAPHY_PAGE_SIZE;
+
+    filteredCredits = credits;
+  }
+
+  const visibleCredits = filteredCredits.slice(
+    0,
+    visibleTalentFilmCount
+  );
+
+  const hasMoreCredits =
+    filteredCredits.length > visibleCredits.length;
+
   return `
+    ${
+      filters.length > 1
+        ? `
+          <div
+            class="talent-filmography-filters"
+            aria-label="Filtrer la filmographie par poste"
+          >
+            ${filters
+              .map(
+                (filter) => `
+                  <button
+                    class="talent-filmography-filter ${
+                      filter.key === selectedTalentCreditFilter
+                        ? "is-active"
+                        : ""
+                    }"
+                    type="button"
+                    data-talent-credit-filter="${escapeHTML(
+                      filter.key
+                    )}"
+                    aria-pressed="${
+                      filter.key === selectedTalentCreditFilter
+                        ? "true"
+                        : "false"
+                    }"
+                  >
+                    ${escapeHTML(filter.label)}
+                  </button>
+                `
+              )
+              .join("")}
+          </div>
+        `
+        : ""
+    }
+
+    <p class="talent-filmography-summary">
+      ${
+        selectedTalentCreditFilter === "all"
+          ? `${filteredCredits.length} film${
+              filteredCredits.length > 1 ? "s" : ""
+            }`
+          : `${filteredCredits.length} film${
+              filteredCredits.length > 1 ? "s" : ""
+            } pour ce poste`
+      }
+    </p>
+
     <div class="talent-filmography-grid">
-      ${credits
+      ${visibleCredits
         .map((credit) => {
           const localMovie =
             catalogMoviesByTmdbId[credit.tmdb_id] || null;
@@ -360,8 +552,77 @@ function renderTalentFilmography(credits, catalogMoviesByTmdbId) {
         })
         .join("")}
     </div>
+
+    ${
+      hasMoreCredits
+        ? `
+          <div class="talent-filmography-more">
+            <button
+              class="button-secondary"
+              type="button"
+              id="showMoreTalentFilmsButton"
+            >
+              Voir plus de films
+              <span>
+                (${filteredCredits.length - visibleCredits.length})
+              </span>
+            </button>
+          </div>
+        `
+        : ""
+    }
   `;
 }
+
+function renderTalentFilmographyArea() {
+  const area = document.getElementById(
+    "talentFilmographyArea"
+  );
+
+  if (!area) {
+    return;
+  }
+
+  area.innerHTML = renderTalentFilmography(
+    talentFilmographyCredits,
+    talentCatalogMoviesByTmdbId
+  );
+
+  setupTalentFilmographyInteractions();
+}
+
+function setupTalentFilmographyInteractions() {
+  document
+    .querySelectorAll("[data-talent-credit-filter]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedTalentCreditFilter =
+          button.dataset.talentCreditFilter || "all";
+
+        visibleTalentFilmCount =
+          TALENT_FILMOGRAPHY_PAGE_SIZE;
+
+        renderTalentFilmographyArea();
+      });
+    });
+
+  const showMoreButton = document.getElementById(
+    "showMoreTalentFilmsButton"
+  );
+
+  if (showMoreButton) {
+    showMoreButton.addEventListener("click", () => {
+      visibleTalentFilmCount +=
+        TALENT_FILMOGRAPHY_PAGE_SIZE;
+
+      renderTalentFilmographyArea();
+    });
+  }
+}
+
+/* =====================================================
+   RENDU — CRITIQUES CINÉ MOJITO
+   ===================================================== */
 
 function renderTalentReviews(reviews) {
   if (!reviews.length) {
@@ -386,6 +647,10 @@ function renderTalentReviews(reviews) {
   `;
 }
 
+/* =====================================================
+   RENDU — PAGE COMPLÈTE
+   ===================================================== */
+
 function renderTalentPage(result, catalogMovies, reviews) {
   if (!talentPageContent) {
     return;
@@ -401,6 +666,20 @@ function renderTalentPage(result, catalogMovies, reviews) {
       movie
     ])
   );
+
+  /*
+    État de départ : toujours la filmographie complète,
+    avec les dix-huit premiers films visibles.
+  */
+  talentFilmographyCredits = credits;
+
+  talentCatalogMoviesByTmdbId =
+    catalogMoviesByTmdbId;
+
+  selectedTalentCreditFilter = "all";
+
+  visibleTalentFilmCount =
+    TALENT_FILMOGRAPHY_PAGE_SIZE;
 
   document.title =
     `${person.name || "Talent"} — Ciné Mojito`;
@@ -423,10 +702,12 @@ function renderTalentPage(result, catalogMovies, reviews) {
         </span>
       </div>
 
-      ${renderTalentFilmography(
-        credits,
-        catalogMoviesByTmdbId
-      )}
+      <div id="talentFilmographyArea">
+        ${renderTalentFilmography(
+          credits,
+          catalogMoviesByTmdbId
+        )}
+      </div>
     </section>
 
     <section class="talent-section talent-carnet-section">
@@ -448,13 +729,13 @@ function renderTalentPage(result, catalogMovies, reviews) {
     </section>
   `;
 
-  /*
-    Les cartes rendues dans cette page peuvent contenir
-    des boutons de like : on reproduit le comportement
-    déjà présent sur l'accueil et la fiche film.
-  */
+  setupTalentFilmographyInteractions();
   setupTalentLikeButtons();
 }
+
+/* =====================================================
+   INTERACTIONS — LIKES
+   ===================================================== */
 
 function setupTalentLikeButtons() {
   document.querySelectorAll(".favorite").forEach((button) => {
@@ -481,6 +762,7 @@ function setupTalentLikeButtons() {
 
       try {
         await toggleReviewLike(reviewId);
+
         await initialiseTalentPage();
       } catch (error) {
         console.error(
@@ -497,6 +779,10 @@ function setupTalentLikeButtons() {
     });
   });
 }
+
+/* =====================================================
+   INITIALISATION
+   ===================================================== */
 
 async function initialiseTalentPage() {
   const personId = getTalentIdFromUrl();
@@ -522,11 +808,6 @@ async function initialiseTalentPage() {
 
     const credits = result.credits || [];
 
-    /*
-      La filmographie TMDB est la source de référence.
-      On charge ensuite les films déjà présents localement,
-      puis les critiques liées à ces films.
-    */
     const catalogMovies =
       await getCatalogMoviesForTalentCredits(credits);
 
