@@ -76,6 +76,18 @@ const markAllNotificationsReadButton = document.getElementById(
 );
 
 /* =====================================================
+   RECOMMANDATIONS DE FILMS REÇUES
+   ===================================================== */
+
+const receivedRecommendationsGrid = document.getElementById(
+  "receivedRecommendationsGrid"
+);
+
+const receivedRecommendationsCount = document.getElementById(
+  "receivedRecommendationsCount"
+);
+
+/* =====================================================
    MODALE D'ÉDITION DES MICROCRITIQUES
    ===================================================== */
 
@@ -102,7 +114,6 @@ const editReviewTitle = document.getElementById(
 const editReviewMovieTitle = document.getElementById(
   "editReviewMovieTitle"
 );
-
 
 const editReviewRatingInput = document.getElementById(
   "editReviewRatingInput"
@@ -354,7 +365,6 @@ function hideListForm() {
    ÉDITION DES NOTES ET MICROCRITIQUES
    ===================================================== */
 
-
 function openEditReviewModal(button) {
   if (
     !editReviewModal ||
@@ -376,11 +386,8 @@ function openEditReviewModal(button) {
   );
 
   editReviewTitle.textContent = "Modifier ma note";
-
   editReviewMovieTitle.textContent = movieTitle;
-
   editReviewRatingInput.value = rating;
-
   saveEditReviewButton.textContent = "Enregistrer ma note";
 
   editReviewModal.classList.add("visible");
@@ -390,19 +397,14 @@ function openEditReviewModal(button) {
   }, 50);
 }
 
-
-
 function closeEditReviewModal() {
   if (!editReviewModal) {
     return;
   }
 
   editReviewModal.classList.remove("visible");
-
   editingReviewId = null;
 }
-
-
 
 function setupReviewEditButtons() {
   document.querySelectorAll(".edit-review").forEach((button) => {
@@ -419,7 +421,6 @@ function setupReviewEditButtons() {
       });
     });
 }
-
 
 function updateAddReviewContentCharacterCounter() {
   if (
@@ -856,8 +857,6 @@ function setupFriendRequestButtons() {
 
 /* =====================================================
    MON CERCLE — AMIS ACCEPTÉS
-   Les fonctions getAcceptedFriends() et createFriendsMarkup()
-   viennent de assets/js/friends.js.
    ===================================================== */
 
 function renderMyCircle(friends) {
@@ -1078,7 +1077,6 @@ async function getMyNotifications() {
   }));
 }
 
-
 function getActivityMessage(notification) {
   const actorName =
     notification.actor?.username || "Un membre";
@@ -1138,8 +1136,6 @@ function getActivityMessage(notification) {
     destination: ""
   };
 }
-
-
 
 function renderActivityItem(notification) {
   const message = getActivityMessage(notification);
@@ -1215,7 +1211,6 @@ function renderActivityItem(notification) {
   `;
 }
 
-
 async function markNotificationAsRead(notificationId) {
   if (!currentUser || !notificationId) {
     return;
@@ -1235,7 +1230,6 @@ async function markNotificationAsRead(notificationId) {
   }
 }
 
-
 async function markAllNotificationsAsRead() {
   if (!currentUser) {
     return;
@@ -1253,7 +1247,6 @@ async function markAllNotificationsAsRead() {
     throw error;
   }
 }
-
 
 function refreshActivityUnreadCount() {
   if (!activityUnreadCount) {
@@ -1309,18 +1302,16 @@ function renderActivityFeed(notifications) {
     return;
   }
 
+  if (!currentUser) {
+    activityFeed.innerHTML = "";
+    activityUnreadCount.hidden = true;
 
-if (!currentUser) {
-  activityFeed.innerHTML = "";
-  activityUnreadCount.hidden = true;
+    if (markAllNotificationsReadButton) {
+      markAllNotificationsReadButton.hidden = true;
+    }
 
-  if (markAllNotificationsReadButton) {
-    markAllNotificationsReadButton.hidden = true;
+    return;
   }
-
-  return;
-}
-
 
   const unreadCount = notifications.filter(
     (notification) => !notification.read_at
@@ -1329,9 +1320,9 @@ if (!currentUser) {
   activityUnreadCount.textContent = String(unreadCount);
   activityUnreadCount.hidden = unreadCount === 0;
 
-if (markAllNotificationsReadButton) {
-  markAllNotificationsReadButton.hidden = unreadCount === 0;
-}
+  if (markAllNotificationsReadButton) {
+    markAllNotificationsReadButton.hidden = unreadCount === 0;
+  }
 
   if (!notifications.length) {
     activityFeed.innerHTML = `
@@ -1345,13 +1336,506 @@ if (markAllNotificationsReadButton) {
     return;
   }
 
+  activityFeed.innerHTML = notifications
+    .map(renderActivityItem)
+    .join("");
 
-activityFeed.innerHTML = notifications
-  .map(renderActivityItem)
-  .join("");
+  setupActivityNotificationLinks();
+}
 
-setupActivityNotificationLinks();
+/* =====================================================
+   RECOMMANDATIONS DE FILMS REÇUES
+   ===================================================== */
 
+function formatRecommendationDate(dateValue) {
+  if (!dateValue) {
+    return "";
+  }
+
+  const date = new Date(dateValue);
+
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+}
+
+function getRecommendationInitial(profile) {
+  const username = profile?.username || "Membre";
+
+  return username.charAt(0).toUpperCase() || "?";
+}
+
+function renderRecommendationAvatar(profile) {
+  const username = profile?.username || "Membre";
+
+  if (profile?.avatar_url) {
+    return `
+      <img
+        class="recommendation-sender-avatar"
+        src="${escapeHTML(profile.avatar_url)}"
+        alt="Photo de profil de ${escapeHTML(username)}"
+        loading="lazy"
+      />
+    `;
+  }
+
+  return `
+    <div
+      class="recommendation-sender-avatar recommendation-sender-avatar-placeholder"
+      aria-hidden="true"
+    >
+      ${escapeHTML(getRecommendationInitial(profile))}
+    </div>
+  `;
+}
+
+async function getReceivedRecommendations() {
+  if (!currentUser) {
+    return [];
+  }
+
+  const { data: recommendations, error } = await supabaseClient
+    .from("movie_recommendations")
+    .select(`
+      id,
+      sender_id,
+      recipient_id,
+      movie_id,
+      message,
+      created_at,
+      seen_at,
+      movies (
+        id,
+        tmdb_id,
+        title,
+        original_title,
+        release_year,
+        director,
+        poster_url,
+        genres
+      )
+    `)
+    .eq("recipient_id", currentUser.id)
+    .order("created_at", {
+      ascending: false
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  const validRecommendations = (recommendations || []).filter(
+    (recommendation) => recommendation.movies
+  );
+
+  if (validRecommendations.length === 0) {
+    return [];
+  }
+
+  const senderIds = [
+    ...new Set(
+      validRecommendations
+        .map((recommendation) => recommendation.sender_id)
+        .filter(Boolean)
+    )
+  ];
+
+  const { data: profiles, error: profilesError } =
+    await supabaseClient
+      .from("profiles")
+      .select(`
+        id,
+        username,
+        avatar_url
+      `)
+      .in("id", senderIds);
+
+  if (profilesError) {
+    throw profilesError;
+  }
+
+  const profilesById = Object.fromEntries(
+    (profiles || []).map((profile) => [
+      profile.id,
+      profile
+    ])
+  );
+
+  return validRecommendations.map((recommendation) => ({
+    ...recommendation,
+    sender: profilesById[recommendation.sender_id] || null
+  }));
+}
+
+async function getOrCreateMyWishlist() {
+  const existingWishlist = await getMyWishlist();
+
+  if (existingWishlist) {
+    return existingWishlist;
+  }
+
+  const { data: createdWishlist, error } = await supabaseClient
+    .from("movie_lists")
+    .insert({
+      user_id: currentUser.id,
+      title: "À voir",
+      description: "Les films que je garde pour plus tard.",
+      is_public: true,
+      list_type: "wishlist"
+    })
+    .select(`
+      id,
+      title,
+      description,
+      is_public,
+      list_type
+    `)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return createdWishlist;
+}
+
+async function addRecommendedMovieToWishlist(movieId) {
+  if (!currentUser || !movieId) {
+    throw new Error(
+      "Tu dois être connectée pour ajouter ce film à ta liste À voir."
+    );
+  }
+
+  const wishlist = await getOrCreateMyWishlist();
+
+  const { data: existingItem, error: existingItemError } =
+    await supabaseClient
+      .from("movie_list_items")
+      .select("id")
+      .eq("list_id", wishlist.id)
+      .eq("movie_id", movieId)
+      .maybeSingle();
+
+  if (existingItemError) {
+    throw existingItemError;
+  }
+
+  if (existingItem) {
+    return {
+      alreadyInWishlist: true
+    };
+  }
+
+  const { error: insertError } = await supabaseClient
+    .from("movie_list_items")
+    .insert({
+      list_id: wishlist.id,
+      movie_id: movieId
+    });
+
+  if (insertError) {
+    throw insertError;
+  }
+
+  return {
+    alreadyInWishlist: false
+  };
+}
+
+async function markRecommendationAsSeen(recommendationId) {
+  if (!currentUser || !recommendationId) {
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("movie_recommendations")
+    .update({
+      seen_at: new Date().toISOString()
+    })
+    .eq("id", recommendationId)
+    .eq("recipient_id", currentUser.id)
+    .is("seen_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+function renderReceivedRecommendations(recommendations) {
+  if (
+    !receivedRecommendationsGrid ||
+    !receivedRecommendationsCount
+  ) {
+    return;
+  }
+
+  if (!currentUser) {
+    receivedRecommendationsGrid.innerHTML = "";
+    receivedRecommendationsCount.hidden = true;
+    receivedRecommendationsCount.textContent = "0";
+    return;
+  }
+
+  receivedRecommendationsCount.textContent = String(
+    recommendations.length
+  );
+
+  receivedRecommendationsCount.hidden =
+    recommendations.length === 0;
+
+  if (!recommendations.length) {
+    receivedRecommendationsGrid.innerHTML = `
+      <div class="recommendations-empty-state">
+        <strong>Ton cercle ne t’a pas encore soufflé de film.</strong>
+        <br /><br />
+        Les recommandations de tes ami·es apparaîtront ici,
+        comme de petits mots glissés après la séance.
+      </div>
+    `;
+
+    return;
+  }
+
+  receivedRecommendationsGrid.innerHTML = recommendations
+    .map((recommendation) => {
+      const movie = recommendation.movies;
+
+      const title = movie?.title || "Film sans titre";
+      const releaseYear = movie?.release_year || "—";
+
+      const director =
+        movie?.director || "Réalisation non renseignée";
+
+      const senderName =
+        recommendation.sender?.username || "Un membre";
+
+      const senderProfileUrl = recommendation.sender?.id
+        ? `membre.html?id=${encodeURIComponent(
+            recommendation.sender.id
+          )}`
+        : "";
+
+      const movieUrl =
+        `film.html?id=${encodeURIComponent(movie.id)}`;
+
+      const posterMarkup = movie?.poster_url
+        ? `
+          <img
+            src="${escapeHTML(movie.poster_url)}"
+            alt="Affiche de ${escapeHTML(title)}"
+            loading="lazy"
+          />
+        `
+        : `
+          <div class="recommendation-poster-placeholder">
+            <span>${escapeHTML(String(releaseYear))}</span>
+            <strong>${escapeHTML(title)}</strong>
+          </div>
+        `;
+
+      return `
+        <article
+          class="received-recommendation-card ${
+            recommendation.seen_at ? "" : "is-unseen"
+          }"
+          data-recommendation-id="${recommendation.id}"
+        >
+          <a
+            class="recommendation-poster-link"
+            href="${movieUrl}"
+            data-recommendation-movie-link
+            data-recommendation-id="${recommendation.id}"
+            title="Voir la fiche de ${escapeHTML(title)}"
+          >
+            ${posterMarkup}
+          </a>
+
+          <div class="received-recommendation-content">
+            <div class="recommendation-card-top">
+              <div>
+                <h3>
+                  <a
+                    href="${movieUrl}"
+                    data-recommendation-movie-link
+                    data-recommendation-id="${recommendation.id}"
+                  >
+                    ${escapeHTML(title)}
+                  </a>
+                </h3>
+
+                <p class="recommendation-movie-meta">
+                  ${escapeHTML(String(releaseYear))} ·
+                  ${escapeHTML(director)}
+                </p>
+              </div>
+
+              ${
+                recommendation.seen_at
+                  ? ""
+                  : `
+                    <span
+                      class="recommendation-new-badge"
+                      aria-label="Nouvelle suggestion"
+                    >
+                      Nouveau
+                    </span>
+                  `
+              }
+            </div>
+
+            <div class="recommendation-sender">
+              ${
+                senderProfileUrl
+                  ? `
+                    <a
+                      href="${senderProfileUrl}"
+                      class="recommendation-sender-link"
+                    >
+                      ${renderRecommendationAvatar(
+                        recommendation.sender
+                      )}
+                    </a>
+                  `
+                  : renderRecommendationAvatar(recommendation.sender)
+              }
+
+              <p>
+                Soufflé par
+                ${
+                  senderProfileUrl
+                    ? `
+                      <a href="${senderProfileUrl}">
+                        ${escapeHTML(senderName)}
+                      </a>
+                    `
+                    : `<strong>${escapeHTML(senderName)}</strong>`
+                }
+                <span>
+                  · ${escapeHTML(
+                    formatRecommendationDate(
+                      recommendation.created_at
+                    )
+                  )}
+                </span>
+              </p>
+            </div>
+
+            ${
+              recommendation.message?.trim()
+                ? `
+                  <blockquote class="recommendation-message">
+                    “${escapeHTML(
+                      recommendation.message.trim()
+                    )}”
+                  </blockquote>
+                `
+                : ""
+            }
+
+            <div class="recommendation-actions">
+              <button
+                class="button-primary recommendation-add-to-wishlist"
+                type="button"
+                data-recommendation-id="${recommendation.id}"
+                data-movie-id="${movie.id}"
+              >
+                Ajouter à ma liste À voir
+              </button>
+
+              <a
+                class="button-text recommendation-see-movie"
+                href="${movieUrl}"
+                data-recommendation-movie-link
+                data-recommendation-id="${recommendation.id}"
+              >
+                Voir la fiche
+              </a>
+            </div>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+
+  setupReceivedRecommendationButtons();
+}
+
+function setupReceivedRecommendationButtons() {
+  document
+    .querySelectorAll(".recommendation-add-to-wishlist")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        const recommendationId =
+          button.dataset.recommendationId;
+
+        const movieId = button.dataset.movieId;
+
+        if (!recommendationId || !movieId) {
+          return;
+        }
+
+        const originalText = button.textContent;
+
+        button.disabled = true;
+        button.textContent = "Ajout…";
+
+        try {
+          const result = await addRecommendedMovieToWishlist(
+            movieId
+          );
+
+          await markRecommendationAsSeen(recommendationId);
+
+          await loadMyProfilePage();
+
+          alert(
+            result.alreadyInWishlist
+              ? "Ce film est déjà dans ta liste À voir."
+              : "Le film a été ajouté à ta liste À voir. ✨"
+          );
+        } catch (error) {
+          console.error(
+            "Erreur lors de l’ajout à la wishlist :",
+            error
+          );
+
+          alert(
+            `Impossible d’ajouter ce film à ta liste À voir : ${error.message}`
+          );
+
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      });
+    });
+
+  document
+    .querySelectorAll("[data-recommendation-movie-link]")
+    .forEach((link) => {
+      link.addEventListener("click", async (event) => {
+        event.preventDefault();
+
+        const recommendationId =
+          link.dataset.recommendationId;
+
+        const destination = link.getAttribute("href");
+
+        try {
+          await markRecommendationAsSeen(recommendationId);
+        } catch (error) {
+          console.error(
+            "Impossible de marquer la suggestion comme lue :",
+            error
+          );
+        } finally {
+          if (destination) {
+            window.location.href = destination;
+          }
+        }
+      });
+    });
 }
 
 /* =====================================================
@@ -1409,18 +1893,15 @@ async function getMyWishlistMovies() {
     throw error;
   }
 
-
-return (data || [])
-  .filter((item) => item.movies)
-  .map((item) => ({
-    wishlist_id: wishlist.id,
-    wishlist_item_id: item.id,
-    added_at: item.created_at,
-    movie: item.movies
-  }));
-
+  return (data || [])
+    .filter((item) => item.movies)
+    .map((item) => ({
+      wishlist_id: wishlist.id,
+      wishlist_item_id: item.id,
+      added_at: item.created_at,
+      movie: item.movies
+    }));
 }
-
 
 function renderWishlistMovies(items) {
   if (!myWishlistGrid) {
@@ -1449,9 +1930,7 @@ function renderWishlistMovies(items) {
     return;
   }
 
-  /* On limite l’aperçu du profil à quatre films. */
   const visibleItems = items.slice(0, 4);
-
   const wishlistId = items[0]?.wishlist_id || "";
 
   myWishlistGrid.innerHTML = `
@@ -1571,7 +2050,6 @@ function renderWishlistMovies(items) {
     });
 }
 
-
 /* =====================================================
    LISTES PERSONNALISÉES
    ===================================================== */
@@ -1624,7 +2102,6 @@ async function getMyMovieLists() {
   }));
 }
 
-
 function renderMovieLists(lists) {
   if (!myListsGrid) {
     return;
@@ -1647,11 +2124,6 @@ function renderMovieLists(lists) {
     return;
   }
 
-  /*
-    La sidebar montre trois collections par défaut.
-    Au clic, la personne peut ouvrir l’ensemble de ses listes
-    sans quitter son espace.
-  */
   const previewLimit = 3;
 
   const visibleLists = areAllMovieListsVisible
@@ -1745,48 +2217,50 @@ function renderMovieLists(lists) {
     }
   `;
 
-  document.querySelectorAll(".delete-list-button").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const listId = button.dataset.listId;
-      const listTitle = button.dataset.listTitle;
+  document
+    .querySelectorAll(".delete-list-button")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        const listId = button.dataset.listId;
+        const listTitle = button.dataset.listTitle;
 
-      const confirmation = confirm(
-        `Supprimer la liste « ${listTitle} » ? Les films qui y sont associés seront retirés de cette liste, mais aucune fiche film ne sera supprimée.`
-      );
+        const confirmation = confirm(
+          `Supprimer la liste « ${listTitle} » ? Les films qui y sont associés seront retirés de cette liste, mais aucune fiche film ne sera supprimée.`
+        );
 
-      if (!confirmation) {
-        return;
-      }
-
-      button.disabled = true;
-      button.textContent = "Suppression…";
-
-      try {
-        const { error } = await supabaseClient
-          .from("movie_lists")
-          .delete()
-          .eq("id", listId);
-
-        if (error) {
-          throw error;
+        if (!confirmation) {
+          return;
         }
 
-        await loadMyProfilePage();
-      } catch (error) {
-        console.error(
-          "Erreur de suppression de liste :",
-          error
-        );
+        button.disabled = true;
+        button.textContent = "Suppression…";
 
-        alert(
-          `Impossible de supprimer la liste : ${error.message}`
-        );
+        try {
+          const { error } = await supabaseClient
+            .from("movie_lists")
+            .delete()
+            .eq("id", listId);
 
-        button.disabled = false;
-        button.textContent = "Supprimer";
-      }
+          if (error) {
+            throw error;
+          }
+
+          await loadMyProfilePage();
+        } catch (error) {
+          console.error(
+            "Erreur de suppression de liste :",
+            error
+          );
+
+          alert(
+            `Impossible de supprimer la liste : ${error.message}`
+          );
+
+          button.disabled = false;
+          button.textContent = "Supprimer";
+        }
+      });
     });
-  });
 
   const toggleButton = document.querySelector(
     ".profile-lists-toggle"
@@ -1795,12 +2269,10 @@ function renderMovieLists(lists) {
   if (toggleButton) {
     toggleButton.addEventListener("click", () => {
       areAllMovieListsVisible = !areAllMovieListsVisible;
-
       renderMovieLists(lists);
     });
   }
 }
-
 
 async function createMovieList(event) {
   event.preventDefault();
@@ -1810,6 +2282,7 @@ async function createMovieList(event) {
   }
 
   const title = listTitleInput.value.trim();
+
   const description = listDescriptionInput.value.trim();
 
   const isPublic = listVisibilityInput.value === "public";
@@ -1866,8 +2339,6 @@ async function createMovieList(event) {
 
 /* =====================================================
    CHARGEMENT DE LA PAGE
-   Chaque bloc charge indépendamment : une erreur sur les
-   amis ne casse pas le carnet, la wishlist ou les listes.
    ===================================================== */
 
 async function loadMyProfilePage() {
@@ -1945,6 +2416,19 @@ async function loadMyProfilePage() {
       activityUnreadCount.textContent = "0";
     }
 
+    if (markAllNotificationsReadButton) {
+      markAllNotificationsReadButton.hidden = true;
+    }
+
+    if (receivedRecommendationsGrid) {
+      receivedRecommendationsGrid.innerHTML = "";
+    }
+
+    if (receivedRecommendationsCount) {
+      receivedRecommendationsCount.hidden = true;
+      receivedRecommendationsCount.textContent = "0";
+    }
+
     renderProfileAvatar();
     return;
   }
@@ -1953,27 +2437,25 @@ async function loadMyProfilePage() {
     openListFormButton.hidden = false;
   }
 
+  const results = await Promise.allSettled([
+    getMyReviews(currentUser.id),
+    getMyWishlistMovies(),
+    getMyMovieLists(),
+    getIncomingFriendRequests(),
+    getAcceptedFriends(currentUser.id),
+    getMyNotifications(),
+    getReceivedRecommendations()
+  ]);
 
-const results = await Promise.allSettled([
-  getMyReviews(currentUser.id),
-  getMyWishlistMovies(),
-  getMyMovieLists(),
-  getIncomingFriendRequests(),
-  getAcceptedFriends(currentUser.id),
-  getMyNotifications()
-]);
-
-
- 
-const [
-  reviewsResult,
-  wishlistResult,
-  listsResult,
-  friendRequestsResult,
-  friendsResult,
-  notificationsResult
-] = results;
-
+  const [
+    reviewsResult,
+    wishlistResult,
+    listsResult,
+    friendRequestsResult,
+    friendsResult,
+    notificationsResult,
+    recommendationsResult
+  ] = results;
 
   /* Critiques */
 
@@ -2098,11 +2580,40 @@ const [
 
     if (activityUnreadCount) {
       activityUnreadCount.hidden = true;
+      activityUnreadCount.textContent = "0";
+    }
+
+    if (markAllNotificationsReadButton) {
+      markAllNotificationsReadButton.hidden = true;
     }
   }
 
+  /* Recommandations de films reçues */
 
-  
+  if (recommendationsResult.status === "fulfilled") {
+    renderReceivedRecommendations(
+      recommendationsResult.value
+    );
+  } else {
+    console.error(
+      "Erreur de chargement des recommandations reçues :",
+      recommendationsResult.reason
+    );
+
+    if (receivedRecommendationsGrid) {
+      receivedRecommendationsGrid.innerHTML = `
+        <div class="recommendations-empty-state">
+          Impossible de charger les films que l’on t’a soufflés
+          pour le moment.
+        </div>
+      `;
+    }
+
+    if (receivedRecommendationsCount) {
+      receivedRecommendationsCount.hidden = true;
+      receivedRecommendationsCount.textContent = "0";
+    }
+  }
 }
 
 /* =====================================================
@@ -2179,7 +2690,6 @@ function setupProfilePage() {
       }
     });
   }
-
 
   /* ---------------------------------
      Modale : ajouter une microcritique
@@ -2263,8 +2773,6 @@ function setupProfilePage() {
       }
     );
   }
-
- 
 
   /* ---------------------------------
      Modale : modifier ma note
