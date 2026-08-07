@@ -7183,3 +7183,65 @@ body.modal-open {
   }
 }
 
+/* =====================================================
+   PROFIL — FILMS SOUFFLÉS À MON CERCLE
+   ===================================================== */
+
+.profile-sent-recommendations-section {
+  margin-top: 1.5rem;
+}
+
+.sent-recommendations-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.sent-recommendation-card {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 0.9rem;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  box-shadow: 0 8px 24px rgba(61, 43, 32, 0.05);
+}
+
+.sent-recommendation-card.is-pending {
+  border-left: 3px solid var(--gold);
+}
+
+.sent-recommendation-card.is-seen {
+  border-left: 3px solid rgba(117, 111, 107, 0.45);
+}
+
+.sent-recommendation-content {
+  min-width: 0;
+}
+
+.sent-recommendation-status {
+  flex: 0 0 auto;
+  padding: 0.25rem 0.45rem;
+  font-family: Arial, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.sent-recommendation-status.is-pending {
+  background: rgba(215, 167, 93, 0.18);
+  color: var(--ink);
+}
+
+.sent-recommendation-status.is-seen {
+  background: rgba(117, 111, 107, 0.1);
+  color: var(--grey);
+}
+
+@media (max-width: 650px) {
+  .sent-recommendation-card {
+    grid-template-columns: 66px minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+}
+
