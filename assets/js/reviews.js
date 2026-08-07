@@ -265,12 +265,95 @@ function renderCommentAvatar(comment) {
   `;
 }
 
+function formatReviewCommentDate(dateValue) {
+  if (!dateValue) {
+    return "";
+  }
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const now = new Date();
+
+  const differenceInSeconds = Math.max(
+    0,
+    Math.floor((now.getTime() - date.getTime()) / 1000)
+  );
+
+  if (differenceInSeconds < 60) {
+    return "À l’instant";
+  }
+
+  const differenceInMinutes = Math.floor(
+    differenceInSeconds / 60
+  );
+
+  if (differenceInMinutes < 60) {
+    return `Il y a ${differenceInMinutes} min`;
+  }
+
+  const differenceInHours = Math.floor(
+    differenceInMinutes / 60
+  );
+
+  if (differenceInHours < 24) {
+    return `Il y a ${differenceInHours} h`;
+  }
+
+  const differenceInDays = Math.floor(
+    differenceInHours / 24
+  );
+
+  if (differenceInDays === 1) {
+    return "Hier";
+  }
+
+  if (differenceInDays <= 5) {
+    return `Il y a ${differenceInDays} jours`;
+  }
+
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+}
+
+
 function renderReviewComment(comment) {
   const username = comment.author?.username || "Membre";
 
   const profileLink = comment.user_id
     ? `membre.html?id=${encodeURIComponent(comment.user_id)}`
     : "";
+
+  const relativeDate = formatReviewCommentDate(
+    comment.created_at
+  );
+
+  const authorIdentityMarkup = `
+    ${renderCommentAvatar(comment)}
+
+    <span class="review-comment-author-meta">
+      <strong>${escapeHTML(username)}</strong>
+
+      ${
+        relativeDate
+          ? `
+            <time
+              class="review-comment-date"
+              datetime="${escapeHTML(comment.created_at || "")}"
+            >
+              ${escapeHTML(relativeDate)}
+            </time>
+          `
+          : ""
+      }
+    </span>
+  `;
 
   const authorMarkup = profileLink
     ? `
@@ -279,14 +362,12 @@ function renderReviewComment(comment) {
         href="${profileLink}"
         title="Voir le profil de ${escapeHTML(username)}"
       >
-        ${renderCommentAvatar(comment)}
-        <strong>${escapeHTML(username)}</strong>
+        ${authorIdentityMarkup}
       </a>
     `
     : `
       <div class="review-comment-author">
-        ${renderCommentAvatar(comment)}
-        <strong>${escapeHTML(username)}</strong>
+        ${authorIdentityMarkup}
       </div>
     `;
 
@@ -315,6 +396,7 @@ function renderReviewComment(comment) {
     </article>
   `;
 }
+
 
 function renderReviewCommentSection(review) {
   const comments = review.comments || [];
@@ -479,9 +561,9 @@ async function createReviewComment(reviewId, content) {
     throw new Error("Écris quelques mots avant de répondre.");
   }
 
-  if (cleanContent.length > 280) {
+  if (cleanContent.length > 1000) {
     throw new Error(
-      "Une réponse ne peut pas dépasser 280 caractères."
+      "Une réponse ne peut pas dépasser 1000 caractères."
     );
   }
 
