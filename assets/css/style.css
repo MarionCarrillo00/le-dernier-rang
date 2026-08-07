@@ -6915,3 +6915,34 @@ body.modal-open {
   }
 }
 
+/* =====================================================
+   CORRECTIF — MODALE SUGGÉRER À UN AMI
+   ===================================================== */
+
+/* Une modale explicitement fermée reste invisible. */
+#recommendationModal[hidden] {
+  display: none !important;
+}
+
+/* Force l'affichage lorsque recommendations.js ajoute .is-open */
+#recommendationModal.is-open:not([hidden]) {
+  display: flex !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+
+  align-items: center;
+  justify-content: center;
+
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Sécurise la boîte interne de la modale */
+#recommendationModal.is-open .recommendation-modal-box {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
