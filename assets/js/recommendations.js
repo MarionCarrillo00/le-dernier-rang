@@ -2,11 +2,13 @@
 /* =====================================================
    SUGGESTIONS DE FILMS ENTRE AMIS — CINÉ MOJITO
    Utilisé depuis les fiches films.
+
    Dépendances :
    - supabaseClient
    - currentUser
    - getAcceptedFriends() depuis friends.js
-   - currentFilmMovie et ensureCurrentFilmInCatalog() depuis film.js
+   - currentFilmMovie et ensureCurrentFilmInCatalog()
+     depuis film.js
    ===================================================== */
 
 const recommendationModal = document.getElementById(
@@ -115,7 +117,7 @@ function renderRecommendationFriendAvatar(friend) {
     return `
       <img
         src="${escapeRecommendationHTML(friend.avatar_url)}"
-        alt=""
+        alt="Photo de profil de ${escapeRecommendationHTML(username)}"
         loading="lazy"
       />
     `;
@@ -139,8 +141,9 @@ function closeRecommendationModal() {
     return;
   }
 
-  recommendationModal.hidden = true;
+  recommendationModal.classList.remove("is-open");
   recommendationModal.setAttribute("aria-hidden", "true");
+  recommendationModal.hidden = true;
 
   document.body.classList.remove("modal-open");
 
@@ -158,7 +161,25 @@ function openRecommendationModal() {
     return;
   }
 
+  /*
+    On ferme visuellement les autres modales ouvertes afin
+    d'éviter les collisions d'overlays ou les clics interceptés.
+  */
+  document.querySelectorAll(".modal").forEach((modal) => {
+    if (modal !== recommendationModal) {
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+
+      /*
+        La modale d'authentification n'a pas forcément l'attribut
+        hidden dans ton HTML : on ne lui impose pas hidden pour ne
+        pas gêner son fonctionnement natif dans auth.js.
+      */
+    }
+  });
+
   recommendationModal.hidden = false;
+  recommendationModal.classList.add("is-open");
   recommendationModal.setAttribute("aria-hidden", "false");
 
   document.body.classList.add("modal-open");
@@ -171,7 +192,7 @@ function renderRecommendationFriends(friends) {
     return;
   }
 
-  if (!friends.length) {
+  if (!friends || !friends.length) {
     recommendationFriends.innerHTML = `
       <div class="empty-state recommendation-empty-state">
         <strong>Ton cercle attend encore ses premiers visages.</strong>
@@ -240,6 +261,10 @@ async function loadRecommendationFriends() {
       Chargement de ton cercle…
     </div>
   `;
+
+  if (sendRecommendationButton) {
+    sendRecommendationButton.disabled = true;
+  }
 
   try {
     recommendationFriendsCache = await getAcceptedFriends(
@@ -348,18 +373,25 @@ async function sendFilmRecommendations(event) {
     return;
   }
 
-  sendRecommendationButton.disabled = true;
-  sendRecommendationButton.textContent = "Envoi…";
+  if (sendRecommendationButton) {
+    sendRecommendationButton.disabled = true;
+    sendRecommendationButton.textContent = "Envoi…";
+  }
 
   clearRecommendationMessage();
 
   try {
     /*
-      Un film venant directement de TMDB doit être enregistré dans
-      le catalogue avant de pouvoir être référencé dans la table
-      movie_recommendations.
+      Si le film vient directement de TMDB et n'existe pas encore
+      dans Supabase, il est d'abord créé dans le catalogue.
     */
     const catalogMovie = await ensureCurrentFilmInCatalog();
+
+    if (!catalogMovie?.id) {
+      throw new Error(
+        "Le film n’a pas pu être enregistré dans le catalogue."
+      );
+    }
 
     const recommendations = recipientIds.map((recipientId) => ({
       sender_id: currentUser.id,
@@ -373,13 +405,12 @@ async function sendFilmRecommendations(event) {
       .insert(recommendations);
 
     /*
-      Code PostgreSQL 23505 :
-      une des suggestions existe déjà pour le même film,
-      le même expéditeur et le même destinataire.
+      Une recommandation identique existe déjà :
+      même expéditrice, même destinataire, même film.
     */
     if (error?.code === "23505") {
       throw new Error(
-        "Cette suggestion a déjà été envoyée à l’une des personnes sélectionnées."
+        "Ce film a déjà été suggéré à l’une des personnes sélectionnées."
       );
     }
 
@@ -387,16 +418,16 @@ async function sendFilmRecommendations(event) {
       throw error;
     }
 
-    const recipientLabel =
+    const successMessage =
       recipientIds.length > 1
         ? "Tes suggestions ont été envoyées."
         : "Ta suggestion a été envoyée.";
 
-    showRecommendationMessage(recipientLabel, "success");
+    showRecommendationMessage(successMessage, "success");
 
     window.setTimeout(() => {
       closeRecommendationModal();
-    }, 900);
+    }, 950);
   } catch (error) {
     console.error(
       "Erreur lors de l’envoi des recommandations :",
@@ -408,8 +439,10 @@ async function sendFilmRecommendations(event) {
       "error"
     );
   } finally {
-    sendRecommendationButton.disabled = false;
-    sendRecommendationButton.textContent = "Envoyer la suggestion";
+    if (sendRecommendationButton) {
+      sendRecommendationButton.disabled = false;
+      sendRecommendationButton.textContent = "Envoyer la suggestion";
+    }
   }
 }
 
@@ -456,16 +489,21 @@ if (recommendationModal) {
 document.addEventListener("keydown", (event) => {
   if (
     event.key === "Escape" &&
-    recommendationModal &&
-    !recommendationModal.hidden
+    recommendationModal?.classList.contains("is-open")
   ) {
     closeRecommendationModal();
   }
 });
 
+/* =====================================================
+   BOUTON INJECTÉ DANS film.js
+   ===================================================== */
+
 /*
-  Cette fonction est appelée par film.js après chaque rendu
-  de la fiche, puisque le bouton est injecté dynamiquement.
+  Cette fonction est appelée par renderFilmPage() dans film.js,
+  après chaque rendu de la fiche. Le bouton étant injecté
+  dynamiquement dans filmPageContent, son écouteur doit être
+  réattaché après chaque affichage.
 */
 function setupFilmRecommendationButton() {
   const recommendationButton = document.getElementById(
