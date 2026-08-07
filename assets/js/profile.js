@@ -88,6 +88,18 @@ const receivedRecommendationsCount = document.getElementById(
 );
 
 /* =====================================================
+   RECOMMANDATIONS DE FILMS ENVOYÉES
+   ===================================================== */
+
+const sentRecommendationsGrid = document.getElementById(
+  "sentRecommendationsGrid"
+);
+
+const sentRecommendationsCount = document.getElementById(
+  "sentRecommendationsCount"
+);
+
+/* =====================================================
    MODALE D'ÉDITION DES MICROCRITIQUES
    ===================================================== */
 
@@ -1894,6 +1906,281 @@ function setupReceivedRecommendationButtons() {
 }
 
 /* =====================================================
+   RECOMMANDATIONS DE FILMS ENVOYÉES
+   ===================================================== */
+
+async function getSentRecommendations() {
+  if (!currentUser) {
+    return [];
+  }
+
+  const { data: recommendations, error } = await supabaseClient
+    .from("movie_recommendations")
+    .select(`
+      id,
+      sender_id,
+      recipient_id,
+      movie_id,
+      message,
+      created_at,
+      seen_at,
+      movies (
+        id,
+        tmdb_id,
+        title,
+        original_title,
+        release_year,
+        director,
+        poster_url,
+        genres
+      )
+    `)
+    .eq("sender_id", currentUser.id)
+    .order("created_at", {
+      ascending: false
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  const validRecommendations = (recommendations || []).filter(
+    (recommendation) => recommendation.movies
+  );
+
+  if (!validRecommendations.length) {
+    return [];
+  }
+
+  const recipientIds = [
+    ...new Set(
+      validRecommendations
+        .map((recommendation) => recommendation.recipient_id)
+        .filter(Boolean)
+    )
+  ];
+
+  const { data: profiles, error: profilesError } =
+    await supabaseClient
+      .from("profiles")
+      .select(`
+        id,
+        username,
+        avatar_url
+      `)
+      .in("id", recipientIds);
+
+  if (profilesError) {
+    throw profilesError;
+  }
+
+  const profilesById = Object.fromEntries(
+    (profiles || []).map((profile) => [
+      profile.id,
+      profile
+    ])
+  );
+
+  return validRecommendations.map((recommendation) => ({
+    ...recommendation,
+    recipient:
+      profilesById[recommendation.recipient_id] || null
+  }));
+}
+
+function getSentRecommendationStatus(recommendation) {
+  if (recommendation.seen_at) {
+    return {
+      label: "Découvert",
+      className: "is-seen",
+      description:
+        "Cette suggestion a été consultée."
+    };
+  }
+
+  return {
+    label: "Pas encore découvert",
+    className: "is-pending",
+    description:
+      "Cette suggestion n’a pas encore été consultée."
+  };
+}
+
+function renderSentRecommendations(recommendations) {
+  if (
+    !sentRecommendationsGrid ||
+    !sentRecommendationsCount
+  ) {
+    return;
+  }
+
+  if (!currentUser) {
+    sentRecommendationsGrid.innerHTML = "";
+    sentRecommendationsCount.hidden = true;
+    sentRecommendationsCount.textContent = "0";
+    return;
+  }
+
+  sentRecommendationsCount.textContent = String(
+    recommendations.length
+  );
+
+  sentRecommendationsCount.hidden =
+    recommendations.length === 0;
+
+  if (!recommendations.length) {
+    sentRecommendationsGrid.innerHTML = `
+      <div class="recommendations-empty-state">
+        <strong>Tu n’as pas encore soufflé de film.</strong>
+        <br /><br />
+        Depuis une fiche film, utilise le bouton
+        « Suggérer à un ami » pour partager une belle découverte
+        avec ton cercle.
+      </div>
+    `;
+
+    return;
+  }
+
+  sentRecommendationsGrid.innerHTML = recommendations
+    .map((recommendation) => {
+      const movie = recommendation.movies;
+
+      const title = movie?.title || "Film sans titre";
+
+      const releaseYear = movie?.release_year || "—";
+
+      const director =
+        movie?.director || "Réalisation non renseignée";
+
+      const recipientName =
+        recommendation.recipient?.username || "Un membre";
+
+      const recipientProfileUrl = recommendation.recipient?.id
+        ? `membre.html?id=${encodeURIComponent(
+            recommendation.recipient.id
+          )}`
+        : "";
+
+      const movieUrl =
+        `film.html?id=${encodeURIComponent(movie.id)}`;
+
+      const status = getSentRecommendationStatus(
+        recommendation
+      );
+
+      const posterMarkup = movie?.poster_url
+        ? `
+          <img
+            src="${escapeHTML(movie.poster_url)}"
+            alt="Affiche de ${escapeHTML(title)}"
+            loading="lazy"
+          />
+        `
+        : `
+          <div class="recommendation-poster-placeholder">
+            <span>${escapeHTML(String(releaseYear))}</span>
+            <strong>${escapeHTML(title)}</strong>
+          </div>
+        `;
+
+      return `
+        <article
+          class="sent-recommendation-card ${status.className}"
+          data-recommendation-id="${recommendation.id}"
+        >
+          <a
+            class="recommendation-poster-link"
+            href="${movieUrl}"
+            title="Voir la fiche de ${escapeHTML(title)}"
+          >
+            ${posterMarkup}
+          </a>
+
+          <div class="sent-recommendation-content">
+            <div class="recommendation-card-top">
+              <div>
+                <h3>
+                  <a href="${movieUrl}">
+                    ${escapeHTML(title)}
+                  </a>
+                </h3>
+
+                <p class="recommendation-movie-meta">
+                  ${escapeHTML(String(releaseYear))} ·
+                  ${escapeHTML(director)}
+                </p>
+              </div>
+
+              <span
+                class="sent-recommendation-status ${status.className}"
+                title="${escapeHTML(status.description)}"
+              >
+                ${escapeHTML(status.label)}
+              </span>
+            </div>
+
+            <div class="recommendation-sender">
+              ${
+                recipientProfileUrl
+                  ? `
+                    <a
+                      href="${recipientProfileUrl}"
+                      class="recommendation-sender-link"
+                      title="Voir le profil de ${escapeHTML(
+                        recipientName
+                      )}"
+                    >
+                      ${renderRecommendationAvatar(
+                        recommendation.recipient
+                      )}
+                    </a>
+                  `
+                  : renderRecommendationAvatar(
+                      recommendation.recipient
+                    )
+              }
+
+              <p>
+                Soufflé à
+                ${
+                  recipientProfileUrl
+                    ? `
+                      <a href="${recipientProfileUrl}">
+                        ${escapeHTML(recipientName)}
+                      </a>
+                    `
+                    : `<strong>${escapeHTML(recipientName)}</strong>`
+                }
+                <span>
+                  · ${escapeHTML(
+                    formatRecommendationDate(
+                      recommendation.created_at
+                    )
+                  )}
+                </span>
+              </p>
+            </div>
+
+            ${
+              recommendation.message?.trim()
+                ? `
+                  <blockquote class="recommendation-message">
+                    “${escapeHTML(
+                      recommendation.message.trim()
+                    )}”
+                  </blockquote>
+                `
+                : ""
+            }
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+/* =====================================================
    WISHLIST : À VOIR
    ===================================================== */
 
@@ -2483,6 +2770,16 @@ async function loadMyProfilePage() {
       receivedRecommendationsCount.hidden = true;
       receivedRecommendationsCount.textContent = "0";
     }
+    
+    if (sentRecommendationsGrid) {
+      sentRecommendationsGrid.innerHTML = "";
+    }
+
+    if (sentRecommendationsCount) {
+      sentRecommendationsCount.hidden = true;
+      sentRecommendationsCount.textContent = "0";
+    }
+
 
     renderProfileAvatar();
     return;
@@ -2492,25 +2789,31 @@ async function loadMyProfilePage() {
     openListFormButton.hidden = false;
   }
 
-  const results = await Promise.allSettled([
-    getMyReviews(currentUser.id),
-    getMyWishlistMovies(),
-    getMyMovieLists(),
-    getIncomingFriendRequests(),
-    getAcceptedFriends(currentUser.id),
-    getMyNotifications(),
-    getReceivedRecommendations()
-  ]);
 
-  const [
-    reviewsResult,
-    wishlistResult,
-    listsResult,
-    friendRequestsResult,
-    friendsResult,
-    notificationsResult,
-    recommendationsResult
-  ] = results;
+const results = await Promise.allSettled([
+  getMyReviews(currentUser.id),
+  getMyWishlistMovies(),
+  getMyMovieLists(),
+  getIncomingFriendRequests(),
+  getAcceptedFriends(currentUser.id),
+  getMyNotifications(),
+  getReceivedRecommendations(),
+  getSentRecommendations()
+]);
+
+
+
+const [
+  reviewsResult,
+  wishlistResult,
+  listsResult,
+  friendRequestsResult,
+  friendsResult,
+  notificationsResult,
+  recommendationsResult,
+  sentRecommendationsResult
+] = results;
+
 
   /* Critiques */
 
@@ -2669,6 +2972,34 @@ async function loadMyProfilePage() {
       receivedRecommendationsCount.textContent = "0";
     }
   }
+  
+  /* Recommandations de films envoyées */
+
+  if (sentRecommendationsResult.status === "fulfilled") {
+    renderSentRecommendations(
+      sentRecommendationsResult.value
+    );
+  } else {
+    console.error(
+      "Erreur de chargement des recommandations envoyées :",
+      sentRecommendationsResult.reason
+    );
+
+    if (sentRecommendationsGrid) {
+      sentRecommendationsGrid.innerHTML = `
+        <div class="recommendations-empty-state">
+          Impossible de charger les films que tu as soufflés
+          pour le moment.
+        </div>
+      `;
+    }
+
+    if (sentRecommendationsCount) {
+      sentRecommendationsCount.hidden = true;
+      sentRecommendationsCount.textContent = "0";
+    }
+  }
+
 }
 
 /* =====================================================
