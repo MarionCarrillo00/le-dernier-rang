@@ -11,8 +11,7 @@
 </head>
 
 <body>
-<header id="siteHeader"></header>
-
+  <header id="siteHeader"></header>
 
   <main class="film-page">
     <a class="back-link" href="index.html#critiques">
@@ -27,7 +26,7 @@
   </main>
 
   <footer>
-    Le dernier rang · Microcritiques cinéma · Fait avec attention
+    Ciné Mojito · Microcritiques cinéma · Fait avec attention
     et beaucoup trop d’émotions devant les génériques.
   </footer>
 
@@ -41,6 +40,7 @@
           class="close-button"
           id="closeAuthModal"
           aria-label="Fermer"
+          type="button"
         >
           ×
         </button>
@@ -114,6 +114,93 @@
     </div>
   </div>
 
+  <!-- MODALE : suggérer un film à des amis -->
+  <div
+    class="modal recommendation-modal"
+    id="recommendationModal"
+    hidden
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="recommendationModalTitle"
+  >
+    <div class="modal-box recommendation-modal-box">
+      <div class="modal-head">
+        <div>
+          <div class="eyebrow red-eyebrow">
+            Une idée de séance
+          </div>
+
+          <h3 id="recommendationModalTitle">
+            Suggérer ce film
+          </h3>
+        </div>
+
+        <button
+          class="close-button"
+          id="closeRecommendationModal"
+          aria-label="Fermer"
+          type="button"
+        >
+          ×
+        </button>
+      </div>
+
+      <p class="recommendation-modal-intro">
+        Choisis les personnes de ton cercle à qui souffler ce film.
+      </p>
+
+      <div
+        class="status-message"
+        id="recommendationStatusMessage"
+        aria-live="polite"
+      ></div>
+
+      <form id="recommendationForm">
+        <div class="recommendation-friends" id="recommendationFriends">
+          <div class="film-loading">
+            Chargement de ton cercle…
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="recommendationMessage">
+            Un petit mot <span>(facultatif)</span>
+          </label>
+
+          <textarea
+            id="recommendationMessage"
+            maxlength="280"
+            rows="4"
+            placeholder="Je pense que ce film pourrait te plaire…"
+          ></textarea>
+
+          <p class="form-note recommendation-character-count">
+            <span id="recommendationCharacterCounter">0</span> / 280
+          </p>
+        </div>
+
+        <div class="recommendation-actions">
+          <button
+            class="button-secondary"
+            type="button"
+            id="cancelRecommendationButton"
+          >
+            Annuler
+          </button>
+
+          <button
+            class="button-primary"
+            type="submit"
+            id="sendRecommendationButton"
+          >
+            Envoyer la suggestion
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script src="assets/js/config.js"></script>
@@ -121,6 +208,11 @@
   <script src="assets/js/navigation.js"></script>
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/reviews.js"></script>
+
+  <!-- friends.js doit être chargé avant recommendations.js -->
+  <script src="assets/js/friends.js"></script>
+  <script src="assets/js/recommendations.js"></script>
+
   <script src="assets/js/film.js"></script>
 </body>
 </html>
