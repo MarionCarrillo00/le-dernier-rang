@@ -7486,11 +7486,64 @@ body.modal-open {
    Filmographie
 --------------------------------- */
 
+
 .talent-filmography-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1.15rem;
 }
+
+.talent-filmography-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.talent-filmography-filter {
+  padding: 0.5rem 0.78rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--grey);
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-size: 0.74rem;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.talent-filmography-filter:hover {
+  border-color: var(--red);
+  color: var(--deep-red);
+}
+
+.talent-filmography-filter.is-active {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.talent-filmography-summary {
+  margin: -0.55rem 0 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.75rem;
+}
+
+.talent-filmography-more {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.6rem;
+}
+
+.talent-filmography-more .button-secondary span {
+  margin-left: 0.25rem;
+  color: var(--grey);
+  font-size: 0.75em;
+}
+
 
 .talent-film-card {
   display: flex;
@@ -7630,6 +7683,12 @@ body.modal-open {
    Responsive
 --------------------------------- */
 
+@media (max-width: 1100px) {
+  .talent-filmography-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 950px) {
   .talent-filmography-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -7637,10 +7696,12 @@ body.modal-open {
 }
 
 @media (max-width: 650px) {
-  .talent-page {
-    width: min(100% - 2rem, 1180px);
-    padding-top: 2rem;
+  .talent-filmography-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
   }
+}
+
 
   .talent-page-content {
     gap: 2.5rem;
