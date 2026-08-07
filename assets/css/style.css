@@ -7751,23 +7751,6 @@ body.modal-open {
   min-width: 0;
 }
 
-@media (max-width: 1100px) {
-  .talent-page .talent-filmography-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  }
-}
-
-@media (max-width: 950px) {
-  .talent-page .talent-filmography-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  }
-}
-
-@media (max-width: 650px) {
-  .talent-page .talent-filmography-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-}
 
 /* =====================================================
    TALENT — FILTRE DE FILMOGRAPHIE
@@ -7814,6 +7797,30 @@ body.modal-open {
   .talent-filmography-select {
     width: 100%;
     max-width: none;
+  }
+}
+
+.talent-page .talent-filmography-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 1.15rem;
+}
+
+@media (max-width: 1100px) {
+  .talent-page .talent-filmography-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 950px) {
+  .talent-page .talent-filmography-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .talent-page .talent-filmography-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 
