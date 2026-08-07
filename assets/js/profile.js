@@ -1706,13 +1706,15 @@ function renderReceivedRecommendations(recommendations) {
 
       return `
 
-  <article
-    id="recommendation-${recommendation.id}"
-    class="received-recommendation-card ${
-      recommendation.seen_at ? "" : "is-unseen"
-    }"
-    data-recommendation-id="${recommendation.id}"
-  >
+
+<article
+  id="recommendation-${recommendation.id}"
+  class="received-recommendation-card ${
+    recommendation.seen_at ? "" : "is-unseen"
+  }"
+  data-recommendation-id="${recommendation.id}"
+>
+
 
           <a
             class="recommendation-poster-link"
