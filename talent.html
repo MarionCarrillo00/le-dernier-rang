@@ -1,0 +1,194 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
+    <meta
+      name="description"
+      content="Filmographie, parcours et critiques Ciné Mojito d’un talent du cinéma."
+    />
+
+    <title>Talent — Ciné Mojito</title>
+
+    <link
+      rel="stylesheet"
+      href="assets/css/style.css"
+    />
+  </head>
+
+  <body>
+    <!-- =================================================
+         NAVIGATION
+         ================================================= -->
+
+    <header id="siteHeader"></header>
+
+    <!-- =================================================
+         CONTENU PRINCIPAL
+         ================================================= -->
+
+    <main class="talent-page">
+      <a
+        class="back-link"
+        href="index.html#critiques"
+      >
+        ← Retour aux microcritiques
+      </a>
+
+      <div
+        id="talentPageContent"
+        class="talent-page-content"
+      >
+        <div class="talent-loading">
+          Chargement de cette fiche cinéma…
+        </div>
+      </div>
+    </main>
+
+    <!-- =================================================
+         FOOTER
+         ================================================= -->
+
+    <footer class="site-footer">
+      <p>
+        Ciné Mojito · Les films, les visages, et ce qu’ils laissent derrière eux.
+      </p>
+    </footer>
+
+    <!-- =================================================
+         MODALE : AUTHENTIFICATION
+         ================================================= -->
+
+    <div
+      id="authModal"
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="authModalTitle"
+    >
+      <div class="modal-content auth-modal-content">
+        <button
+          class="modal-close"
+          type="button"
+          aria-label="Fermer la fenêtre"
+          data-close-auth-modal
+        >
+          ×
+        </button>
+
+        <div class="auth-tabs">
+          <button
+            class="auth-tab active"
+            type="button"
+            data-auth-tab="login"
+          >
+            Connexion
+          </button>
+
+          <button
+            class="auth-tab"
+            type="button"
+            data-auth-tab="signup"
+          >
+            Inscription
+          </button>
+        </div>
+
+        <h2 id="authModalTitle">
+          Heureuse de te revoir.
+        </h2>
+
+        <p class="auth-intro">
+          Entre dans ton carnet et retrouve les films qui comptent.
+        </p>
+
+        <p
+          id="authMessage"
+          class="auth-message"
+          aria-live="polite"
+        ></p>
+
+        <form
+          id="authForm"
+          data-auth-mode="login"
+        >
+          <div
+            id="usernameField"
+            class="form-field"
+            hidden
+          >
+            <label for="authUsername">
+              Pseudo
+            </label>
+
+            <input
+              id="authUsername"
+              type="text"
+              minlength="3"
+              maxlength="30"
+              autocomplete="username"
+              placeholder="Ton nom de cinéma"
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="authEmail">
+              Adresse e-mail
+            </label>
+
+            <input
+              id="authEmail"
+              type="email"
+              autocomplete="email"
+              required
+              placeholder="toi@exemple.fr"
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="authPassword">
+              Mot de passe
+            </label>
+
+            <input
+              id="authPassword"
+              type="password"
+              minlength="6"
+              autocomplete="current-password"
+              required
+              placeholder="6 caractères minimum"
+            />
+          </div>
+
+          <button
+            id="authSubmitButton"
+            class="button-primary auth-submit-button"
+            type="submit"
+          >
+            Se connecter
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- =================================================
+         SCRIPTS
+         L'ordre est essentiel.
+         ================================================= -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/navigation.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/reviews.js"></script>
+    <script src="assets/js/talent.js"></script>
+  </body>
+</html>
