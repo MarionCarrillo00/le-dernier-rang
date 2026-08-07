@@ -7824,3 +7824,36 @@ body.modal-open {
   }
 }
 
+
+.talent-filmography-filter-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: fit-content;
+  margin: 1.35rem 0 1.55rem;
+}
+
+.talent-filmography-filter-label {
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.76rem;
+}
+
+.talent-filmography-select {
+  min-width: 220px;
+  max-width: min(100%, 330px);
+  padding: 0.65rem 2.5rem 0.65rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background-color: var(--cream);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-size: 0.8rem;
+}
+
+.talent-filmography-select:hover,
+.talent-filmography-select:focus {
+  border-color: var(--red);
+  outline: none;
+}
