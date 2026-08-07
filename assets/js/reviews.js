@@ -825,6 +825,10 @@ function createMovieCard(review, index, options = {}) {
 
   const authorInitial = author.charAt(0).toUpperCase() || "?";
 
+  const reviewDate = reviewContent
+    ? formatReviewCommentDate(review.created_at)
+    : "";
+
   const authorProfileLink = review.user_id
     ? `membre.html?id=${encodeURIComponent(review.user_id)}`
     : "";
@@ -1083,6 +1087,30 @@ const posterMarkup = isNoteOnly
       </span>
     `;
 
+ 
+  const authorIdentityMarkup = `
+    ${authorAvatarMarkup}
+
+    <span class="review-author-meta">
+      <span class="author">
+        Par ${escapeHTML(author)}
+      </span>
+
+      ${
+        reviewDate
+          ? `
+            <time
+              class="review-date"
+              datetime="${escapeHTML(review.created_at || "")}"
+            >
+              ${escapeHTML(reviewDate)}
+            </time>
+          `
+          : ""
+      }
+    </span>
+  `;
+
   const authorMarkup = authorProfileLink
     ? `
       <a
@@ -1090,22 +1118,15 @@ const posterMarkup = isNoteOnly
         href="${authorProfileLink}"
         title="Voir le profil de ${escapeHTML(author)}"
       >
-        ${authorAvatarMarkup}
-
-        <span class="author">
-          Par ${escapeHTML(author)}
-        </span>
+        ${authorIdentityMarkup}
       </a>
     `
     : `
       <div class="review-author">
-        ${authorAvatarMarkup}
-
-        <span class="author">
-          Par ${escapeHTML(author)}
-        </span>
+        ${authorIdentityMarkup}
       </div>
     `;
+
 
   /*
     Variante fiche film :
