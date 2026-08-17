@@ -871,6 +871,7 @@ const canReceiveInteractions = Boolean(reviewContent);
 
 
 
+
 const reviewMarkup = reviewContent
   ? `
       <p class="review">
@@ -878,17 +879,11 @@ const reviewMarkup = reviewContent
       </p>
     `
   : `
-      <div
-        class="note-only-rating"
-        aria-label="Note : ${escapeHTML(String(review.rating))} sur 5"
-      >
-        ${stars(review.rating)}
-      </div>
-
       <p class="movie-card-note-meta">
-        ${escapeHTML(primaryGenre)}
+        Note du carnet · ${escapeHTML(primaryGenre)}
       </p>
     `;
+
 
 
 const tagsMarkup = isNoteOnly
@@ -1152,15 +1147,11 @@ const posterMarkup = isNoteOnly
           <div class="film-review-header">
             ${authorMarkup}
 
-${
-  isNoteOnly
-    ? ""
-    : `
-      <span class="rating" title="${review.rating}/5">
-        ${stars(review.rating)}
-      </span>
-    `
-}
+
+<span class="rating" title="${review.rating}/5">
+  ${stars(review.rating)}
+</span>
+
           </div>
 
           ${reviewMarkup}
