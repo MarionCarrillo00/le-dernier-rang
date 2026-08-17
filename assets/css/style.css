@@ -8459,3 +8459,185 @@ body.modal-open {
   }
 }
 
+/* =====================================================
+   NOTE SEULE — VERSION FINALE
+   Une note est une trace rapide dans le carnet :
+   titre, réalisateur, étoiles, genre et signature.
+   ===================================================== */
+
+.movie-card.movie-card-note-only {
+  display: block;
+  min-height: 0 !important;
+  overflow: visible;
+  background: rgba(255, 250, 244, 0.72);
+  box-shadow: none;
+}
+
+.movie-card.movie-card-note-only:hover {
+  box-shadow: 0 8px 18px rgba(61, 43, 32, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Une note seule ne porte jamais d'affiche. */
+
+.movie-card.movie-card-note-only .movie-poster-link,
+.movie-card.movie-card-note-only .poster {
+  display: none !important;
+}
+
+.movie-card.movie-card-note-only .movie-content {
+  display: block;
+  min-height: 0 !important;
+  padding: 15px 18px 12px;
+}
+
+/* Titre et note sont les deux informations immédiatement visibles. */
+
+.movie-card.movie-card-note-only .movie-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.movie-card.movie-card-note-only .movie-card-identification {
+  min-width: 0;
+}
+
+.movie-card.movie-card-note-only .movie-card-title {
+  margin: 0 0 3px;
+  font-size: 1.04rem;
+  line-height: 1.12;
+}
+
+.movie-card.movie-card-note-only .movie-card-director {
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+/*
+  Réactive volontairement la note à droite :
+  une ancienne règle la masquait avec !important.
+*/
+
+.movie-card.movie-card-note-only .movie-card-heading .rating {
+  display: inline-flex !important;
+  flex: 0 0 auto;
+  padding: 2px 0 0;
+  color: var(--gold);
+  background: transparent;
+  font-size: 0.82rem;
+  letter-spacing: 0.5px;
+}
+
+/* Une ligne discrète, sans pastille ni surcharge. */
+
+.movie-card.movie-card-note-only .movie-card-note-meta {
+  margin: 11px 0 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.66rem;
+  line-height: 1.35;
+}
+
+/* Aucun élément éditorial superflu dans une note seule. */
+
+.movie-card.movie-card-note-only .review,
+.movie-card.movie-card-note-only .note-only-rating,
+.movie-card.movie-card-note-only .review-note-only,
+.movie-card.movie-card-note-only .tags {
+  display: none !important;
+}
+
+/* Signature légère, juste après l'information principale. */
+
+.movie-card.movie-card-note-only .card-bottom {
+  display: flex;
+  min-height: 0;
+  margin-top: 11px !important;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+}
+
+.movie-card.movie-card-note-only .review-author {
+  gap: 6px;
+}
+
+.movie-card.movie-card-note-only .review-author-avatar {
+  width: 20px;
+  height: 20px;
+}
+
+.movie-card.movie-card-note-only .author,
+.movie-card.movie-card-note-only .review-date {
+  font-size: 0.64rem;
+}
+
+.movie-card.movie-card-note-only .card-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.movie-card.movie-card-note-only .edit-review,
+.movie-card.movie-card-note-only .add-review-content {
+  padding: 0;
+  font-size: 0.66rem;
+}
+
+.movie-card.movie-card-note-only .delete-review {
+  padding: 5px 8px;
+  font-size: 0.64rem;
+}
+
+/* Fiche film : même principe, sans casser la structure auteur. */
+
+.movie-card-film-review.movie-card-note-only {
+  display: flex;
+  min-height: 0 !important;
+}
+
+.movie-card-film-review.movie-card-note-only .movie-content {
+  width: 100%;
+  padding: 16px 20px 13px;
+}
+
+.movie-card-film-review.movie-card-note-only .film-review-header {
+  margin-bottom: 0;
+}
+
+.movie-card-film-review.movie-card-note-only .movie-card-note-meta {
+  margin-top: 12px;
+}
+
+.movie-card-film-review.movie-card-note-only .card-bottom {
+  margin-top: 11px !important;
+}
+
+/* Mobile : une information claire, sans serrer inutilement. */
+
+@media (max-width: 650px) {
+  .movie-card.movie-card-note-only .movie-content {
+    padding: 14px 15px 11px;
+  }
+
+  .movie-card.movie-card-note-only .movie-card-heading {
+    gap: 11px;
+  }
+
+  .movie-card.movie-card-note-only .movie-card-title {
+    font-size: 0.96rem;
+  }
+
+  .movie-card.movie-card-note-only .movie-card-heading .rating {
+    font-size: 0.74rem;
+  }
+
+  .movie-card.movie-card-note-only .card-bottom {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+
