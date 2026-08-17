@@ -8238,3 +8238,38 @@ body.modal-open {
   transform: none;
 }
 
+
+/* =====================================================
+   PROFIL — COMPTEURS CRITIQUES ET NOTES
+   ===================================================== */
+
+.profile-stats {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.profile-stats .profile-stat {
+  min-width: 116px;
+}
+
+.profile-stat-notes {
+  background: rgba(215, 167, 93, 0.14);
+}
+
+.profile-stat-notes strong {
+  color: #b47c2d;
+}
+
+@media (max-width: 650px) {
+  .profile-stats {
+    width: 100%;
+  }
+
+  .profile-stats .profile-stat {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+
