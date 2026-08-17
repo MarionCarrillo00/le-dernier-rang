@@ -1646,6 +1646,80 @@ async function publishReview(payload) {
 }
 
 /* =====================================================
+   AJOUT AU CARNET DEPUIS UNE WISHLIST
+   ===================================================== */
+
+async function createReviewForExistingMovie(
+  movieId,
+  rating,
+  content = ""
+) {
+  if (!currentUser) {
+    throw new Error(
+      "Tu dois être connectée pour ajouter ce film à ton carnet."
+    );
+  }
+
+  if (!movieId) {
+    throw new Error(
+      "Impossible d’identifier le film à ajouter au carnet."
+    );
+  }
+
+  const numericRating = Number(rating);
+
+  const allowedRatings = [
+    1,
+    1.5,
+    2,
+    2.5,
+    3,
+    3.5,
+    4,
+    4.5,
+    5
+  ];
+
+  if (!allowedRatings.includes(numericRating)) {
+    throw new Error(
+      "Choisis une note comprise entre 1 et 5."
+    );
+  }
+
+  const reviewContent = String(content || "").trim();
+
+  if (reviewContent.length > 1000) {
+    throw new Error(
+      "Ton entrée de carnet ne peut pas dépasser 1000 caractères."
+    );
+  }
+
+  const { data, error } = await supabaseClient
+    .from("reviews")
+    .insert({
+      user_id: currentUser.id,
+      movie_id: movieId,
+      rating: numericRating,
+      content: reviewContent || null,
+      is_published: true
+    })
+    .select("id, movie_id, rating, content, created_at")
+    .single();
+
+  if (error?.code === "23505") {
+    throw new Error(
+      "Tu as déjà ajouté une note ou une microcritique pour ce film."
+    );
+  }
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+/* =====================================================
    ÉDITION DU TEXTE UNIQUEMENT
    ===================================================== */
 
