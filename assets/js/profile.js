@@ -6,6 +6,48 @@ const profileSubtitle = document.getElementById("profileSubtitle");
 
 const myWishlistGrid = document.getElementById("myWishlistGrid");
 
+/* =====================================================
+   WISHLIST : FILM VU → AJOUT AU CARNET
+   ===================================================== */
+
+const watchlistReviewModal = document.getElementById(
+  "watchlistReviewModal"
+);
+
+const watchlistReviewForm = document.getElementById(
+  "watchlistReviewForm"
+);
+
+const watchlistReviewFilm = document.getElementById(
+  "watchlistReviewFilm"
+);
+
+const watchlistReviewRating = document.getElementById(
+  "watchlistReviewRating"
+);
+
+const watchlistReviewContent = document.getElementById(
+  "watchlistReviewContent"
+);
+
+const watchlistReviewCharacterCounter = document.getElementById(
+  "watchlistReviewCharacterCounter"
+);
+
+const closeWatchlistReviewModalButton = document.getElementById(
+  "closeWatchlistReviewModal"
+);
+
+const cancelWatchlistReviewButton = document.getElementById(
+  "cancelWatchlistReviewButton"
+);
+
+const saveWatchlistReviewButton = document.getElementById(
+  "saveWatchlistReviewButton"
+);
+
+let selectedWishlistMovie = null;
+
 const myListsGrid = document.getElementById("myListsGrid");
 const listForm = document.getElementById("listForm");
 
@@ -2252,6 +2294,7 @@ async function getMyWishlistMovies() {
     }));
 }
 
+
 function renderWishlistMovies(items) {
   if (!myWishlistGrid) {
     return;
@@ -2329,14 +2372,36 @@ function renderWishlistMovies(items) {
                 ${escapeHTML(director)}
               </p>
 
-              <button
-                class="button-text wishlist-remove-button"
-                type="button"
-                data-wishlist-item-id="${wishlist_item_id}"
-                title="Retirer ${escapeHTML(title)} de ma liste À voir"
-              >
-                Retirer
-              </button>
+              <div class="wishlist-movie-actions">
+                <button
+                  class="wishlist-watched-button wishlist-watched-button-compact"
+                  type="button"
+                  data-wishlist-item-id="${escapeHTML(
+                    wishlist_item_id
+                  )}"
+                  data-movie-id="${escapeHTML(movie.id)}"
+                  data-movie-title="${escapeHTML(title)}"
+                  data-movie-year="${escapeHTML(String(releaseYear))}"
+                  data-movie-director="${escapeHTML(director)}"
+                  data-movie-poster-url="${escapeHTML(
+                    movie.poster_url || ""
+                  )}"
+                  title="Marquer ${escapeHTML(
+                    title
+                  )} comme vu et l’ajouter à mon carnet"
+                >
+                  Vu
+                </button>
+
+                <button
+                  class="button-text wishlist-remove-button"
+                  type="button"
+                  data-wishlist-item-id="${wishlist_item_id}"
+                  title="Retirer ${escapeHTML(title)} de ma liste À voir"
+                >
+                  Retirer
+                </button>
+              </div>
             </div>
           </article>
         `;
@@ -2361,8 +2426,7 @@ function renderWishlistMovies(items) {
     .querySelectorAll(".wishlist-remove-button")
     .forEach((button) => {
       button.addEventListener("click", async () => {
-        const wishlistItemId =
-          button.dataset.wishlistItemId;
+        const wishlistItemId = button.dataset.wishlistItemId;
 
         if (!wishlistItemId) {
           return;
@@ -2372,15 +2436,7 @@ function renderWishlistMovies(items) {
         button.textContent = "Retrait…";
 
         try {
-          const { error } = await supabaseClient
-            .from("movie_list_items")
-            .delete()
-            .eq("id", wishlistItemId);
-
-          if (error) {
-            throw error;
-          }
-
+          await removeMovieFromWishlist(wishlistItemId);
           await loadMyProfilePage();
         } catch (error) {
           console.error(
@@ -2395,6 +2451,146 @@ function renderWishlistMovies(items) {
           button.disabled = false;
           button.textContent = "Retirer";
         }
+      });
+    });
+
+  setupWishlistWatchedButtons();
+}
+
+
+/* =====================================================
+   WISHLIST : FILM VU → AJOUT AU CARNET
+   ===================================================== */
+
+function updateWatchlistReviewCharacterCounter() {
+  if (
+    !watchlistReviewContent ||
+    !watchlistReviewCharacterCounter
+  ) {
+    return;
+  }
+
+  const maximum =
+    Number(watchlistReviewContent.maxLength) || 1000;
+
+  const length = watchlistReviewContent.value.length;
+
+  watchlistReviewCharacterCounter.textContent =
+    `${length} / ${maximum}`;
+
+  watchlistReviewCharacterCounter.classList.toggle(
+    "limit-reached",
+    length >= maximum
+  );
+}
+
+function openWatchlistReviewModal(movie) {
+  if (
+    !watchlistReviewModal ||
+    !watchlistReviewFilm ||
+    !watchlistReviewRating ||
+    !watchlistReviewContent
+  ) {
+    return;
+  }
+
+  selectedWishlistMovie = movie;
+
+  const title = movie.title || "Film sans titre";
+  const releaseYear = movie.release_year || "—";
+
+  const director =
+    movie.director || "Réalisation non renseignée";
+
+  const posterMarkup = movie.poster_url
+    ? `
+      <img
+        src="${escapeHTML(movie.poster_url)}"
+        alt="Affiche de ${escapeHTML(title)}"
+      />
+    `
+    : `
+      <div class="watchlist-review-profile-placeholder">
+        ${escapeHTML(title)}
+      </div>
+    `;
+
+  watchlistReviewFilm.innerHTML = `
+    <div class="watchlist-review-profile-poster">
+      ${posterMarkup}
+    </div>
+
+    <div class="watchlist-review-profile-copy">
+      <span>${escapeHTML(String(releaseYear))}</span>
+
+      <strong>${escapeHTML(title)}</strong>
+
+      <p>${escapeHTML(director)}</p>
+    </div>
+  `;
+
+  watchlistReviewForm?.reset();
+  updateWatchlistReviewCharacterCounter();
+
+  watchlistReviewModal.classList.add("visible");
+
+  window.setTimeout(() => {
+    watchlistReviewRating.focus();
+  }, 50);
+}
+
+function closeWatchlistReviewModal() {
+  if (!watchlistReviewModal) {
+    return;
+  }
+
+  watchlistReviewModal.classList.remove("visible");
+
+  selectedWishlistMovie = null;
+
+  watchlistReviewForm?.reset();
+  updateWatchlistReviewCharacterCounter();
+}
+
+async function removeMovieFromWishlist(wishlistItemId) {
+  if (!currentUser || !wishlistItemId) {
+    throw new Error(
+      "Impossible d’identifier ce film dans ta liste À voir."
+    );
+  }
+
+  const { error } = await supabaseClient
+    .from("movie_list_items")
+    .delete()
+    .eq("id", wishlistItemId);
+
+  if (error) {
+    throw error;
+  }
+}
+
+function setupWishlistWatchedButtons() {
+  document
+    .querySelectorAll(".wishlist-watched-button")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        const movieId = button.dataset.movieId;
+        const wishlistItemId = button.dataset.wishlistItemId;
+
+        if (!movieId || !wishlistItemId) {
+          return;
+        }
+
+        const movie = {
+          id: movieId,
+          wishlist_item_id: wishlistItemId,
+          title: button.dataset.movieTitle || "Film sans titre",
+          release_year: button.dataset.movieYear || "",
+          director: button.dataset.movieDirector || "",
+          poster_url: button.dataset.moviePosterUrl || ""
+        };
+
+        openWatchlistReviewModal(movie);
       });
     });
 }
@@ -3248,7 +3444,111 @@ function setupProfilePage() {
     ) {
       closeAddReviewContentModal();
     }
+    
+    if (
+      watchlistReviewModal?.classList.contains("visible")
+    ) {
+      closeWatchlistReviewModal();
+    }
+
   });
+  
+  /* ---------------------------------
+     Modale : film vu → ajout au carnet
+  --------------------------------- */
+
+  if (
+    watchlistReviewModal &&
+    watchlistReviewForm &&
+    watchlistReviewRating &&
+    watchlistReviewContent &&
+    saveWatchlistReviewButton
+  ) {
+    closeWatchlistReviewModalButton?.addEventListener(
+      "click",
+      closeWatchlistReviewModal
+    );
+
+    cancelWatchlistReviewButton?.addEventListener(
+      "click",
+      closeWatchlistReviewModal
+    );
+
+    watchlistReviewModal.addEventListener("click", (event) => {
+      if (event.target === watchlistReviewModal) {
+        closeWatchlistReviewModal();
+      }
+    });
+
+    watchlistReviewContent.addEventListener(
+      "input",
+      updateWatchlistReviewCharacterCounter
+    );
+
+    watchlistReviewForm.addEventListener(
+      "submit",
+      async (event) => {
+        event.preventDefault();
+
+        if (!selectedWishlistMovie) {
+          return;
+        }
+
+        const rating = Number(watchlistReviewRating.value);
+
+        const content =
+          watchlistReviewContent.value.trim();
+
+        if (!rating) {
+          alert("Choisis une note avant d’enregistrer ta séance.");
+          watchlistReviewRating.focus();
+          return;
+        }
+
+        const originalText = saveWatchlistReviewButton.textContent;
+
+        saveWatchlistReviewButton.disabled = true;
+        saveWatchlistReviewButton.textContent = "Enregistrement…";
+
+        try {
+          /*
+            On crée d'abord l'entrée dans le carnet.
+            Le film ne disparaît jamais de la wishlist
+            tant que la note n’est pas correctement sauvegardée.
+          */
+          await createReviewForExistingMovie(
+            selectedWishlistMovie.id,
+            rating,
+            content
+          );
+
+          await removeMovieFromWishlist(
+            selectedWishlistMovie.wishlist_item_id
+          );
+
+          const destination =
+            `film.html?id=${encodeURIComponent(
+              selectedWishlistMovie.id
+            )}`;
+
+          window.location.href = destination;
+        } catch (error) {
+          console.error(
+            "Erreur lors de l’ajout du film au carnet :",
+            error
+          );
+
+          alert(
+            `Impossible d’enregistrer cette séance : ${error.message}`
+          );
+
+          saveWatchlistReviewButton.disabled = false;
+          saveWatchlistReviewButton.textContent = originalText;
+        }
+      }
+    );
+  }
+
 }
 
 document.addEventListener("authChanged", () => {
