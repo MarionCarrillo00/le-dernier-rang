@@ -8140,4 +8140,30 @@ body.modal-open {
   }
 }
 
+/* =====================================================
+   LISTES — DATE D’AJOUT DES FILMS
+   ===================================================== */
+
+.list-movie-added-date {
+  display: block;
+  margin: -5px 0 12px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.66rem;
+  font-style: italic;
+  line-height: 1.35;
+}
+
+/* Variante compacte : aperçu À voir dans le profil */
+
+.wishlist-movie-added-date {
+  display: block;
+  margin: -2px 0 7px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.58rem;
+  font-style: italic;
+  line-height: 1.3;
+}
+
 
