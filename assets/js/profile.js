@@ -2229,6 +2229,23 @@ function renderSentRecommendations(recommendations) {
     .join("");
 }
 
+function formatWishlistAddedDate(dateValue) {
+  if (!dateValue) {
+    return "";
+  }
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long"
+  });
+}
+
 /* =====================================================
    WISHLIST : À VOIR
    ===================================================== */
@@ -2327,13 +2344,15 @@ function renderWishlistMovies(items) {
 
   myWishlistGrid.innerHTML = `
     ${visibleItems
-      .map(({ wishlist_item_id, movie }) => {
+   .map(({ wishlist_item_id, added_at, movie }) => {
         const title = movie.title || "Film sans titre";
 
         const releaseYear = movie.release_year || "—";
 
         const director =
           movie.director || "Réalisation non renseignée";
+
+        const addedDate = formatWishlistAddedDate(added_at);
 
         const posterMarkup = movie.poster_url
           ? `
@@ -2367,12 +2386,27 @@ function renderWishlistMovies(items) {
                 </a>
               </h3>
 
-              <p>
-                ${escapeHTML(String(releaseYear))} ·
-                ${escapeHTML(director)}
-              </p>
 
-              <div class="wishlist-movie-actions">
+<p>
+  ${escapeHTML(String(releaseYear))} ·
+  ${escapeHTML(director)}
+</p>
+
+${
+  addedDate
+    ? `
+      <time
+        class="wishlist-movie-added-date"
+        datetime="${escapeHTML(added_at)}"
+      >
+        Ajouté le ${escapeHTML(addedDate)}
+      </time>
+    `
+    : ""
+}
+
+<div class="wishlist-movie-actions">
+
                 <button
                   class="wishlist-watched-button wishlist-watched-button-compact"
                   type="button"
