@@ -872,17 +872,15 @@ const canReceiveInteractions = Boolean(reviewContent);
 
 
 
+
 const reviewMarkup = reviewContent
   ? `
       <p class="review">
         “${escapeHTML(reviewContent)}”
       </p>
     `
-  : `
-      <p class="movie-card-note-meta">
-        Note du carnet · ${escapeHTML(primaryGenre)}
-      </p>
-    `;
+  : "";
+
 
 
 
