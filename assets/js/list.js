@@ -409,39 +409,43 @@ function renderStandardListPage(list, ownerName, movies, isOwner) {
   `;
 }
 
+
 function renderWishlistPage(list, ownerName, movies, isOwner) {
   const movieCount = movies.length;
   const movieLabel = getListMovieLabel(movieCount);
-  
+
   const sortedMovies = sortListMovies(
     movies,
     selectedListSort
   );
 
+  const hasCustomDescription = Boolean(
+    list.description?.trim()
+  );
 
   return `
     <section class="list-hero-card wishlist-hero-card">
       <div>
         <div class="eyebrow red-eyebrow">
-          Prochaines séances
+          À voir
         </div>
 
         <h1>
-          Les prochaines séances de ${escapeHTML(ownerName)}
+          La liste d’${escapeHTML(ownerName)}
         </h1>
 
-        <p class="list-description">
-          ${
-            list.description
-              ? escapeHTML(list.description)
-              : `Les films que ${escapeHTML(
-                  ownerName
-                )} garde précieusement pour une prochaine séance.`
-          }
-        </p>
+        ${
+          hasCustomDescription
+            ? `
+              <p class="list-description">
+                ${escapeHTML(list.description.trim())}
+              </p>
+            `
+            : ""
+        }
 
         <div class="list-hero-meta">
-          <span>${movieCount} ${movieLabel} attendent leur séance</span>
+          <span>${movieCount} ${movieLabel}</span>
           <span>Liste publique</span>
         </div>
       </div>
@@ -450,39 +454,25 @@ function renderWishlistPage(list, ownerName, movies, isOwner) {
         isOwner
           ? `
             <a class="button-secondary" href="profil.html">
-              Gérer ma liste À voir
+              Gérer ma liste
             </a>
           `
           : ""
       }
     </section>
 
+    <section class="list-movies-section">
+      <div class="section-title list-section-title">
+        <div>
+          <h2>Films à voir</h2>
+        </div>
 
-<div class="section-title list-section-title">
-  <div>
-    <div class="eyebrow red-eyebrow">À découvrir</div>
-    <h2>Les films qui attendent leur séance</h2>
-  </div>
-
-  <div class="list-section-actions">
-    ${
-      isOwner && movies.length
-        ? `
-          <p class="wishlist-watched-intro">
-            Une fois vu, un film rejoint ton carnet.
-          </p>
-        `
-        : ""
-    }
-
-    ${renderListSortControl()}
-  </div>
-</div>
-
+        ${renderListSortControl()}
+      </div>
 
       <div class="list-movies-grid">
         ${
-          movies.length
+          sortedMovies.length
             ? sortedMovies
                 .map((movie) =>
                   renderListMovieCard(movie, {
@@ -493,18 +483,17 @@ function renderWishlistPage(list, ownerName, movies, isOwner) {
                 .join("")
             : `
               <div class="empty-state">
-                <strong>Cette liste À voir est encore vide.</strong>
+                <strong>Cette liste est vide.</strong>
                 <br /><br />
                 ${
                   isOwner
                     ? `
-                      Ouvre une fiche film et clique sur
-                      « Ajouter à ma liste À voir ».
+                      Ouvre une fiche film et ajoute-le à ta liste À voir.
                     `
                     : `
                       ${escapeHTML(
                         ownerName
-                      )} n’a pas encore ajouté de film à ses prochaines séances.
+                      )} n’a pas encore ajouté de film à cette liste.
                     `
                 }
               </div>
@@ -514,6 +503,7 @@ function renderWishlistPage(list, ownerName, movies, isOwner) {
     </section>
   `;
 }
+
 
 function updateWatchlistReviewCharacterCounter() {
   if (
