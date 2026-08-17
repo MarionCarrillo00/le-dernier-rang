@@ -1198,11 +1198,24 @@ function renderHomeReviews() {
     visibleHomeReviewsCount
   );
 
-  movieCount.textContent = filteredReviews.length
-    ? `· ${visibleReviews.length} sur ${filteredReviews.length} entrée${
-        filteredReviews.length > 1 ? "s" : ""
-      }`
-    : "";
+
+const totalLabel =
+  filteredReviews.length > 1 ? "séances" : "séance";
+
+const visibleLabel =
+  visibleReviews.length > 1 ? "affichées" : "affichée";
+
+const isFiltering =
+  selectedGenre !== "Tous" || Boolean(normalizedSearch);
+
+movieCount.textContent = filteredReviews.length
+  ? `${filteredReviews.length} ${totalLabel} ${
+      isFiltering
+        ? "dans cette sélection"
+        : "dans le carnet"
+    } · ${visibleReviews.length} ${visibleLabel}`
+  : "";
+
 
   if (!filteredReviews.length) {
     grid.innerHTML = `
@@ -1232,30 +1245,25 @@ function renderHomeReviews() {
 
     homeReviewsPagination.hidden = !hasMoreReviews;
 
-    homeReviewsPagination.innerHTML = hasMoreReviews
-      ? `
-        <button
-          id="showMoreHomeReviewsButton"
-          class="home-show-more-button"
-          type="button"
-        >
-          Voir ${
-            Math.min(
-              HOME_REVIEWS_PAGE_SIZE,
-              filteredReviews.length - visibleReviews.length
-            )
-          } séance${
-            Math.min(
-              HOME_REVIEWS_PAGE_SIZE,
-              filteredReviews.length - visibleReviews.length
-            ) > 1
-              ? "s"
-              : ""
-          } de plus
-          <span aria-hidden="true">↓</span>
-        </button>
-      `
-      : "";
+
+homeReviewsPagination.innerHTML = hasMoreReviews
+  ? `
+    <button
+      id="showMoreHomeReviewsButton"
+      class="home-show-more-button"
+      type="button"
+    >
+      Continuer la séance · ${
+        Math.min(
+          HOME_REVIEWS_PAGE_SIZE,
+          filteredReviews.length - visibleReviews.length
+        )
+      } de plus
+      <span aria-hidden="true">↓</span>
+    </button>
+  `
+  : "";
+
   }
 
   document.querySelectorAll(".favorite").forEach((button) => {
@@ -1584,7 +1592,7 @@ renderHomeReviews();
 
         alert(
           content
-            ? "Ta microcritique est publiée sur Le dernier rang. ✨"
+            ? "Ta microcritique est publiée sur Ciné Mojito. ✨"
             : "Ta note est ajoutée à ton carnet. ✨"
         );
       } catch (error) {
