@@ -12,8 +12,7 @@
 
 <body>
 
-<header id="siteHeader"></header>
-
+  <header id="siteHeader"></header>
 
   <main class="list-page">
     <a class="back-link" href="profil.html">
@@ -28,8 +27,107 @@
   </main>
 
   <footer>
-    Le dernier rang · Les films que l’on garde près de soi.
+    Ciné Mojito · Les films que l’on garde près de soi.
   </footer>
+
+  <!-- =================================================
+       MODALE : FILM VU → AJOUT AU CARNET
+       ================================================= -->
+
+  <div
+    class="modal"
+    id="watchlistReviewModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="watchlistReviewModalTitle"
+    hidden
+  >
+    <div class="modal-box watchlist-review-modal-box">
+      <div class="modal-head">
+        <div>
+          <div class="eyebrow red-eyebrow">
+            Une séance de plus
+          </div>
+
+          <h3 id="watchlistReviewModalTitle">
+            Cette séance mérite-t-elle quelques mots ?
+          </h3>
+        </div>
+
+        <button
+          class="close-button"
+          id="closeWatchlistReviewModal"
+          type="button"
+          aria-label="Fermer"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="watchlist-review-film" id="watchlistReviewFilm">
+        <!-- Film sélectionné injecté par JavaScript -->
+      </div>
+
+      <form id="watchlistReviewForm">
+        <div class="field">
+          <label for="watchlistReviewRating">
+            Ma note *
+          </label>
+
+          <select id="watchlistReviewRating" required>
+            <option value="">Choisir une note</option>
+            <option value="1">★ — 1 sur 5</option>
+            <option value="1.5">★½ — 1,5 sur 5</option>
+            <option value="2">★★ — 2 sur 5</option>
+            <option value="2.5">★★½ — 2,5 sur 5</option>
+            <option value="3">★★★ — 3 sur 5</option>
+            <option value="3.5">★★★½ — 3,5 sur 5</option>
+            <option value="4">★★★★ — 4 sur 5</option>
+            <option value="4.5">★★★★½ — 4,5 sur 5</option>
+            <option value="5">★★★★★ — 5 sur 5</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="watchlistReviewContent">
+            Quelques mots
+            <span class="optional-label">(facultatif)</span>
+          </label>
+
+          <textarea
+            id="watchlistReviewContent"
+            maxlength="1000"
+            placeholder="Ce que la séance a laissé avec toi…"
+          ></textarea>
+
+          <div
+            class="character-counter"
+            id="watchlistReviewCharacterCounter"
+          >
+            0 / 1000
+          </div>
+        </div>
+
+        <div class="watchlist-review-actions">
+          <button
+            class="button-primary"
+            id="saveWatchlistReviewButton"
+            type="submit"
+          >
+            Garder dans mon carnet
+          </button>
+
+          <button
+            class="button-text"
+            id="cancelWatchlistReviewButton"
+            type="button"
+          >
+            Pas maintenant
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- MODALE : connexion et inscription -->
   <div class="modal" id="authModal">
