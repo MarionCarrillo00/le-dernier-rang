@@ -3,7 +3,10 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
   <title>Ciné Mojito — Microcritiques cinéma</title>
 
@@ -11,15 +14,16 @@
 </head>
 
 <body>
+  <header id="siteHeader"></header>
 
-<header id="siteHeader"></header>
-
-
-  <header class="hero">
+  <section class="hero" aria-labelledby="homeHeroTitle">
     <div class="hero-content">
       <div class="eyebrow">Microcritiques de cinéma</div>
 
-      <h1>Les films restent.<br /><em>Nous aussi.</em></h1>
+      <h1 id="homeHeroTitle">
+        Les films restent.<br />
+        <em>Nous aussi.</em>
+      </h1>
 
       <p>
         Ciné Mojito est un lieu pour partager ce qu’un film laisse derrière
@@ -28,122 +32,154 @@
 
       <button
         class="button-primary"
+        type="button"
         onclick="document.querySelector('#critiques').scrollIntoView({ behavior: 'smooth' })"
       >
         Explorer les critiques
       </button>
     </div>
-  </header>
+  </section>
 
   <main>
     <section id="critiques">
-      <div class="section-title">
+      <div class="section-title home-section-title">
         <div>
           <div class="eyebrow red-eyebrow">Dernières séances</div>
           <h2>Actualité</h2>
         </div>
 
-        <p>
-          Quelques mots seulement. Parce qu’un film n’a parfois besoin que
-          d’une phrase pour continuer à vivre.
-          <br/>
-          <span id="movieCount"></span>
-        </p>
+        <div class="home-section-summary">
+          <p>
+            Quelques mots seulement. Parce qu’un film n’a parfois besoin
+            que d’une phrase pour continuer à vivre.
+          </p>
+
+          <span
+            id="movieCount"
+            class="home-movie-count"
+            aria-live="polite"
+          ></span>
+        </div>
       </div>
 
-      <div class="controls">
-        <div class="search-box">
-          <input
-            id="searchInput"
-            type="search"
-            autocomplete="off"
-            placeholder="Quel film as-tu envie de retrouver ?"
+      <div class="home-discovery-controls">
+        <div class="controls">
+          <div class="search-box">
+            <input
+              id="searchInput"
+              type="search"
+              autocomplete="off"
+              placeholder="Quel film as-tu envie de retrouver ?"
+              aria-label="Rechercher un film, un réalisateur ou une microcritique"
+            />
 
-          />
+            <div
+              class="home-tmdb-results"
+              id="homeTmdbResults"
+              aria-live="polite"
+            ></div>
+          </div>
 
           <div
-            class="home-tmdb-results"
-            id="homeTmdbResults"
-            aria-live="polite"
+            class="filters"
+            id="filters"
+            aria-label="Filtrer les séances par genre"
+          >
+            <button
+              class="filter active"
+              type="button"
+              data-genre="Tous"
+            >
+              Tous
+            </button>
+
+            <button
+              class="filter"
+              type="button"
+              data-genre="Drame"
+            >
+              Drame
+            </button>
+
+            <button
+              class="filter"
+              type="button"
+              data-genre="Romance"
+            >
+              Romance
+            </button>
+
+            <button
+              class="filter"
+              type="button"
+              data-genre="Horreur"
+            >
+              Horreur
+            </button>
+
+            <button
+              class="filter"
+              type="button"
+              data-genre="Animation"
+            >
+              Animation
+            </button>
+
+            <button
+              class="filter"
+              type="button"
+              data-genre="Science-fiction"
+            >
+              Science-fiction
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="home-content-layout">
+        <div class="home-reviews-column">
+          <div
+            class="movies-grid"
+            id="moviesGrid"
+          ></div>
+
+          <div
+            id="homeReviewsPagination"
+            class="home-pagination"
+            hidden
           ></div>
         </div>
 
-        <div class="filters" id="filters">
-          <button class="filter active" data-genre="Tous">
-            Tous
-          </button>
+        <aside
+          id="circleActivitySidebar"
+          class="circle-activity-sidebar"
+        >
+          <div class="section-title circle-activity-heading">
+            <div>
+              <div class="eyebrow red-eyebrow">
+                Dans mon cercle
+              </div>
 
-          <button class="filter" data-genre="Drame">
-            Drame
-          </button>
+              <h2>Activité des amis</h2>
+            </div>
+          </div>
 
-          <button class="filter" data-genre="Romance">
-            Romance
-          </button>
+          <div
+            id="circleActivityFeed"
+            class="circle-activity-feed"
+          >
+            <div class="circle-activity-loading">
+              Chargement de l’activité…
+            </div>
+          </div>
 
-          <button class="filter" data-genre="Horreur">
-            Horreur
-          </button>
-
-          <button class="filter" data-genre="Animation">
-            Animation
-          </button>
-
-          <button class="filter" data-genre="Science-fiction">
-            Science-fiction
-          </button>
-        </div>
+          <div
+            id="circleActivityPagination"
+            class="circle-activity-pagination"
+            hidden
+          ></div>
+        </aside>
       </div>
-
-      
-<div class="home-content-layout">
-
-<div class="home-reviews-column">
-  <div
-    class="movies-grid"
-    id="moviesGrid"
-  ></div>
-
-  <div
-    id="homeReviewsPagination"
-    class="home-pagination"
-    hidden
-  ></div>
-</div>
-
-
-  <aside
-    id="circleActivitySidebar"
-    class="circle-activity-sidebar"
-  >
-    <div class="section-title circle-activity-heading">
-      <div>
-        <div class="eyebrow red-eyebrow">
-          Dans mon cercle
-        </div>
-
-        <h2>Activité des amis</h2>
-      </div>
-    </div>
-
-    <div
-      id="circleActivityFeed"
-      class="circle-activity-feed"
-    >
-      <div class="circle-activity-loading">
-        Chargement de l’activité…
-      </div>
-    </div>
-    
-<div
-  id="circleActivityPagination"
-  class="circle-activity-pagination"
-  hidden
-></div>
-
-  </aside>
-</div>
-
     </section>
 
     <section id="a-propos" class="about-section">
@@ -172,13 +208,17 @@
       <div class="modal-head">
         <h3>Ajouter à mon carnet</h3>
 
-        <button class="close-button" id="closeModal" aria-label="Fermer">
+        <button
+          class="close-button"
+          id="closeModal"
+          type="button"
+          aria-label="Fermer"
+        >
           ×
         </button>
       </div>
 
       <form id="reviewForm">
-        <!-- Recherche TMDB -->
         <div class="tmdb-search-section">
           <label for="tmdbSearchInput">
             Rechercher un film
@@ -219,7 +259,6 @@
           ></div>
         </div>
 
-        <!-- Fiche affichée après sélection d'un film TMDB -->
         <div
           class="selected-movie-card"
           id="selectedMovieCard"
@@ -241,13 +280,12 @@
           </div>
         </div>
 
-        <!-- Données techniques alimentées automatiquement par TMDB -->
+        <!-- Données alimentées automatiquement par TMDB -->
         <input id="title" type="hidden" />
         <input id="year" type="hidden" />
         <input id="director" type="hidden" />
         <input id="genre" type="hidden" />
 
-        <!-- Informations renseignées par le membre -->
         <div class="form-grid">
           <div class="field">
             <label for="rating">Note *</label>
@@ -287,7 +325,10 @@
               placeholder="Une image, une émotion, une phrase… ou simplement une note."
             ></textarea>
 
-            <p class="character-counter" id="reviewCharacterCounter">
+            <p
+              class="character-counter"
+              id="reviewCharacterCounter"
+            >
               0 / 140
             </p>
           </div>
@@ -309,6 +350,7 @@
         <button
           class="close-button"
           id="closeAuthModal"
+          type="button"
           aria-label="Fermer"
         >
           ×
@@ -333,7 +375,10 @@
         </button>
       </div>
 
-      <div class="status-message" id="authMessage"></div>
+      <div
+        class="status-message"
+        id="authMessage"
+      ></div>
 
       <form id="authForm">
         <div class="field" id="usernameField" hidden>
@@ -372,7 +417,11 @@
           />
         </div>
 
-        <button class="button-primary" type="submit" id="authSubmitButton">
+        <button
+          class="button-primary"
+          type="submit"
+          id="authSubmitButton"
+        >
           Se connecter
         </button>
 
