@@ -696,6 +696,23 @@ async function getPublicFriendsForMember(userId) {
   return profiles || [];
 }
 
+function getMemberJournalCounts(reviews) {
+  const allEntries = reviews || [];
+
+  const microReviews = allEntries.filter((review) =>
+    String(review.content || "").trim()
+  );
+
+  const notes = allEntries.filter(
+    (review) => !String(review.content || "").trim()
+  );
+
+  return {
+    microReviewsCount: microReviews.length,
+    notesCount: notes.length
+  };
+}
+
 function renderMemberPage(
   profile,
   reviews,
@@ -720,6 +737,12 @@ function renderMemberPage(
   } = collections;
 
   const friendCount = friends.length;
+  
+  const {
+    microReviewsCount,
+    notesCount
+  } = getMemberJournalCounts(reviews);
+
 
   document.title = `${username} — Le dernier rang`;
 
@@ -742,33 +765,44 @@ function renderMemberPage(
       <div class="member-hero-aside">
         ${renderFriendshipAction(profile.id, friendship)}
 
-        <div class="member-statistics">
-          <div class="member-stat">
-            <strong>${reviews.length}</strong>
+<div class="member-statistics member-statistics-detailed">
+  <div class="member-stat">
+    <strong>${microReviewsCount}</strong>
 
-            <small>
-              microcritique${reviews.length > 1 ? "s" : ""}
-            </small>
-          </div>
+    <small>
+      microcritique${
+        microReviewsCount > 1 ? "s" : ""
+      }
+    </small>
+  </div>
 
-          <div class="member-stat">
-            <strong>${publicListCount}</strong>
+  <div class="member-stat member-stat-notes">
+    <strong>${notesCount}</strong>
 
-            <small>
-              liste${publicListCount > 1 ? "s" : ""} publique${
-                publicListCount > 1 ? "s" : ""
-              }
-            </small>
-          </div>
+    <small>
+      note${notesCount > 1 ? "s" : ""}
+    </small>
+  </div>
 
-          <div class="member-stat">
-            <strong>${friendCount}</strong>
+  <div class="member-stat">
+    <strong>${publicListCount}</strong>
 
-            <small>
-              ami${friendCount > 1 ? "s" : ""}
-            </small>
-          </div>
-        </div>
+    <small>
+      liste${publicListCount > 1 ? "s" : ""} publique${
+        publicListCount > 1 ? "s" : ""
+      }
+    </small>
+  </div>
+
+  <div class="member-stat">
+    <strong>${friendCount}</strong>
+
+    <small>
+      ami${friendCount > 1 ? "s" : ""}
+    </small>
+  </div>
+</div>
+
       </div>
     </section>
 
@@ -812,13 +846,15 @@ function renderMemberPage(
     <section class="member-section">
       <div class="section-title">
         <div>
-          <div class="eyebrow red-eyebrow">
-            Son journal
-          </div>
 
-          <h2>
-            Les microcritiques de ${escapeHTML(username)}
-          </h2>
+<div class="eyebrow red-eyebrow">
+  Son journal
+</div>
+
+<h2>
+  Le carnet de ${escapeHTML(username)}
+</h2>
+
         </div>
       </div>
 
@@ -832,9 +868,11 @@ function renderMemberPage(
                 .join("")
             : `
               <div class="empty-state">
-                <strong>Pas encore de microcritique publique.</strong>
-                <br /><br />
-                Ce carnet garde encore un peu ses silences.
+
+<strong>Pas encore d’entrée publique dans ce carnet.</strong>
+<br /><br />
+Ce carnet garde encore un peu ses silences.
+
               </div>
             `
         }
