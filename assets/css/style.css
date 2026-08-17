@@ -8167,3 +8167,74 @@ body.modal-open {
 }
 
 
+/* =====================================================
+   ACCUEIL — PAGINATION ÉDITORIALE
+   ===================================================== */
+
+.home-pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.home-pagination[hidden],
+.circle-activity-pagination[hidden] {
+  display: none !important;
+}
+
+.home-show-more-button,
+.circle-activity-show-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 15px;
+  color: var(--deep-red);
+  background: transparent;
+  border: 1px solid rgba(184, 68, 68, 0.42);
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.76rem;
+  transition: 0.2s ease;
+}
+
+.home-show-more-button:hover,
+.circle-activity-show-more:hover {
+  color: var(--cream);
+  background: var(--red);
+  border-color: var(--red);
+  transform: translateY(-1px);
+}
+
+.home-show-more-button span,
+.circle-activity-show-more span {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+/* -----------------------------------------------------
+   Sidebar : activité du cercle plus finie
+   ----------------------------------------------------- */
+
+.circle-activity-pagination {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 15px;
+}
+
+.circle-activity-show-more {
+  padding: 8px 0;
+  color: var(--grey);
+  border: 0;
+  border-radius: 0;
+  font-size: 0.69rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.circle-activity-show-more:hover {
+  color: var(--red);
+  background: transparent;
+  transform: none;
+}
+
