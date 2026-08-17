@@ -40,6 +40,13 @@ const cancelWatchlistReviewButton = document.getElementById(
 let currentList = null;
 let selectedWishlistMovie = null;
 
+let currentListMovies = [];
+let currentListOwnerName = "";
+let currentListIsOwner = false;
+let currentListIsWishlist = false;
+
+let selectedListSort = "added_desc";
+
 function getListIdFromUrl() {
   const params = new URLSearchParams(window.location.search);
   return params.get("id");
@@ -62,6 +69,125 @@ function renderListError(message) {
 function getListMovieLabel(count) {
   return count > 1 ? "films" : "film";
 }
+
+/* =====================================================
+   TRI DES FILMS D’UNE LISTE
+   ===================================================== */
+
+function getListSortLabel(sortValue) {
+  const labels = {
+    added_desc: "Ajouts récents",
+    added_asc: "Ajouts les plus anciens",
+    title_asc: "Titre, A → Z",
+    year_desc: "Année, récente → ancienne",
+    year_asc: "Année, ancienne → récente"
+  };
+
+  return labels[sortValue] || labels.added_desc;
+}
+
+function sortListMovies(movies, sortValue) {
+  const safeMovies = [...(movies || [])];
+
+  return safeMovies.sort((firstMovie, secondMovie) => {
+    const firstTitle = String(
+      firstMovie.title || ""
+    ).localeCompare(
+      String(secondMovie.title || ""),
+      "fr",
+      {
+        sensitivity: "base"
+      }
+    );
+
+    const firstYear = Number(firstMovie.release_year || 0);
+    const secondYear = Number(secondMovie.release_year || 0);
+
+    const firstAddedAt = new Date(
+      firstMovie.added_at || 0
+    ).getTime();
+
+    const secondAddedAt = new Date(
+      secondMovie.added_at || 0
+    ).getTime();
+
+    if (sortValue === "added_asc") {
+      return firstAddedAt - secondAddedAt;
+    }
+
+    if (sortValue === "title_asc") {
+      return firstTitle;
+    }
+
+    if (sortValue === "year_desc") {
+      if (secondYear !== firstYear) {
+        return secondYear - firstYear;
+      }
+
+      return firstTitle;
+    }
+
+    if (sortValue === "year_asc") {
+      if (firstYear !== secondYear) {
+        return firstYear - secondYear;
+      }
+
+      return firstTitle;
+    }
+
+    /* Tri par défaut : derniers ajouts en premier */
+    return secondAddedAt - firstAddedAt;
+  });
+}
+
+function renderListSortControl() {
+  return `
+    <label class="list-sort-control">
+      <span>Trier par</span>
+
+      <select
+        id="listSortSelect"
+        aria-label="Trier les films de cette liste"
+      >
+        <option
+          value="added_desc"
+          ${selectedListSort === "added_desc" ? "selected" : ""}
+        >
+          Ajouts récents
+        </option>
+
+        <option
+          value="added_asc"
+          ${selectedListSort === "added_asc" ? "selected" : ""}
+        >
+          Ajouts les plus anciens
+        </option>
+
+        <option
+          value="title_asc"
+          ${selectedListSort === "title_asc" ? "selected" : ""}
+        >
+          Titre, A → Z
+        </option>
+
+        <option
+          value="year_desc"
+          ${selectedListSort === "year_desc" ? "selected" : ""}
+        >
+          Année, récente → ancienne
+        </option>
+
+        <option
+          value="year_asc"
+          ${selectedListSort === "year_asc" ? "selected" : ""}
+        >
+          Année, ancienne → récente
+        </option>
+      </select>
+    </label>
+  `;
+}
+
 
 function formatListItemAddedDate(dateValue) {
   if (!dateValue) {
@@ -199,6 +325,12 @@ function renderStandardListPage(list, ownerName, movies, isOwner) {
   const movieCount = movies.length;
   const movieLabel = getListMovieLabel(movieCount);
 
+  
+  const sortedMovies = sortListMovies(
+    movies,
+    selectedListSort
+  );
+
   return `
     <section class="list-hero-card">
       <div>
@@ -241,17 +373,21 @@ function renderStandardListPage(list, ownerName, movies, isOwner) {
     </section>
 
     <section class="list-movies-section">
-      <div class="section-title">
-        <div>
-          <div class="eyebrow red-eyebrow">La sélection</div>
-          <h2>Les films de cette liste</h2>
-        </div>
-      </div>
+
+<div class="section-title list-section-title">
+  <div>
+    <div class="eyebrow red-eyebrow">La sélection</div>
+    <h2>Les films de cette liste</h2>
+  </div>
+
+  ${renderListSortControl()}
+</div>
+
 
       <div class="list-movies-grid">
         ${
           movies.length
-            ? movies
+            ? sortedMovies
                 .map((movie) =>
                   renderListMovieCard(movie)
                 )
@@ -276,6 +412,12 @@ function renderStandardListPage(list, ownerName, movies, isOwner) {
 function renderWishlistPage(list, ownerName, movies, isOwner) {
   const movieCount = movies.length;
   const movieLabel = getListMovieLabel(movieCount);
+  
+  const sortedMovies = sortListMovies(
+    movies,
+    selectedListSort
+  );
+
 
   return `
     <section class="list-hero-card wishlist-hero-card">
@@ -315,28 +457,33 @@ function renderWishlistPage(list, ownerName, movies, isOwner) {
       }
     </section>
 
-    <section class="list-movies-section">
-      <div class="section-title">
-        <div>
-          <div class="eyebrow red-eyebrow">À découvrir</div>
-          <h2>Les films qui attendent leur séance</h2>
-        </div>
 
-        ${
-          isOwner && movies.length
-            ? `
-              <p class="wishlist-watched-intro">
-                Une fois vu, un film rejoint ton carnet.
-              </p>
-            `
-            : ""
-        }
-      </div>
+<div class="section-title list-section-title">
+  <div>
+    <div class="eyebrow red-eyebrow">À découvrir</div>
+    <h2>Les films qui attendent leur séance</h2>
+  </div>
+
+  <div class="list-section-actions">
+    ${
+      isOwner && movies.length
+        ? `
+          <p class="wishlist-watched-intro">
+            Une fois vu, un film rejoint ton carnet.
+          </p>
+        `
+        : ""
+    }
+
+    ${renderListSortControl()}
+  </div>
+</div>
+
 
       <div class="list-movies-grid">
         ${
           movies.length
-            ? movies
+            ? sortedMovies
                 .map((movie) =>
                   renderListMovieCard(movie, {
                     isWishlist: true,
@@ -505,6 +652,40 @@ function setupWishlistWatchedButtons() {
     });
 }
 
+function renderCurrentListPage() {
+  if (!currentList) {
+    return;
+  }
+
+  listPageContent.innerHTML = currentListIsWishlist
+    ? renderWishlistPage(
+        currentList,
+        currentListOwnerName,
+        currentListMovies,
+        currentListIsOwner
+      )
+    : renderStandardListPage(
+        currentList,
+        currentListOwnerName,
+        currentListMovies,
+        currentListIsOwner
+      );
+
+  if (currentListIsWishlist && currentListIsOwner) {
+    setupWishlistWatchedButtons();
+  }
+
+  const sortSelect = document.getElementById("listSortSelect");
+
+  if (sortSelect) {
+    sortSelect.addEventListener("change", () => {
+      selectedListSort = sortSelect.value;
+
+      renderCurrentListPage();
+    });
+  }
+}
+
 async function loadListPage() {
   const listId = getListIdFromUrl();
 
@@ -579,22 +760,29 @@ async function loadListPage() {
     const isOwner = currentUser?.id === list.user_id;
     const isWishlist = list.list_type === "wishlist";
 
-    currentList = {
-      ...list,
-      moviesById
-    };
 
-    document.title = isWishlist
-      ? `Les prochaines séances de ${ownerName} — Ciné Mojito`
-      : `${list.title} — Ciné Mojito`;
+currentList = {
+  ...list,
+  moviesById
+};
 
-    listPageContent.innerHTML = isWishlist
-      ? renderWishlistPage(list, ownerName, movies, isOwner)
-      : renderStandardListPage(list, ownerName, movies, isOwner);
+currentListMovies = movies;
+currentListOwnerName = ownerName;
+currentListIsOwner = isOwner;
+currentListIsWishlist = isWishlist;
 
-    if (isWishlist && isOwner) {
-      setupWishlistWatchedButtons();
-    }
+/*
+  À chaque ouverture d’une liste, on repart sur
+  les derniers films ajoutés, le tri naturel du carnet.
+*/
+selectedListSort = "added_desc";
+
+document.title = isWishlist
+  ? `Les prochaines séances de ${ownerName} — Ciné Mojito`
+  : `${list.title} — Ciné Mojito`;
+
+renderCurrentListPage();
+
   } catch (error) {
     console.error("Erreur de chargement de la liste :", error);
 
