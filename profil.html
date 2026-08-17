@@ -621,6 +621,109 @@
   </div>
 </div>
 
+<!-- =================================================
+     MODALE : FILM VU → AJOUT AU CARNET
+     ================================================= -->
+
+<div
+  id="watchlistReviewModal"
+  class="modal-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="watchlistReviewModalTitle"
+>
+  <div class="modal-content watchlist-review-modal-content">
+    <button
+      id="closeWatchlistReviewModal"
+      class="modal-close"
+      type="button"
+      aria-label="Fermer la fenêtre"
+    >
+      ×
+    </button>
+
+    <div class="eyebrow red-eyebrow">
+      Une séance de plus
+    </div>
+
+    <h2 id="watchlistReviewModalTitle">
+      Cette séance mérite-t-elle quelques mots ?
+    </h2>
+
+    <div
+      id="watchlistReviewFilm"
+      class="watchlist-review-profile-film"
+    >
+      <!-- Film sélectionné injecté par JavaScript -->
+    </div>
+
+    <form id="watchlistReviewForm">
+      <div class="form-field">
+        <label for="watchlistReviewRating">
+          Ma note
+        </label>
+
+        <select
+          id="watchlistReviewRating"
+          required
+        >
+          <option value="">Choisir une note</option>
+          <option value="1">★ — 1 sur 5</option>
+          <option value="1.5">★½ — 1,5 sur 5</option>
+          <option value="2">★★ — 2 sur 5</option>
+          <option value="2.5">★★½ — 2,5 sur 5</option>
+          <option value="3">★★★ — 3 sur 5</option>
+          <option value="3.5">★★★½ — 3,5 sur 5</option>
+          <option value="4">★★★★ — 4 sur 5</option>
+          <option value="4.5">★★★★½ — 4,5 sur 5</option>
+          <option value="5">★★★★★ — 5 sur 5</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="watchlistReviewContent">
+          Quelques mots
+          <span class="optional-label">(facultatif)</span>
+        </label>
+
+        <textarea
+          id="watchlistReviewContent"
+          maxlength="1000"
+          rows="5"
+          placeholder="Ce que la séance a laissé avec toi…"
+        ></textarea>
+
+        <div class="character-counter-wrap">
+          <span
+            id="watchlistReviewCharacterCounter"
+            class="character-counter"
+          >
+            0 / 1000
+          </span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button
+          id="saveWatchlistReviewButton"
+          class="button-primary"
+          type="submit"
+        >
+          Garder dans mon carnet
+        </button>
+
+        <button
+          id="cancelWatchlistReviewButton"
+          class="button-text"
+          type="button"
+        >
+          Pas maintenant
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
     <!-- =================================================
          MODALE : AUTHENTIFICATION
          ================================================= -->
