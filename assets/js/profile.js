@@ -1,6 +1,17 @@
 
 const myReviewsGrid = document.getElementById("myReviewsGrid");
 const reviewTotal = document.getElementById("reviewTotal");
+
+const reviewTotalLabel = document.getElementById(
+  "reviewTotalLabel"
+);
+
+const noteTotal = document.getElementById("noteTotal");
+
+const noteTotalLabel = document.getElementById(
+  "noteTotalLabel"
+);
+
 const profileTitle = document.getElementById("profileTitle");
 const profileSubtitle = document.getElementById("profileSubtitle");
 
@@ -555,20 +566,37 @@ function renderProfileReviews(reviews) {
       "Tes films, tes mots, les traces que les séances ont laissées.";
   }
 
-  if (reviewTotal) {
-    reviewTotal.textContent = reviews.length;
-  }
 
-  const profileStatLabel = document.querySelector(
-    ".profile-stat small"
+  const microReviews = reviews.filter((review) =>
+    String(review.content || "").trim()
   );
 
-  if (profileStatLabel) {
-    profileStatLabel.textContent =
-      reviews.length > 1
+  const notes = reviews.filter(
+    (review) => !String(review.content || "").trim()
+  );
+
+  if (reviewTotal) {
+    reviewTotal.textContent = String(microReviews.length);
+  }
+
+  if (reviewTotalLabel) {
+    reviewTotalLabel.textContent =
+      microReviews.length > 1
         ? "microcritiques"
         : "microcritique";
   }
+
+  if (noteTotal) {
+    noteTotal.textContent = String(notes.length);
+  }
+
+  if (noteTotalLabel) {
+    noteTotalLabel.textContent =
+      notes.length > 1
+        ? "notes"
+        : "note";
+  }
+
 
   renderProfileAvatar();
 
@@ -2968,6 +2996,20 @@ async function loadMyProfilePage() {
     if (reviewTotal) {
       reviewTotal.textContent = "0";
     }
+
+     
+    if (reviewTotalLabel) {
+      reviewTotalLabel.textContent = "microcritique";
+    }
+
+    if (noteTotal) {
+      noteTotal.textContent = "0";
+    }
+
+    if (noteTotalLabel) {
+      noteTotalLabel.textContent = "note";
+    }
+
 
     if (profileTitle) {
       profileTitle.textContent = "Mon carnet de cinéma";
