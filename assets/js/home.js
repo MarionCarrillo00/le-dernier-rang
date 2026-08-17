@@ -8,11 +8,26 @@ let homeTmdbSearchTimeout = null;
 let lastHomeTmdbQuery = "";
 let homeSearchQuery = "";
 
+const HOME_REVIEWS_PAGE_SIZE = 8;
+const CIRCLE_ACTIVITY_PAGE_SIZE = 4;
+
+let visibleHomeReviewsCount = HOME_REVIEWS_PAGE_SIZE;
+let visibleCircleActivityCount = CIRCLE_ACTIVITY_PAGE_SIZE;
+let circleActivityEvents = [];
+
 const grid = document.getElementById("moviesGrid");
 const searchInput = document.getElementById("searchInput");
 const filters = document.getElementById("filters");
 const movieCount = document.getElementById("movieCount");
 const homeTmdbResults = document.getElementById("homeTmdbResults");
+
+const homeReviewsPagination = document.getElementById(
+  "homeReviewsPagination"
+);
+
+const circleActivityPagination = document.getElementById(
+  "circleActivityPagination"
+);
 
 /* ---------------------------------
    Activité du cercle
@@ -628,8 +643,11 @@ function handleHomeSearchInput() {
 
   const query = searchInput.value.trim();
 
-  homeSearchQuery = query;
-  renderHomeReviews();
+
+homeSearchQuery = query;
+resetHomeReviewsPagination();
+renderHomeReviews();
+
 
   clearTimeout(homeTmdbSearchTimeout);
 
@@ -1007,6 +1025,7 @@ function renderCircleActivityItem(event) {
   `;
 }
 
+
 function renderCircleActivity(events) {
   if (!circleActivityFeed || !circleActivitySidebar) {
     return;
@@ -1015,6 +1034,12 @@ function renderCircleActivity(events) {
   if (!currentUser) {
     circleActivitySidebar.hidden = true;
     circleActivityFeed.innerHTML = "";
+
+    if (circleActivityPagination) {
+      circleActivityPagination.hidden = true;
+      circleActivityPagination.innerHTML = "";
+    }
+
     return;
   }
 
@@ -1030,14 +1055,47 @@ function renderCircleActivity(events) {
       </div>
     `;
 
+    if (circleActivityPagination) {
+      circleActivityPagination.hidden = true;
+      circleActivityPagination.innerHTML = "";
+    }
+
     return;
   }
 
-  circleActivityFeed.innerHTML = events
+  const visibleEvents = events.slice(
+    0,
+    visibleCircleActivityCount
+  );
+
+  circleActivityFeed.innerHTML = visibleEvents
     .map(renderCircleActivityItem)
     .filter(Boolean)
     .join("");
+
+  if (!circleActivityPagination) {
+    return;
+  }
+
+  const hasMoreEvents =
+    visibleEvents.length < events.length;
+
+  circleActivityPagination.hidden = !hasMoreEvents;
+
+  circleActivityPagination.innerHTML = hasMoreEvents
+    ? `
+      <button
+        id="showMoreCircleActivityButton"
+        class="circle-activity-show-more"
+        type="button"
+      >
+        Voir l’activité du cercle
+        <span aria-hidden="true">↓</span>
+      </button>
+    `
+    : "";
 }
+
 
 async function refreshCircleActivity() {
   if (!circleActivityFeed || !circleActivitySidebar) {
@@ -1056,9 +1114,13 @@ async function refreshCircleActivity() {
   `;
 
   try {
-    const events = await getCircleActivityEvents();
 
-    renderCircleActivity(events);
+circleActivityEvents = await getCircleActivityEvents();
+
+visibleCircleActivityCount = CIRCLE_ACTIVITY_PAGE_SIZE;
+
+renderCircleActivity(circleActivityEvents);
+
   } catch (error) {
     console.error(
       "Erreur de chargement de l’activité du cercle :",
@@ -1086,6 +1148,11 @@ function allHomeReviews() {
 function getPrimaryGenre(review) {
   return getPrimarySiteGenre(review.movies?.genres || []);
 }
+
+function resetHomeReviewsPagination() {
+  visibleHomeReviewsCount = HOME_REVIEWS_PAGE_SIZE;
+}
+
 
 function renderHomeReviews() {
   if (!grid || !movieCount) {
@@ -1126,26 +1193,70 @@ function renderHomeReviews() {
     );
   });
 
-  movieCount.textContent =
-    `· ${filteredReviews.length} entrée${
-      filteredReviews.length > 1 ? "s" : ""
-    }`;
+  const visibleReviews = filteredReviews.slice(
+    0,
+    visibleHomeReviewsCount
+  );
 
-  if (filteredReviews.length === 0) {
+  movieCount.textContent = filteredReviews.length
+    ? `· ${visibleReviews.length} sur ${filteredReviews.length} entrée${
+        filteredReviews.length > 1 ? "s" : ""
+      }`
+    : "";
+
+  if (!filteredReviews.length) {
     grid.innerHTML = `
       <div class="empty-state">
         <strong>Aucune séance ne correspond à cette recherche.</strong>
         <br /><br />
-        Essaie un autre titre, un autre genre ou découvre un film dans les résultats TMDB ci-dessus.
+        Essaie un autre titre, un autre genre ou découvre un film
+        dans les résultats TMDB ci-dessus.
       </div>
     `;
+
+    if (homeReviewsPagination) {
+      homeReviewsPagination.hidden = true;
+      homeReviewsPagination.innerHTML = "";
+    }
 
     return;
   }
 
-  grid.innerHTML = filteredReviews
+  grid.innerHTML = visibleReviews
     .map((review, index) => createMovieCard(review, index))
     .join("");
+
+  if (homeReviewsPagination) {
+    const hasMoreReviews =
+      visibleReviews.length < filteredReviews.length;
+
+    homeReviewsPagination.hidden = !hasMoreReviews;
+
+    homeReviewsPagination.innerHTML = hasMoreReviews
+      ? `
+        <button
+          id="showMoreHomeReviewsButton"
+          class="home-show-more-button"
+          type="button"
+        >
+          Voir ${
+            Math.min(
+              HOME_REVIEWS_PAGE_SIZE,
+              filteredReviews.length - visibleReviews.length
+            )
+          } séance${
+            Math.min(
+              HOME_REVIEWS_PAGE_SIZE,
+              filteredReviews.length - visibleReviews.length
+            ) > 1
+              ? "s"
+              : ""
+          } de plus
+          <span aria-hidden="true">↓</span>
+        </button>
+      `
+      : "";
+  }
 
   document.querySelectorAll(".favorite").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -1184,6 +1295,7 @@ function renderHomeReviews() {
   });
 }
 
+
 async function refreshHomeReviews() {
   if (!grid || !movieCount) {
     return;
@@ -1191,7 +1303,7 @@ async function refreshHomeReviews() {
 
   try {
     publicReviews = await getPublicReviews();
-
+   resetHomeReviewsPagination();
     renderHomeReviews();
   } catch (error) {
     console.error(
@@ -1318,10 +1430,13 @@ function setupHome() {
 
       filterButton.classList.add("active");
 
-      selectedGenre =
-        filterButton.dataset.genre || "Tous";
 
-      renderHomeReviews();
+selectedGenre =
+  filterButton.dataset.genre || "Tous";
+
+resetHomeReviewsPagination();
+renderHomeReviews();
+
     });
   }
 
@@ -1330,6 +1445,38 @@ function setupHome() {
       "input",
       handleHomeSearchInput
     );
+  }
+
+  if (homeReviewsPagination) {
+    homeReviewsPagination.addEventListener("click", (event) => {
+      const button = event.target.closest(
+        "#showMoreHomeReviewsButton"
+      );
+
+      if (!button) {
+        return;
+      }
+
+      visibleHomeReviewsCount += HOME_REVIEWS_PAGE_SIZE;
+
+      renderHomeReviews();
+    });
+  }
+
+  if (circleActivityPagination) {
+    circleActivityPagination.addEventListener("click", (event) => {
+      const button = event.target.closest(
+        "#showMoreCircleActivityButton"
+      );
+
+      if (!button) {
+        return;
+      }
+
+      visibleCircleActivityCount += CIRCLE_ACTIVITY_PAGE_SIZE;
+
+      renderCircleActivity(circleActivityEvents);
+    });
   }
 
   if (reviewForm) {
