@@ -8641,3 +8641,201 @@ body.modal-open {
 }
 
 
+/* =====================================================
+   ACCUEIL — HERO ET ACTUALITÉ
+   Une entrée plus directe vers le carnet.
+   ===================================================== */
+
+/* Le hero conserve son atmosphère, mais laisse apparaître
+   l'actualité plus vite dès l'arrivée sur la page. */
+
+.hero {
+  min-height: 365px;
+  padding: 74px 7% 62px;
+}
+
+.hero-content {
+  max-width: 690px;
+}
+
+.hero p {
+  max-width: 510px;
+  margin: 20px 0 25px;
+  font-size: 1.05rem;
+}
+
+#critiques {
+  scroll-margin-top: 105px;
+}
+
+/* ---------------------------------------------
+   Titre et repère éditorial de l'actualité
+   --------------------------------------------- */
+
+.home-section-title {
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+.home-section-summary {
+  max-width: 365px;
+  text-align: right;
+}
+
+.home-section-summary p {
+  margin: 0;
+  color: var(--grey);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.home-movie-count {
+  display: block;
+  margin-top: 8px;
+  color: var(--deep-red);
+  font-family: Arial, sans-serif;
+  font-size: 0.69rem;
+  font-weight: bold;
+  letter-spacing: 0.01em;
+}
+
+/* ---------------------------------------------
+   Recherche + filtres
+   Une respiration claire avant les cartes.
+   --------------------------------------------- */
+
+.home-discovery-controls {
+  margin-bottom: 25px;
+  padding: 16px 0 18px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.home-discovery-controls .controls {
+  margin: 0;
+}
+
+.home-discovery-controls .search-box input {
+  background: rgba(255, 250, 244, 0.88);
+}
+
+.home-discovery-controls .filter {
+  padding: 9px 13px;
+  font-size: 0.78rem;
+}
+
+/* ---------------------------------------------
+   Feed et activité du cercle
+   --------------------------------------------- */
+
+.home-content-layout {
+  gap: 44px;
+}
+
+.home-reviews-column .movies-grid {
+  gap: 18px;
+}
+
+.circle-activity-sidebar {
+  padding-top: 1px;
+}
+
+.circle-activity-heading {
+  margin-bottom: 13px;
+}
+
+/* ---------------------------------------------
+   Pagination : une invitation douce à poursuivre.
+   --------------------------------------------- */
+
+.home-pagination {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 34px;
+}
+
+.home-pagination::before,
+.home-pagination::after {
+  height: 1px;
+  flex: 1;
+  content: "";
+  background: var(--line);
+}
+
+.home-show-more-button {
+  flex: 0 0 auto;
+  padding: 10px 16px;
+  color: var(--deep-red);
+  background: var(--cream);
+  border-color: rgba(184, 68, 68, 0.38);
+}
+
+/* L'à-propos clôt la page sans créer un vide trop grand. */
+
+.about-section {
+  margin-top: 82px;
+}
+
+/* ---------------------------------------------
+   Mobile
+   --------------------------------------------- */
+
+@media (max-width: 750px) {
+  .hero {
+    min-height: 350px;
+    padding: 65px 7% 55px;
+  }
+
+  .home-section-title {
+    align-items: flex-start;
+  }
+
+  .home-section-summary {
+    max-width: 520px;
+    text-align: left;
+  }
+
+  .home-discovery-controls {
+    padding: 14px 0 16px;
+  }
+
+  .home-content-layout {
+    gap: 42px;
+  }
+
+  .home-pagination::before,
+  .home-pagination::after {
+    display: none;
+  }
+
+  .home-pagination {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 650px) {
+  .hero {
+    min-height: 330px;
+    padding: 58px 7% 48px;
+  }
+
+  .hero p {
+    margin: 18px 0 22px;
+    font-size: 1rem;
+  }
+
+  .home-discovery-controls .filters {
+    gap: 7px;
+  }
+
+  .home-discovery-controls .filter {
+    padding: 8px 11px;
+    font-size: 0.72rem;
+  }
+
+  .about-section {
+    margin-top: 68px;
+  }
+}
+
