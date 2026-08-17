@@ -410,6 +410,18 @@ function renderStandardListPage(list, ownerName, movies, isOwner) {
 }
 
 
+function getPossessiveListTitle(ownerName) {
+  const cleanName = String(ownerName || "Membre").trim();
+
+  const startsWithVowel = /^[aàâäéèêëîïôöùûüÿæœh]/i.test(
+    cleanName
+  );
+
+  return startsWithVowel
+    ? `La liste d’${cleanName}`
+    : `La liste de ${cleanName}`;
+}
+
 function renderWishlistPage(list, ownerName, movies, isOwner) {
   const movieCount = movies.length;
   const movieLabel = getListMovieLabel(movieCount);
@@ -423,6 +435,8 @@ function renderWishlistPage(list, ownerName, movies, isOwner) {
     list.description?.trim()
   );
 
+const wishlistTitle = getPossessiveListTitle(ownerName);
+
   return `
     <section class="list-hero-card wishlist-hero-card">
       <div>
@@ -430,9 +444,11 @@ function renderWishlistPage(list, ownerName, movies, isOwner) {
           À voir
         </div>
 
-        <h1>
-          La liste d’${escapeHTML(ownerName)}
-        </h1>
+
+<h1>
+  ${escapeHTML(wishlistTitle)}
+</h1>
+
 
         ${
           hasCustomDescription
