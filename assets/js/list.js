@@ -63,6 +63,24 @@ function getListMovieLabel(count) {
   return count > 1 ? "films" : "film";
 }
 
+function formatListItemAddedDate(dateValue) {
+  if (!dateValue) {
+    return "";
+  }
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+}
+
 function renderListMovieCard(movie, options = {}) {
   const {
     isWishlist = false,
@@ -77,7 +95,8 @@ function renderListMovieCard(movie, options = {}) {
   const releaseYear = movie.release_year || "—";
   const director =
     movie.director || "Réalisateur·rice non précisé·e";
-
+  
+  const addedDate = formatListItemAddedDate(movie.added_at);
   const movieUrl = `film.html?id=${encodeURIComponent(movie.id)}`;
 
   return `
@@ -112,11 +131,26 @@ function renderListMovieCard(movie, options = {}) {
 
           <h2>${escapeHTML(title)}</h2>
 
-          <p>
-            ${escapeHTML(director)}
-          </p>
 
-          <span class="tag">
+<p>
+  ${escapeHTML(director)}
+</p>
+
+${
+  addedDate
+    ? `
+      <time
+        class="list-movie-added-date"
+        datetime="${escapeHTML(movie.added_at)}"
+      >
+        Ajouté le ${escapeHTML(addedDate)}
+      </time>
+    `
+    : ""
+}
+
+<span class="tag">
+
             ${escapeHTML(primaryGenre)}
           </span>
         </div>
