@@ -726,6 +726,7 @@ function renderProfileCinemaTalent(talent, type) {
     `;
 }
 
+
 function renderMyCinemaSection() {
   const profileHero = document.querySelector(".profile-hero-card");
 
@@ -740,6 +741,7 @@ function renderMyCinemaSection() {
   }
 
   const {
+    quote,
     genres,
     decades,
     movie,
@@ -748,6 +750,7 @@ function renderMyCinemaSection() {
   } = getProfileCinemaDisplayData();
 
   const hasCinemaDetails = Boolean(
+    quote ||
     movie ||
     actor ||
     director ||
@@ -758,10 +761,23 @@ function renderMyCinemaSection() {
   const section = document.createElement("section");
 
   section.id = "myCinemaSection";
-  section.className = "profile-cinema-section profile-cinema-compact-section";
+  section.className =
+    "profile-cinema-section profile-cinema-compact-section";
 
   section.innerHTML = `
     <div class="profile-cinema-compact-top">
+      ${
+        quote
+          ? `
+            <p class="profile-cinema-discreet-quote">
+              <span aria-hidden="true">«</span>
+              ${escapeHTML(quote)}
+              <span aria-hidden="true">»</span>
+            </p>
+          `
+          : `<span class="profile-cinema-compact-spacer"></span>`
+      }
+
       <button
         class="profile-cinema-edit-button"
         type="button"
@@ -854,6 +870,7 @@ function renderMyCinemaSection() {
     .querySelector("[data-open-profile-preferences]")
     ?.addEventListener("click", openProfilePreferencesModal);
 }
+
 
 
 /* =====================================================
