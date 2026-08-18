@@ -561,10 +561,15 @@ function renderProfileReviews(reviews) {
     profileTitle.textContent = `Le carnet de ${username}`;
   }
 
-  if (profileSubtitle) {
-    profileSubtitle.textContent =
-      "Tes films, tes mots, les traces que les séances ont laissées.";
-  }
+
+if (profileSubtitle) {
+  const bio = String(currentProfile?.bio || "").trim();
+
+  profileSubtitle.textContent = bio
+    ? bio
+    : "Tes films, tes mots, les traces que les séances ont laissées.";
+}
+
 
 
   const microReviews = reviews.filter((review) =>
