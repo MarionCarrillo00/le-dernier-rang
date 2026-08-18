@@ -16,20 +16,8 @@ function renderNavigation() {
     return;
   }
 
-  const isHomePage = isCurrentPage("index.html");
   const isProfilePage = isCurrentPage("profil.html");
   const isAdminPage = isCurrentPage("admin.html");
-
-  /*
-    Sur l'accueil :
-    - home.js intercepte le clic sur #openModal ;
-    - la modale de publication s'ouvre.
-
-    Sur les autres pages :
-    - le lien ramène vers l'accueil ;
-    - home.js ouvrira ensuite la modale si nécessaire.
-  */
-  const writeReviewHref = isHomePage ? "#reviewModal" : "index.html";
 
   siteHeader.className = "site-header";
 
@@ -48,18 +36,11 @@ function renderNavigation() {
           title="Rechercher un film"
         >
           <span aria-hidden="true">⌕</span>
+
           <span class="site-search-button-label">
             Rechercher un film
           </span>
         </button>
-
-        <a
-          id="openModal"
-          class="button-primary site-write-button"
-          href="${writeReviewHref}"
-        >
-          Écrire une critique
-        </a>
 
         <button
           id="authButton"
@@ -115,6 +96,7 @@ function renderNavigation() {
       <div
         class="modal global-movie-search-modal"
         id="globalMovieSearchModal"
+        hidden
         aria-hidden="true"
         role="dialog"
         aria-modal="true"
