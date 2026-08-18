@@ -840,6 +840,433 @@ function renderMemberCinemaSection(profile, cinema) {
 }
 
 /* =====================================================
+   AFFINITÉ CINÉPHILE
+   Calcul local, sans nouvelle table Supabase.
+   ===================================================== */
+
+function getAffinityOverlap(firstValues, secondValues) {
+  const first = new Set(
+    (Array.isArray(firstValues) ? firstValues : [])
+      .map((value) => String(value || "").trim().toLowerCase())
+      .filter(Boolean)
+  );
+
+  const second = new Set(
+    (Array.isArray(secondValues) ? secondValues : [])
+      .map((value) => String(value || "").trim().toLowerCase())
+      .filter(Boolean)
+  );
+
+  if (!first.size || !second.size) {
+    return {
+      score: 0,
+      shared: []
+    };
+  }
+
+  const shared = [...first].filter((value) => second.has(value));
+
+  const unionSize = new Set([...first, ...second]).size;
+
+  return {
+    score: unionSize ? shared.length / unionSize : 0,
+    shared
+  };
+}
+
+function getAffinityFavoriteScore(myCinema, memberCinema) {
+  let possibleMatches = 0;
+  let matches = 0;
+
+  const myMovieTmdbId = String(
+    myCinema?.movie?.tmdb_id || ""
+  );
+
+  const memberMovieTmdbId = String(
+    memberCinema?.movie?.tmdb_id || ""
+  );
+
+  if (myMovieTmdbId && memberMovieTmdbId) {
+    possibleMatches += 1;
+
+    if (myMovieTmdbId === memberMovieTmdbId) {
+      matches += 1;
+    }
+  }
+
+  const myActorTmdbId = String(
+    myCinema?.actor?.tmdb_id || ""
+  );
+
+  const memberActorTmdbId = String(
+    memberCinema?.actor?.tmdb_id || ""
+  );
+
+  if (myActorTmdbId && memberActorTmdbId) {
+    possibleMatches += 1;
+
+    if (myActorTmdbId === memberActorTmdbId) {
+      matches += 1;
+    }
+  }
+
+  const myDirectorTmdbId = String(
+    myCinema?.director?.tmdb_id || ""
+  );
+
+  const memberDirectorTmdbId = String(
+    memberCinema?.director?.tmdb_id || ""
+  );
+
+  if (myDirectorTmdbId && memberDirectorTmdbId) {
+    possibleMatches += 1;
+
+    if (myDirectorTmdbId === memberDirectorTmdbId) {
+      matches += 1;
+    }
+  }
+
+  return possibleMatches ? matches / possibleMatches : 0;
+}
+
+function getAffinityLabel(score, commonMoviesCount) {
+  if (commonMoviesCount < 3) {
+    return "Vos carnets commencent à se croiser";
+  }
+
+  if (commonMoviesCount < 6) {
+    return "Une sensibilité proche";
+  }
+
+  if (score >= 80) {
+    return "Très belle affinité";
+  }
+
+  if (score >= 65) {
+    return "Une affinité évidente";
+  }
+
+  if (score >= 50) {
+    return "Une sensibilité proche";
+  }
+
+  return "Des regards à rapprocher";
+}
+
+function getAffinityDescription(
+  commonMoviesCount,
+  sharedGenres,
+  sharedDecades,
+  score
+) {
+  const movieLabel =
+    commonMoviesCount > 1
+      ? "films en commun"
+      : "film en commun";
+
+  const details = [];
+
+  if (sharedGenres.length) {
+    details.push(
+      `un goût commun pour ${sharedGenres
+        .slice(0, 2)
+        .join(" et ")}`
+    );
+  }
+
+  if (sharedDecades.length) {
+    details.push(
+      `un attachement aux années ${sharedDecades
+        .slice(0, 2)
+        .join(" et ")}`
+    );
+  }
+
+  if (commonMoviesCount < 3) {
+    return `Vous avez ${commonMoviesCount} ${movieLabel}. Gardez quelques séances en commun pour laisser apparaître vos affinités.`;
+  }
+
+  if (commonMoviesCount < 6) {
+    return details.length
+      ? `Vous partagez ${commonMoviesCount} ${movieLabel}, avec ${details.join(" et ")}.`
+      : `Vous partagez déjà ${commonMoviesCount} ${movieLabel}. Vos carnets commencent à dialoguer.`;
+  }
+
+  if (details.length) {
+    return `Vous partagez ${commonMoviesCount} ${movieLabel}, avec ${details.join(" et ")}.`;
+  }
+
+  if (score >= 65) {
+    return `Vos notes se répondent sur ${commonMoviesCount} ${movieLabel}.`;
+  }
+
+  return `Vous partagez ${commonMoviesCount} ${movieLabel}, avec des regards parfois différents.`;
+}
+
+async function getProfileCinemaForAffinity(profileId) {
+  const [
+    favoriteMovieResult,
+    favoriteTalentsResult
+  ] = await Promise.all([
+    supabaseClient
+      .from("profile_favorite_movies")
+      .select(`
+        movie_id,
+        movies (
+          id,
+          tmdb_id,
+          title
+        )
+      `)
+      .eq("profile_id", profileId)
+      .maybeSingle(),
+
+    supabaseClient
+      .from("profile_favorite_talents")
+      .select(`
+        tmdb_id,
+        talent_type,
+        talent_name
+      `)
+      .eq("profile_id", profileId)
+  ]);
+
+  if (favoriteMovieResult.error) {
+    throw favoriteMovieResult.error;
+  }
+
+  if (favoriteTalentsResult.error) {
+    throw favoriteTalentsResult.error;
+  }
+
+  const talents = favoriteTalentsResult.data || [];
+
+  return {
+    movie: favoriteMovieResult.data?.movies || null,
+
+    actor:
+      talents.find(
+        (talent) => talent.talent_type === "acting"
+      ) || null,
+
+    director:
+      talents.find(
+        (talent) => talent.talent_type === "directing"
+      ) || null
+  };
+}
+
+async function getReviewsForAffinity(profileId) {
+  const { data, error } = await supabaseClient
+    .from("reviews")
+    .select(`
+      movie_id,
+      rating
+    `)
+    .eq("user_id", profileId);
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
+}
+
+async function getMemberAffinity(
+  memberProfile,
+  friendship,
+  memberCinema
+) {
+  /*
+    L'affinité est une information intime :
+    elle nécessite une amitié acceptée et l'accord
+    des deux personnes concernées.
+  */
+  if (
+    !currentUser ||
+    currentUser.id === memberProfile.id ||
+    friendship?.status !== "accepted" ||
+    memberProfile.compatibility_visible === false
+  ) {
+    return null;
+  }
+
+  try {
+    const [
+      myProfileResult,
+      myReviews,
+      memberReviews,
+      myCinema
+    ] = await Promise.all([
+      supabaseClient
+        .from("profiles")
+        .select(`
+          id,
+          favorite_genres,
+          favorite_decades,
+          compatibility_visible
+        `)
+        .eq("id", currentUser.id)
+        .single(),
+
+      getReviewsForAffinity(currentUser.id),
+      getReviewsForAffinity(memberProfile.id),
+
+      getProfileCinemaForAffinity(currentUser.id)
+    ]);
+
+    if (myProfileResult.error) {
+      throw myProfileResult.error;
+    }
+
+    const myProfile = myProfileResult.data;
+
+    if (myProfile.compatibility_visible === false) {
+      return null;
+    }
+
+    const memberReviewsByMovieId = Object.fromEntries(
+      memberReviews
+        .filter((review) => review.movie_id)
+        .map((review) => [
+          review.movie_id,
+          Number(review.rating) || 0
+        ])
+    );
+
+    const commonRatings = myReviews
+      .filter(
+        (review) =>
+          review.movie_id &&
+          memberReviewsByMovieId[review.movie_id] !== undefined
+      )
+      .map((review) => {
+        const myRating = Number(review.rating) || 0;
+
+        const memberRating =
+          memberReviewsByMovieId[review.movie_id];
+
+        /*
+          Les notes vont de 1 à 5 :
+          un écart de 4 représente donc l'opposition maximale.
+        */
+        const similarity = Math.max(
+          0,
+          1 - Math.abs(myRating - memberRating) / 4
+        );
+
+        return similarity;
+      });
+
+    const commonMoviesCount = commonRatings.length;
+
+    const averageRatingSimilarity = commonMoviesCount
+      ? commonRatings.reduce(
+          (total, similarity) => total + similarity,
+          0
+        ) / commonMoviesCount
+      : 0;
+
+    const genresOverlap = getAffinityOverlap(
+      myProfile.favorite_genres,
+      memberProfile.favorite_genres
+    );
+
+    const decadesOverlap = getAffinityOverlap(
+      myProfile.favorite_decades,
+      memberProfile.favorite_decades
+    );
+
+    const favoritesScore = getAffinityFavoriteScore(
+      myCinema,
+      memberCinema
+    );
+
+    /*
+      Les films et notes en commun restent le cœur du score.
+      Les goûts déclarés enrichissent seulement la lecture.
+    */
+    const score = Math.round(
+      averageRatingSimilarity * 75 +
+      genresOverlap.score * 15 +
+      decadesOverlap.score * 7 +
+      favoritesScore * 3
+    );
+
+    return {
+      commonMoviesCount,
+      score,
+      label: getAffinityLabel(score, commonMoviesCount),
+      description: getAffinityDescription(
+        commonMoviesCount,
+        genresOverlap.shared,
+        decadesOverlap.shared,
+        score
+      ),
+      sharedGenres: genresOverlap.shared,
+      sharedDecades: decadesOverlap.shared
+    };
+  } catch (error) {
+    console.error(
+      "Impossible de calculer l’affinité cinéphile :",
+      error
+    );
+
+    return null;
+  }
+}
+
+function renderMemberAffinitySection(affinity) {
+  if (!affinity) {
+    return "";
+  }
+
+  const canShowScore = affinity.commonMoviesCount >= 6;
+
+  return `
+    <section class="member-affinity-section">
+      <div class="member-affinity-kicker">
+        Entre vos deux carnets
+      </div>
+
+      <div class="member-affinity-content">
+        <div>
+          <h2>${escapeHTML(affinity.label)}</h2>
+
+          <p>
+            ${escapeHTML(affinity.description)}
+          </p>
+        </div>
+
+        ${
+          canShowScore
+            ? `
+              <div
+                class="member-affinity-score"
+                aria-label="${affinity.score} pour cent d’affinité cinéphile"
+              >
+                <strong>${affinity.score}</strong>
+                <span>%</span>
+              </div>
+            `
+            : `
+              <div class="member-affinity-common-count">
+                <strong>${affinity.commonMoviesCount}</strong>
+                <span>
+                  film${
+                    affinity.commonMoviesCount > 1 ? "s" : ""
+                  }<br />
+                  en commun
+                </span>
+              </div>
+            `
+        }
+      </div>
+    </section>
+  `;
+}
+
+/* =====================================================
    AMIS PUBLICS — SON CERCLE
    ===================================================== */
 
@@ -948,7 +1375,9 @@ function renderMemberPage(
   collections,
   friendship,
   friends,
-  cinema
+  cinema,
+  affinity
+
 ) {
   if (!memberPageContent) {
     return;
@@ -1035,6 +1464,7 @@ function renderMemberPage(
     </section>
 
     ${renderMemberCinemaSection(profile, cinema)}
+${renderMemberAffinitySection(affinity)}
 
     ${renderMemberWishlistSection(
       username,
@@ -1234,6 +1664,13 @@ async function loadMemberPage() {
             actor: null,
             director: null
           };
+    
+    const affinity = await getMemberAffinity(
+      profile,
+      friendship,
+      cinema
+    );
+
 
     if (friendshipResult.status === "rejected") {
       console.error(
@@ -1262,7 +1699,8 @@ async function loadMemberPage() {
       collections,
       friendship,
       friends,
-      cinema
+      cinema,
+      affinity
     );
   } catch (error) {
     console.error(
