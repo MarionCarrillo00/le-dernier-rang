@@ -10010,3 +10010,68 @@ body.modal-open {
     padding-top: 0;
   }
 }
+
+/* =====================================================
+   PROFIL — CERCLE ET ACTIVITÉ ALIGNÉS
+   Le cercle et les notifications commencent au même niveau.
+   ===================================================== */
+
+.profile-journal-layout {
+  align-items: start;
+  margin-top: 0;
+}
+
+.profile-main-column {
+  min-width: 0;
+}
+
+/* Le cercle est désormais contenu dans la colonne principale :
+   on préserve son rythme sans créer un espace avant la sidebar. */
+
+.profile-main-column .profile-circle-section {
+  margin: 0 0 42px;
+}
+
+.profile-main-column .profile-reviews-section {
+  margin-top: 0;
+}
+
+/* La sidebar commence immédiatement avec l'activité.
+   Elle devient le contrepoint vivant du cercle. */
+
+.profile-journal-layout > .profile-sidebar {
+  padding-top: 0;
+}
+
+.profile-journal-layout > .profile-sidebar .profile-activity-section {
+  margin-top: 0;
+}
+
+/* Les titres des deux colonnes se répondent davantage. */
+
+.profile-main-column .profile-circle-header,
+.profile-sidebar .profile-sidebar-heading {
+  min-height: 55px;
+}
+
+/* Sur tablette et mobile, on revient à une lecture naturelle :
+   cercle, journal, puis sidebar. */
+
+@media (max-width: 750px) {
+  .profile-journal-layout {
+    margin-top: 0;
+  }
+
+  .profile-main-column .profile-circle-section {
+    margin-bottom: 42px;
+  }
+
+  .profile-journal-layout > .profile-sidebar {
+    padding-top: 28px;
+  }
+
+  .profile-main-column .profile-circle-header,
+  .profile-sidebar .profile-sidebar-heading {
+    min-height: 0;
+  }
+}
