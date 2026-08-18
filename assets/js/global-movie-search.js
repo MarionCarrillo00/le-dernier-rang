@@ -30,12 +30,19 @@ function openGlobalMovieSearch() {
   /*
     Évite de laisser une autre modale ouverte derrière la recherche.
   */
-  document.querySelectorAll(".modal").forEach((modal) => {
-    if (modal.id !== "globalMovieSearchModal") {
-      modal.classList.remove("visible");
-    }
-  });
+  document
+    .querySelectorAll(".modal.visible, .modal-overlay.visible")
+    .forEach((modal) => {
+      if (modal.id !== "globalMovieSearchModal") {
+        modal.classList.remove("visible");
+      }
+    });
 
+  /*
+    Important : la modale est initialement masquée avec l'attribut
+    HTML hidden. Il faut le retirer avant d'ajouter .visible.
+  */
+  globalMovieSearchModal.removeAttribute("hidden");
   globalMovieSearchModal.classList.add("visible");
   globalMovieSearchModal.setAttribute("aria-hidden", "false");
 
@@ -46,12 +53,15 @@ function openGlobalMovieSearch() {
   }, 50);
 }
 
+
+
 function closeGlobalMovieSearch() {
   if (!globalMovieSearchModal) {
     return;
   }
 
   globalMovieSearchModal.classList.remove("visible");
+  globalMovieSearchModal.setAttribute("hidden", "");
   globalMovieSearchModal.setAttribute("aria-hidden", "true");
 
   if (globalMovieSearchInput) {
@@ -61,14 +71,17 @@ function closeGlobalMovieSearch() {
   clearGlobalMovieSearchResults();
 
   const anotherModalIsOpen = Boolean(
-    document.querySelector(".modal.visible")
+    document.querySelector(".modal.visible, .modal-overlay.visible")
   );
 
   document.body.classList.toggle(
     "modal-open",
     anotherModalIsOpen
   );
+
+  globalMovieSearchOpenButton?.focus();
 }
+
 
 function clearGlobalMovieSearchResults() {
   if (!globalMovieSearchResults) {
