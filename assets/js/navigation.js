@@ -22,12 +22,12 @@ function renderNavigation() {
 
   /*
     Sur l'accueil :
-    - home.js intercepte le clic sur #openModal
+    - home.js intercepte le clic sur #openModal ;
     - la modale de publication s'ouvre.
 
     Sur les autres pages :
-    - la modale de publication n'existe pas forcément ;
-    - le lien ramène donc proprement vers l'accueil.
+    - le lien ramène vers l'accueil ;
+    - home.js ouvrira ensuite la modale si nécessaire.
   */
   const writeReviewHref = isHomePage ? "#reviewModal" : "index.html";
 
@@ -40,6 +40,19 @@ function renderNavigation() {
       </a>
 
       <div class="site-navigation-actions">
+        <button
+          id="openGlobalMovieSearch"
+          class="site-search-button"
+          type="button"
+          aria-label="Rechercher un film"
+          title="Rechercher un film"
+        >
+          <span aria-hidden="true">⌕</span>
+          <span class="site-search-button-label">
+            Rechercher un film
+          </span>
+        </button>
+
         <a
           id="openModal"
           class="button-primary site-write-button"
@@ -95,6 +108,71 @@ function renderNavigation() {
       </div>
     </nav>
   `;
+
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
+      <div
+        class="modal global-movie-search-modal"
+        id="globalMovieSearchModal"
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="globalMovieSearchTitle"
+      >
+        <div class="modal-box global-movie-search-box">
+          <div class="modal-head">
+            <div>
+              <div class="eyebrow red-eyebrow">
+                Retrouver un film
+              </div>
+
+              <h3 id="globalMovieSearchTitle">
+                Quel film cherches-tu ?
+              </h3>
+            </div>
+
+            <button
+              class="close-button"
+              id="closeGlobalMovieSearch"
+              type="button"
+              aria-label="Fermer la recherche"
+            >
+              ×
+            </button>
+          </div>
+
+          <div class="global-movie-search-field">
+            <span
+              class="global-movie-search-icon"
+              aria-hidden="true"
+            >
+              ⌕
+            </span>
+
+            <input
+              id="globalMovieSearchInput"
+              type="search"
+              autocomplete="off"
+              placeholder="Un titre, un souvenir de séance…"
+              aria-label="Rechercher un film"
+            />
+          </div>
+
+          <p class="global-movie-search-note">
+            Recherche un film, puis choisis de le garder pour plus tard
+            ou de l’ajouter à ton carnet.
+          </p>
+
+          <div
+            id="globalMovieSearchResults"
+            class="global-movie-search-results"
+            aria-live="polite"
+          ></div>
+        </div>
+      </div>
+    `
+  );
 }
 
 renderNavigation();
