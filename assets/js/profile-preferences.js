@@ -302,7 +302,10 @@ async function loadProfilePreferences() {
         }
       : null;
 
-    updateProfilePreferencesButton();
+
+updateProfilePreferencesButton();
+renderMyCinemaSection();
+    
   } catch (error) {
     console.error(
       "Erreur de chargement des préférences de profil :",
@@ -581,6 +584,295 @@ function clearProfileFavoriteResults(container) {
   if (container) {
     container.innerHTML = "";
   }
+}
+
+/* =====================================================
+   MON CINÉMA — AFFICHAGE DANS L'ESPACE PERSONNEL
+   ===================================================== */
+
+function getProfileCinemaDisplayData() {
+  return {
+    quote: String(currentProfile?.favorite_quote || "").trim(),
+
+    genres: Array.isArray(currentProfile?.favorite_genres)
+      ? currentProfile.favorite_genres
+      : [],
+
+    decades: Array.isArray(currentProfile?.favorite_decades)
+      ? currentProfile.favorite_decades
+      : [],
+
+    movie: profileFavoriteMovie,
+    actor: profileFavoriteActor,
+    director: profileFavoriteDirector
+  };
+}
+
+function renderProfileCinemaMovie(movie) {
+  if (!movie) {
+    return "";
+  }
+
+  const title = movie.title || "Film sans titre";
+  const year = movie.release_year || "";
+  const director = movie.director || "";
+
+  const movieUrl = movie.id
+    ? `film.html?id=${encodeURIComponent(movie.id)}`
+    : movie.tmdb_id
+      ? `film.html?tmdb=${encodeURIComponent(movie.tmdb_id)}`
+      : "";
+
+  const posterMarkup = movie.poster_url
+    ? `
+      <img
+        src="${escapeHTML(movie.poster_url)}"
+        alt="Affiche de ${escapeHTML(title)}"
+        loading="lazy"
+      />
+    `
+    : `
+      <div class="profile-cinema-movie-placeholder">
+        ${escapeHTML(getProfilePreferenceInitial(title))}
+      </div>
+    `;
+
+  const metadata = [year, director]
+    .filter(Boolean)
+    .join(" · ");
+
+  const content = `
+    <div class="profile-cinema-movie-poster">
+      ${posterMarkup}
+    </div>
+
+    <div class="profile-cinema-movie-copy">
+      <span>Film gardé tout près</span>
+      <strong>${escapeHTML(title)}</strong>
+
+      ${
+        metadata
+          ? `<small>${escapeHTML(metadata)}</small>`
+          : ""
+      }
+    </div>
+  `;
+
+  return movieUrl
+    ? `
+      <a
+        class="profile-cinema-movie"
+        href="${movieUrl}"
+      >
+        ${content}
+      </a>
+    `
+    : `
+      <div class="profile-cinema-movie">
+        ${content}
+      </div>
+    `;
+}
+
+function renderProfileCinemaTalent(talent, type) {
+  if (!talent) {
+    return "";
+  }
+
+  const name = talent.name || talent.talent_name || "Talent";
+
+  const label = type === "acting"
+    ? "Voix à laquelle je reviens"
+    : "Cinéma de prédilection";
+
+  const portraitMarkup = talent.profile_url
+    ? `
+      <img
+        src="${escapeHTML(talent.profile_url)}"
+        alt="Portrait de ${escapeHTML(name)}"
+        loading="lazy"
+      />
+    `
+    : `
+      <div class="profile-cinema-talent-placeholder">
+        ${escapeHTML(getProfilePreferenceInitial(name))}
+      </div>
+    `;
+
+  const content = `
+    <div class="profile-cinema-talent-portrait">
+      ${portraitMarkup}
+    </div>
+
+    <div class="profile-cinema-talent-copy">
+      <span>${escapeHTML(label)}</span>
+      <strong>${escapeHTML(name)}</strong>
+    </div>
+  `;
+
+  return talent.tmdb_id
+    ? `
+      <a
+        class="profile-cinema-talent"
+        href="talent.html?tmdb=${encodeURIComponent(talent.tmdb_id)}"
+      >
+        ${content}
+      </a>
+    `
+    : `
+      <div class="profile-cinema-talent">
+        ${content}
+      </div>
+    `;
+}
+
+function renderMyCinemaSection() {
+  const profileHero = document.querySelector(".profile-hero-card");
+
+  if (!profileHero) {
+    return;
+  }
+
+  document.querySelector("#myCinemaSection")?.remove();
+
+  if (!currentUser) {
+    return;
+  }
+
+  const {
+    quote,
+    genres,
+    decades,
+    movie,
+    actor,
+    director
+  } = getProfileCinemaDisplayData();
+
+  const hasCinemaDetails = Boolean(
+    quote ||
+    movie ||
+    actor ||
+    director ||
+    genres.length ||
+    decades.length
+  );
+
+  const section = document.createElement("section");
+
+  section.id = "myCinemaSection";
+  section.className = "profile-cinema-section";
+
+  section.innerHTML = `
+    <div class="profile-cinema-heading">
+      <div>
+        <div class="eyebrow red-eyebrow">
+          Mon cinéma
+        </div>
+
+        <h2>Les films qui composent mon carnet</h2>
+      </div>
+
+      <button
+        class="profile-cinema-edit-button"
+        type="button"
+        data-open-profile-preferences
+      >
+        Modifier mes préférences
+      </button>
+    </div>
+
+    ${
+      hasCinemaDetails
+        ? `
+          ${
+            quote
+              ? `
+                <blockquote class="profile-cinema-quote">
+                  “${escapeHTML(quote)}”
+                </blockquote>
+              `
+              : ""
+          }
+
+          ${
+            movie || actor || director
+              ? `
+                <div class="profile-cinema-favorites">
+                  ${renderProfileCinemaMovie(movie)}
+
+                  <div class="profile-cinema-talents">
+                    ${renderProfileCinemaTalent(actor, "acting")}
+                    ${renderProfileCinemaTalent(director, "directing")}
+                  </div>
+                </div>
+              `
+              : ""
+          }
+
+          ${
+            genres.length || decades.length
+              ? `
+                <div class="profile-cinema-tags">
+                  ${
+                    genres.length
+                      ? `
+                        <div class="profile-cinema-tag-group">
+                          <span>Genres</span>
+
+                          <div>
+                            ${genres
+                              .map(
+                                (genre) =>
+                                  `<em>${escapeHTML(genre)}</em>`
+                              )
+                              .join("")}
+                          </div>
+                        </div>
+                      `
+                      : ""
+                  }
+
+                  ${
+                    decades.length
+                      ? `
+                        <div class="profile-cinema-tag-group">
+                          <span>Décennies</span>
+
+                          <div>
+                            ${decades
+                              .map(
+                                (decade) =>
+                                  `<em>${escapeHTML(decade)}</em>`
+                              )
+                              .join("")}
+                          </div>
+                        </div>
+                      `
+                      : ""
+                  }
+                </div>
+              `
+              : ""
+          }
+        `
+        : `
+          <div class="profile-cinema-empty-state">
+            <strong>Ton cinéma commence à prendre forme.</strong>
+
+            <p>
+              Choisis un film, quelques voix et quelques époques
+              pour dessiner les contours de ton carnet.
+            </p>
+          </div>
+        `
+    }
+  `;
+
+  profileHero.insertAdjacentElement("afterend", section);
+
+  section
+    .querySelector("[data-open-profile-preferences]")
+    ?.addEventListener("click", openProfilePreferencesModal);
 }
 
 /* =====================================================
