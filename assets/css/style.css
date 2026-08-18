@@ -10075,3 +10075,81 @@ body.modal-open {
     min-height: 0;
   }
 }
+
+/* =====================================================
+   NAVIGATION — RECHERCHE CINÉMA MISE EN AVANT
+   La recherche devient une porte d'entrée centrale.
+   ===================================================== */
+
+.site-search-button {
+  min-height: 38px;
+  padding: 8px 14px;
+  color: var(--deep-red);
+  background: rgba(255, 250, 244, 0.76);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: 0 3px 10px rgba(61, 43, 32, 0.03);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.site-search-button:hover,
+.site-search-button:focus-visible {
+  color: var(--deep-red);
+  background: var(--cream);
+  border-color: rgba(184, 68, 68, 0.58);
+  box-shadow: 0 5px 14px rgba(61, 43, 32, 0.08);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.site-search-button-icon {
+  display: inline-grid;
+  width: 17px;
+  height: 17px;
+  color: var(--red);
+  font-family: Arial, sans-serif;
+  font-size: 1.25rem;
+  font-weight: normal;
+  line-height: 1;
+  place-items: center;
+}
+
+.site-search-button-label {
+  letter-spacing: -0.01em;
+}
+
+/* La recherche reste identifiable sur tablette :
+   on garde l'icône, mais sans prendre toute la navbar. */
+
+@media (max-width: 950px) {
+  .site-search-button {
+    width: 38px;
+    min-height: 38px;
+    padding: 0;
+    background: transparent;
+    border-color: var(--line);
+  }
+
+  .site-search-button:hover,
+  .site-search-button:focus-visible {
+    background: var(--cream);
+  }
+
+  .site-search-button-label {
+    display: none;
+  }
+}
+
+/* Sur mobile, l'icône conserve une zone tactile confortable. */
+
+@media (max-width: 650px) {
+  .site-search-button {
+    width: 36px;
+    min-height: 36px;
+  }
+
+  .site-search-button-icon {
+    font-size: 1.18rem;
+  }
+}
