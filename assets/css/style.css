@@ -10366,3 +10366,128 @@ body.modal-open {
   }
 }
 
+
+/* =====================================================
+   PROFIL PUBLIC — AFFINITÉ CINÉPHILE
+   Une lecture douce entre deux carnets amis.
+   ===================================================== */
+
+.member-affinity-section {
+  display: grid;
+  gap: 10px;
+  margin: 26px 0 0;
+  padding: 17px 19px;
+  background:
+    linear-gradient(
+      110deg,
+      rgba(215, 167, 93, 0.12),
+      rgba(244, 228, 223, 0.48)
+    );
+  border-top: 1px solid rgba(215, 167, 93, 0.42);
+  border-bottom: 1px solid rgba(215, 167, 93, 0.42);
+}
+
+.member-affinity-kicker {
+  color: var(--red);
+  font-family: Arial, sans-serif;
+  font-size: 0.61rem;
+  font-weight: bold;
+  letter-spacing: 1.35px;
+  text-transform: uppercase;
+}
+
+.member-affinity-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.member-affinity-content > div:first-child {
+  min-width: 0;
+}
+
+.member-affinity-content h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.35rem, 2.3vw, 1.8rem);
+  font-weight: normal;
+  letter-spacing: -0.7px;
+  line-height: 1.08;
+}
+
+.member-affinity-content p {
+  max-width: 650px;
+  margin: 6px 0 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.member-affinity-score {
+  display: inline-flex;
+  align-items: baseline;
+  flex: 0 0 auto;
+  padding: 8px 11px;
+  color: var(--deep-red);
+  background: rgba(255, 250, 244, 0.76);
+  border: 1px solid rgba(184, 68, 68, 0.25);
+  border-radius: 10px;
+}
+
+.member-affinity-score strong {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.member-affinity-score span {
+  margin-left: 2px;
+  color: var(--red);
+  font-family: Arial, sans-serif;
+  font-size: 0.83rem;
+  font-weight: bold;
+}
+
+.member-affinity-common-count {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  color: var(--deep-red);
+  background: rgba(255, 250, 244, 0.72);
+  border: 1px solid rgba(215, 167, 93, 0.46);
+  border-radius: 10px;
+}
+
+.member-affinity-common-count strong {
+  color: var(--red);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.member-affinity-common-count span {
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.64rem;
+  line-height: 1.2;
+}
+
+@media (max-width: 650px) {
+  .member-affinity-section {
+    margin-top: 20px;
+    padding: 15px;
+  }
+
+  .member-affinity-content {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 13px;
+  }
+
+  .member-affinity-score,
+  .member-affinity-common-count {
+    align-self: flex-start;
+  }
+}
