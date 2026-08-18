@@ -17,7 +17,7 @@ const globalMovieSearchInput = document.getElementById(
 
 const globalMovieSearchResults = document.getElementById(
   "globalMovieSearchResults"
-);
+);,
 
 let globalMovieSearchTimeout = null;
 let latestGlobalMovieSearchQuery = "";
@@ -459,7 +459,7 @@ function renderGlobalMovieSearchResults(results) {
               type="button"
               data-global-movie-carnet="${escapeHTML(tmdbId)}"
             >
-              Ajouter au carnet
+              Noter
             </button>
           </div>
         </article>
