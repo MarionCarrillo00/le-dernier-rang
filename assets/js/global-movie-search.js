@@ -17,7 +17,7 @@ const globalMovieSearchInput = document.getElementById(
 
 const globalMovieSearchResults = document.getElementById(
   "globalMovieSearchResults"
-);,
+);
 
 let globalMovieSearchTimeout = null;
 let latestGlobalMovieSearchQuery = "";
