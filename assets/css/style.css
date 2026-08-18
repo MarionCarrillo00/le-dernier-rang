@@ -9131,3 +9131,398 @@ body.modal-open {
     white-space: normal;
   }
 }
+
+/* =====================================================
+   PROFIL — MODIFIER MON PROFIL ET PRÉFÉRENCES CINÉMA
+   ===================================================== */
+
+.profile-preferences-open-button {
+  margin-top: 20px;
+  padding: 9px 13px;
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.74rem;
+  transition: 0.2s ease;
+}
+
+.profile-preferences-open-button:hover {
+  color: var(--deep-red);
+  background: var(--cream);
+  border-color: var(--cream);
+}
+
+.profile-preferences-modal-content {
+  width: min(680px, 100%);
+}
+
+.profile-preferences-modal-content h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  line-height: 1.02;
+}
+
+.profile-preferences-intro {
+  max-width: 500px;
+  margin: 12px 0 25px;
+  color: var(--grey);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.profile-preferences-message {
+  display: none;
+  margin: 0 0 20px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.profile-preferences-message:not(:empty) {
+  display: block;
+}
+
+.profile-preferences-message.success {
+  color: #176239;
+  background: #e3f4e9;
+}
+
+.profile-preferences-message.error {
+  color: #8b2626;
+  background: #fae5e2;
+}
+
+.profile-preferences-group {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.profile-preferences-group-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-bottom: 19px;
+}
+
+.profile-preferences-group-heading > span {
+  display: inline-grid;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 auto;
+  color: white;
+  background: var(--red);
+  border-radius: 50%;
+  font-family: Arial, sans-serif;
+  font-size: 0.62rem;
+  font-weight: bold;
+  place-items: center;
+}
+
+.profile-preferences-group-heading h3 {
+  margin: 1px 0 4px;
+  font-size: 1.25rem;
+  font-weight: normal;
+  line-height: 1.1;
+}
+
+.profile-preferences-group-heading p {
+  margin: 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.profile-preferences-group .character-counter {
+  margin: -9px 0 0;
+}
+
+.profile-favorite-field {
+  position: relative;
+  margin: 0 0 20px;
+}
+
+.profile-favorite-field > label,
+.profile-preference-fieldset legend {
+  display: block;
+  margin-bottom: 7px;
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: bold;
+}
+
+.profile-favorite-field input {
+  width: 100%;
+}
+
+.profile-favorite-results {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.profile-favorite-result {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  color: var(--ink);
+  text-align: left;
+  background: rgba(244, 228, 223, 0.4);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  transition: 0.2s ease;
+}
+
+.profile-favorite-result:hover {
+  background: #f4e4df;
+  border-color: rgba(184, 68, 68, 0.45);
+}
+
+.profile-favorite-result img,
+.profile-favorite-result-placeholder {
+  display: block;
+  width: 40px;
+  height: 56px;
+  overflow: hidden;
+  background: var(--deep-red);
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.profile-favorite-talent-result img,
+.profile-favorite-talent-result .profile-favorite-result-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.profile-favorite-result-placeholder {
+  display: grid;
+  color: var(--cream);
+  font-family: Georgia, "Times New Roman", serif;
+  place-items: center;
+}
+
+.profile-favorite-result > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.profile-favorite-result strong {
+  overflow: hidden;
+  font-size: 0.91rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-favorite-result small {
+  overflow: hidden;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-favorite-search-message {
+  margin: 7px 0 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.73rem;
+}
+
+.profile-favorite-selection:empty {
+  display: none;
+}
+
+.profile-favorite-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: 9px;
+  padding: 9px;
+  background: rgba(215, 167, 93, 0.1);
+  border-left: 2px solid var(--gold);
+}
+
+.profile-favorite-movie-poster,
+.profile-favorite-movie-placeholder {
+  display: block;
+  width: 48px;
+  height: 70px;
+  background: var(--ink);
+  object-fit: cover;
+}
+
+.profile-favorite-movie-placeholder {
+  display: grid;
+  color: var(--cream);
+  font-size: 1.1rem;
+  place-items: center;
+}
+
+.profile-favorite-talent-portrait,
+.profile-favorite-talent-placeholder {
+  display: block;
+  width: 48px;
+  height: 48px;
+  background: var(--deep-red);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-favorite-talent-placeholder {
+  display: grid;
+  color: var(--cream);
+  font-family: Georgia, "Times New Roman", serif;
+  place-items: center;
+}
+
+.profile-favorite-card-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.profile-favorite-card-copy small,
+.profile-favorite-card-copy span {
+  overflow: hidden;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-favorite-card-copy strong {
+  overflow: hidden;
+  font-size: 0.95rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-favorite-remove {
+  padding: 0;
+  color: var(--deep-red);
+  background: transparent;
+  border: 0;
+  font-family: Arial, sans-serif;
+  font-size: 0.67rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.profile-favorite-remove:hover {
+  color: var(--red);
+}
+
+.profile-preference-fieldset {
+  margin: 22px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.profile-preference-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.profile-preference-pills button {
+  padding: 7px 10px;
+  color: var(--grey);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.69rem;
+  transition: 0.18s ease;
+}
+
+.profile-preference-pills button:hover {
+  color: var(--red);
+  border-color: var(--red);
+  transform: translateY(-1px);
+}
+
+.profile-preference-pills button.is-selected {
+  color: var(--cream);
+  background: var(--deep-red);
+  border-color: var(--deep-red);
+}
+
+.profile-compatibility-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 13px;
+  background: rgba(244, 228, 223, 0.48);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.profile-compatibility-toggle input {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  margin-top: 2px;
+  accent-color: var(--red);
+}
+
+.profile-compatibility-toggle span {
+  display: grid;
+  gap: 4px;
+}
+
+.profile-compatibility-toggle strong {
+  font-family: Arial, sans-serif;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.profile-compatibility-toggle small {
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.profile-preferences-actions {
+  margin-top: 30px;
+}
+
+@media (max-width: 650px) {
+  .profile-preferences-modal-content {
+    padding: 27px 18px;
+  }
+
+  .profile-preferences-group {
+    margin-top: 23px;
+    padding-top: 20px;
+  }
+
+  .profile-preferences-actions .button-primary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .profile-favorite-card {
+    grid-template-columns: 43px minmax(0, 1fr);
+  }
+
+  .profile-favorite-card .profile-favorite-remove {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
