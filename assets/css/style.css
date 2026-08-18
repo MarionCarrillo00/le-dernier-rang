@@ -10153,3 +10153,73 @@ body.modal-open {
     font-size: 1.18rem;
   }
 }
+
+/* =====================================================
+   PROFIL — BIO DANS LE HERO ET CITATION DISCRÈTE
+   ===================================================== */
+
+/* La bio est personnelle : elle peut être un peu plus
+   présente que la phrase générique de secours. */
+
+.profile-hero-card #profileSubtitle {
+  max-width: 630px;
+}
+
+/* Citation : une simple phrase glissée entre le hero
+   et les repères cinéma, sans fond ni bloc. */
+
+.profile-cinema-compact-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 22px;
+  margin: 0 0 12px;
+}
+
+.profile-cinema-compact-spacer {
+  flex: 1;
+}
+
+.profile-cinema-discreet-quote {
+  max-width: 760px;
+  margin: 0;
+  color: var(--grey);
+  font-size: 0.82rem;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.profile-cinema-discreet-quote span {
+  color: var(--gold);
+  font-size: 1rem;
+  font-style: normal;
+}
+
+/* Le lien d’édition reste léger, sans isoler une ligne vide. */
+
+.profile-cinema-compact-section .profile-cinema-edit-button {
+  flex: 0 0 auto;
+  padding: 0;
+  color: var(--grey);
+  font-size: 0.67rem;
+  white-space: nowrap;
+}
+
+.profile-cinema-compact-section .profile-cinema-edit-button:hover {
+  color: var(--red);
+}
+
+/* Mobile : citation puis lien, avec une respiration douce. */
+
+@media (max-width: 650px) {
+  .profile-cinema-compact-top {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .profile-cinema-discreet-quote {
+    font-size: 0.78rem;
+  }
+}
