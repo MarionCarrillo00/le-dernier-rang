@@ -9845,3 +9845,168 @@ body.modal-open {
     padding-top: 0;
   }
 }
+
+/* =====================================================
+   PROFIL — MON CINÉMA COMPACT
+   Extension naturelle du hero, sans titre ni citation.
+   ===================================================== */
+
+.profile-hero-card {
+  margin-bottom: 22px;
+}
+
+.profile-cinema-compact-section {
+  margin: 0 0 42px;
+  padding: 0 0 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Le lien est présent, mais ne concurrence pas le hero. */
+
+.profile-cinema-compact-top {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 18px;
+  margin: 0 0 12px;
+}
+
+.profile-cinema-compact-section .profile-cinema-edit-button {
+  color: var(--grey);
+  font-size: 0.67rem;
+}
+
+.profile-cinema-compact-section .profile-cinema-edit-button:hover {
+  color: var(--red);
+}
+
+/* Les préférences deviennent immédiatement lisibles,
+   comme une continuité de l'identité du profil. */
+
+.profile-cinema-compact-section .profile-cinema-favorites {
+  grid-template-columns: minmax(250px, 0.95fr) minmax(280px, 1.05fr);
+  gap: 14px;
+}
+
+.profile-cinema-compact-section .profile-cinema-movie {
+  min-height: 104px;
+  padding: 9px;
+}
+
+.profile-cinema-compact-section .profile-cinema-movie-poster {
+  width: 64px;
+  height: 94px;
+}
+
+.profile-cinema-compact-section .profile-cinema-talents {
+  gap: 8px;
+}
+
+.profile-cinema-compact-section .profile-cinema-talent {
+  min-height: 48px;
+  padding: 8px 9px;
+}
+
+.profile-cinema-compact-section .profile-cinema-talent-portrait {
+  width: 42px;
+  height: 42px;
+}
+
+.profile-cinema-compact-section .profile-cinema-movie-copy span,
+.profile-cinema-compact-section .profile-cinema-talent-copy span {
+  margin-bottom: 3px;
+  font-size: 0.59rem;
+}
+
+.profile-cinema-compact-section .profile-cinema-movie-copy strong,
+.profile-cinema-compact-section .profile-cinema-talent-copy strong {
+  font-size: 0.98rem;
+}
+
+.profile-cinema-compact-section .profile-cinema-movie-copy small {
+  margin-top: 4px;
+  font-size: 0.65rem;
+}
+
+/* Tags plus proches des favoris : ils complètent
+   l'identité cinéphile, sans ouvrir une nouvelle section. */
+
+.profile-cinema-compact-section .profile-cinema-tags {
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.profile-cinema-compact-section .profile-cinema-tag-group {
+  gap: 9px;
+}
+
+.profile-cinema-compact-section .profile-cinema-tag-group > span {
+  width: 58px;
+  flex-basis: 58px;
+  padding-top: 4px;
+  font-size: 0.63rem;
+}
+
+.profile-cinema-compact-section .profile-cinema-tag-group em {
+  padding: 4px 7px;
+  font-size: 0.63rem;
+}
+
+/* État vide discret : pas de grosse carte, seulement une invitation. */
+
+.profile-cinema-compact-section .profile-cinema-empty-state {
+  max-width: 500px;
+  padding: 8px 0 2px;
+}
+
+.profile-cinema-compact-section .profile-cinema-empty-state strong {
+  font-size: 0.94rem;
+}
+
+.profile-cinema-compact-section .profile-cinema-empty-state p {
+  margin-top: 5px;
+  font-size: 0.75rem;
+}
+
+/* Mobile */
+
+@media (max-width: 750px) {
+  .profile-hero-card {
+    margin-bottom: 18px;
+  }
+
+  .profile-cinema-compact-section {
+    margin-bottom: 36px;
+    padding-bottom: 21px;
+  }
+
+  .profile-cinema-compact-top {
+    margin-bottom: 10px;
+  }
+
+  .profile-cinema-compact-section .profile-cinema-favorites {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 500px) {
+  .profile-cinema-compact-section .profile-cinema-movie {
+    grid-template-columns: 58px minmax(0, 1fr);
+  }
+
+  .profile-cinema-compact-section .profile-cinema-movie-poster {
+    width: 58px;
+    height: 86px;
+  }
+
+  .profile-cinema-compact-section .profile-cinema-tag-group {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .profile-cinema-compact-section .profile-cinema-tag-group > span {
+    width: auto;
+    flex-basis: auto;
+    padding-top: 0;
+  }
+}
