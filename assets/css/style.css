@@ -10223,3 +10223,146 @@ body.modal-open {
     font-size: 0.78rem;
   }
 }
+
+
+/* =====================================================
+   PROFIL PUBLIC — SON CINÉMA COMPACT
+   Une extension sensible du hero, sans titre redondant.
+   ===================================================== */
+
+.member-cinema-compact-section {
+  margin-top: 28px;
+  padding: 0 0 28px;
+}
+
+.member-cinema-compact-section .member-cinema-compact-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 0 14px;
+}
+
+.member-cinema-compact-section .eyebrow {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.member-cinema-discreet-quote {
+  max-width: 720px;
+  margin: 0;
+  color: var(--grey);
+  font-size: 0.82rem;
+  font-style: italic;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.member-cinema-discreet-quote span {
+  color: var(--gold);
+  font-size: 1rem;
+  font-style: normal;
+}
+
+/* Préférences plus compactes, proches du hero. */
+
+.member-cinema-compact-section .member-cinema-favorites {
+  gap: 14px;
+}
+
+.member-cinema-compact-section .member-cinema-movie {
+  min-height: 104px;
+  padding: 9px;
+}
+
+.member-cinema-compact-section .member-cinema-movie-poster {
+  width: 64px;
+  height: 94px;
+}
+
+.member-cinema-compact-section .member-cinema-talents {
+  gap: 8px;
+}
+
+.member-cinema-compact-section .member-cinema-talent {
+  min-height: 48px;
+  padding: 8px 9px;
+}
+
+.member-cinema-compact-section .member-cinema-talent-portrait {
+  width: 42px;
+  height: 42px;
+}
+
+.member-cinema-compact-section .member-cinema-movie-copy span,
+.member-cinema-compact-section .member-cinema-talent-copy span {
+  margin-bottom: 3px;
+  font-size: 0.59rem;
+}
+
+.member-cinema-compact-section .member-cinema-movie-copy strong,
+.member-cinema-compact-section .member-cinema-talent-copy strong {
+  font-size: 0.98rem;
+}
+
+.member-cinema-compact-section .member-cinema-movie-copy small {
+  margin-top: 4px;
+  font-size: 0.65rem;
+}
+
+.member-cinema-compact-section .member-cinema-tags {
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.member-cinema-compact-section .member-cinema-tag-group {
+  gap: 9px;
+}
+
+.member-cinema-compact-section .member-cinema-tag-group > span {
+  width: 58px;
+  flex-basis: 58px;
+  padding-top: 4px;
+  font-size: 0.63rem;
+}
+
+.member-cinema-compact-section .member-cinema-tag-group em {
+  padding: 4px 7px;
+  font-size: 0.63rem;
+}
+
+@media (max-width: 750px) {
+  .member-cinema-compact-section .member-cinema-compact-top {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .member-cinema-discreet-quote {
+    text-align: left;
+  }
+}
+
+@media (max-width: 500px) {
+  .member-cinema-compact-section .member-cinema-movie {
+    grid-template-columns: 58px minmax(0, 1fr);
+  }
+
+  .member-cinema-compact-section .member-cinema-movie-poster {
+    width: 58px;
+    height: 86px;
+  }
+
+  .member-cinema-compact-section .member-cinema-tag-group {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .member-cinema-compact-section .member-cinema-tag-group > span {
+    width: auto;
+    flex-basis: auto;
+    padding-top: 0;
+  }
+}
+
