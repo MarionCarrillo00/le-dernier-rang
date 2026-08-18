@@ -390,7 +390,15 @@ function renderGlobalMovieSearchResults(results) {
     return;
   }
 
-  if (!results?.length) {
+  /*
+    L’Edge Function renvoie `type: "movie"` ou `type: "person"`.
+    La recherche globale de cette version affiche seulement les films.
+  */
+  const movies = (results || [])
+    .filter((result) => result?.type === "movie")
+    .slice(0, 7);
+
+  if (!movies.length) {
     renderGlobalMovieSearchMessage(
       "Aucun film trouvé. Essaie avec un autre titre."
     );
@@ -398,25 +406,22 @@ function renderGlobalMovieSearchResults(results) {
     return;
   }
 
-  globalMovieSearchResults.innerHTML = results
-    .slice(0, 7)
-    .filter((result) => result.media_type !== "person")
+  globalMovieSearchResults.innerHTML = movies
     .map((movie) => {
       const title = movie.title || "Film sans titre";
       const meta = buildGlobalMovieMeta(movie);
+      const tmdbId = String(movie.tmdb_id || "");
 
       return `
         <article
           class="global-movie-result"
-          data-tmdb-id="${escapeHTML(String(movie.tmdb_id || ""))}"
+          data-tmdb-id="${escapeHTML(tmdbId)}"
         >
           <button
             class="global-movie-result-main"
             type="button"
-            data-global-movie-open="${escapeHTML(
-              String(movie.tmdb_id || "")
-            )}"
-            aria-label="Ouvrir ${escapeHTML(title)}"
+            data-global-movie-open="${escapeHTML(tmdbId)}"
+            aria-label="Ouvrir la fiche de ${escapeHTML(title)}"
           >
             <span class="global-movie-poster">
               ${getGlobalMoviePosterMarkup(movie)}
@@ -444,9 +449,7 @@ function renderGlobalMovieSearchResults(results) {
             <button
               class="global-movie-wishlist-action"
               type="button"
-              data-global-movie-wishlist="${escapeHTML(
-                String(movie.tmdb_id || "")
-              )}"
+              data-global-movie-wishlist="${escapeHTML(tmdbId)}"
             >
               + À voir
             </button>
@@ -454,9 +457,7 @@ function renderGlobalMovieSearchResults(results) {
             <button
               class="global-movie-carnet-action"
               type="button"
-              data-global-movie-carnet="${escapeHTML(
-                String(movie.tmdb_id || "")
-              )}"
+              data-global-movie-carnet="${escapeHTML(tmdbId)}"
             >
               Ajouter au carnet
             </button>
@@ -466,37 +467,39 @@ function renderGlobalMovieSearchResults(results) {
     })
     .join("");
 
-  results
-    .slice(0, 7)
-    .filter((result) => result.media_type !== "person")
-    .forEach((movie) => {
-      const tmdbId = String(movie.tmdb_id || "");
+  movies.forEach((movie) => {
+    const tmdbId = String(movie.tmdb_id || "");
 
-      const openButton = document.querySelector(
-        `[data-global-movie-open="${CSS.escape(tmdbId)}"]`
-      );
+    /*
+      Recherche limitée à la modale : plus propre et évite
+      de récupérer un éventuel bouton similaire ailleurs sur la page.
+    */
+    const openButton = globalMovieSearchResults.querySelector(
+      `[data-global-movie-open="${CSS.escape(tmdbId)}"]`
+    );
 
-      const wishlistButton = document.querySelector(
-        `[data-global-movie-wishlist="${CSS.escape(tmdbId)}"]`
-      );
+    const wishlistButton = globalMovieSearchResults.querySelector(
+      `[data-global-movie-wishlist="${CSS.escape(tmdbId)}"]`
+    );
 
-      const carnetButton = document.querySelector(
-        `[data-global-movie-carnet="${CSS.escape(tmdbId)}"]`
-      );
+    const carnetButton = globalMovieSearchResults.querySelector(
+      `[data-global-movie-carnet="${CSS.escape(tmdbId)}"]`
+    );
 
-      openButton?.addEventListener("click", () => {
-        openGlobalMoviePage(movie.tmdb_id);
-      });
-
-      wishlistButton?.addEventListener("click", () => {
-        addGlobalMovieToWishlist(movie, wishlistButton);
-      });
-
-      carnetButton?.addEventListener("click", () => {
-        addGlobalMovieToCarnet(movie.tmdb_id);
-      });
+    openButton?.addEventListener("click", () => {
+      openGlobalMoviePage(movie.tmdb_id);
     });
+
+    wishlistButton?.addEventListener("click", () => {
+      addGlobalMovieToWishlist(movie, wishlistButton);
+    });
+
+    carnetButton?.addEventListener("click", () => {
+      addGlobalMovieToCarnet(movie.tmdb_id);
+    });
+  });
 }
+
 
 async function searchGlobalMovies(query) {
   const cleanQuery = String(query || "").trim();
