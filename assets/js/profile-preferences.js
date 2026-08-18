@@ -740,7 +740,6 @@ function renderMyCinemaSection() {
   }
 
   const {
-    quote,
     genres,
     decades,
     movie,
@@ -749,7 +748,6 @@ function renderMyCinemaSection() {
   } = getProfileCinemaDisplayData();
 
   const hasCinemaDetails = Boolean(
-    quote ||
     movie ||
     actor ||
     director ||
@@ -760,18 +758,10 @@ function renderMyCinemaSection() {
   const section = document.createElement("section");
 
   section.id = "myCinemaSection";
-  section.className = "profile-cinema-section";
+  section.className = "profile-cinema-section profile-cinema-compact-section";
 
   section.innerHTML = `
-    <div class="profile-cinema-heading">
-      <div>
-        <div class="eyebrow red-eyebrow">
-          Mon cinéma
-        </div>
-
-        <h2>Les films qui composent mon carnet</h2>
-      </div>
-
+    <div class="profile-cinema-compact-top">
       <button
         class="profile-cinema-edit-button"
         type="button"
@@ -784,16 +774,6 @@ function renderMyCinemaSection() {
     ${
       hasCinemaDetails
         ? `
-          ${
-            quote
-              ? `
-                <blockquote class="profile-cinema-quote">
-                  “${escapeHTML(quote)}”
-                </blockquote>
-              `
-              : ""
-          }
-
           ${
             movie || actor || director
               ? `
@@ -857,11 +837,11 @@ function renderMyCinemaSection() {
         `
         : `
           <div class="profile-cinema-empty-state">
-            <strong>Ton cinéma commence à prendre forme.</strong>
+            <strong>Quelques repères pour dessiner ton cinéma.</strong>
 
             <p>
-              Choisis un film, quelques voix et quelques époques
-              pour dessiner les contours de ton carnet.
+              Garde un film, une voix, un regard ou quelques époques
+              près de ton carnet.
             </p>
           </div>
         `
@@ -874,6 +854,7 @@ function renderMyCinemaSection() {
     .querySelector("[data-open-profile-preferences]")
     ?.addEventListener("click", openProfilePreferencesModal);
 }
+
 
 /* =====================================================
    RECHERCHE TMDB DÉDIÉE AU PROFIL
