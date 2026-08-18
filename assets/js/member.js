@@ -730,6 +730,7 @@ function renderMemberCinemaTalent(talent, type) {
     `;
 }
 
+
 function renderMemberCinemaSection(profile, cinema) {
   const quote = String(profile.favorite_quote || "").trim();
 
@@ -755,26 +756,24 @@ function renderMemberCinemaSection(profile, cinema) {
   }
 
   return `
-    <section class="member-section member-cinema-section">
-      <div class="section-title member-cinema-heading">
-        <div>
-          <div class="eyebrow red-eyebrow">
-            Son cinéma
-          </div>
-
-          <h2>Les films qui composent son carnet</h2>
+    <section class="member-section member-cinema-section member-cinema-compact-section">
+      <div class="member-cinema-compact-top">
+        <div class="eyebrow red-eyebrow">
+          Son cinéma
         </div>
-      </div>
 
-      ${
-        quote
-          ? `
-            <blockquote class="member-cinema-quote">
-              “${escapeHTML(quote)}”
-            </blockquote>
-          `
-          : ""
-      }
+        ${
+          quote
+            ? `
+              <p class="member-cinema-discreet-quote">
+                <span aria-hidden="true">«</span>
+                ${escapeHTML(quote)}
+                <span aria-hidden="true">»</span>
+              </p>
+            `
+            : ""
+        }
+      </div>
 
       ${
         cinema.movie || cinema.actor || cinema.director
