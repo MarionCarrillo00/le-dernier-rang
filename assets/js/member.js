@@ -567,9 +567,281 @@ function renderMemberWishlistSection(
 }
 
 /* =====================================================
+   SON CINÉMA — PRÉFÉRENCES PUBLIQUES
+   ===================================================== */
+
+async function getMemberCinema(memberId) {
+  const [
+    favoriteMovieResult,
+    favoriteTalentsResult
+  ] = await Promise.all([
+    supabaseClient
+      .from("profile_favorite_movies")
+      .select(`
+        movie_id,
+        movies (
+          id,
+          tmdb_id,
+          title,
+          release_year,
+          director,
+          poster_url
+        )
+      `)
+      .eq("profile_id", memberId)
+      .maybeSingle(),
+
+    supabaseClient
+      .from("profile_favorite_talents")
+      .select(`
+        tmdb_id,
+        talent_type,
+        talent_name,
+        profile_url
+      `)
+      .eq("profile_id", memberId)
+  ]);
+
+  if (favoriteMovieResult.error) {
+    throw favoriteMovieResult.error;
+  }
+
+  if (favoriteTalentsResult.error) {
+    throw favoriteTalentsResult.error;
+  }
+
+  const talents = favoriteTalentsResult.data || [];
+
+  return {
+    movie: favoriteMovieResult.data?.movies || null,
+
+    actor:
+      talents.find(
+        (talent) => talent.talent_type === "acting"
+      ) || null,
+
+    director:
+      talents.find(
+        (talent) => talent.talent_type === "directing"
+      ) || null
+  };
+}
+
+function renderMemberCinemaMovie(movie) {
+  if (!movie) {
+    return "";
+  }
+
+  const title = movie.title || "Film sans titre";
+
+  const posterMarkup = movie.poster_url
+    ? `
+      <img
+        src="${escapeHTML(movie.poster_url)}"
+        alt="Affiche de ${escapeHTML(title)}"
+        loading="lazy"
+      />
+    `
+    : `
+      <div class="member-cinema-movie-placeholder">
+        ${escapeHTML(getMemberInitial({ username: title }))}
+      </div>
+    `;
+
+  const metadata = [
+    movie.release_year,
+    movie.director
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  return `
+    <a
+      class="member-cinema-movie"
+      href="film.html?id=${encodeURIComponent(movie.id)}"
+    >
+      <div class="member-cinema-movie-poster">
+        ${posterMarkup}
+      </div>
+
+      <div class="member-cinema-movie-copy">
+        <span>Film gardé tout près</span>
+        <strong>${escapeHTML(title)}</strong>
+
+        ${
+          metadata
+            ? `<small>${escapeHTML(metadata)}</small>`
+            : ""
+        }
+      </div>
+    </a>
+  `;
+}
+
+function renderMemberCinemaTalent(talent, type) {
+  if (!talent) {
+    return "";
+  }
+
+  const name = talent.talent_name || "Talent";
+
+  const label = type === "acting"
+    ? "Interprète de prédilection"
+    : "Cinéma de prédilection";
+
+  const portraitMarkup = talent.profile_url
+    ? `
+      <img
+        src="${escapeHTML(talent.profile_url)}"
+        alt="Portrait de ${escapeHTML(name)}"
+        loading="lazy"
+      />
+    `
+    : `
+      <div class="member-cinema-talent-placeholder">
+        ${escapeHTML(getMemberInitial({ username: name }))}
+      </div>
+    `;
+
+  const content = `
+    <div class="member-cinema-talent-portrait">
+      ${portraitMarkup}
+    </div>
+
+    <div class="member-cinema-talent-copy">
+      <span>${escapeHTML(label)}</span>
+      <strong>${escapeHTML(name)}</strong>
+    </div>
+  `;
+
+  return talent.tmdb_id
+    ? `
+      <a
+        class="member-cinema-talent"
+        href="talent.html?tmdb=${encodeURIComponent(talent.tmdb_id)}"
+      >
+        ${content}
+      </a>
+    `
+    : `
+      <div class="member-cinema-talent">
+        ${content}
+      </div>
+    `;
+}
+
+function renderMemberCinemaSection(profile, cinema) {
+  const quote = String(profile.favorite_quote || "").trim();
+
+  const genres = Array.isArray(profile.favorite_genres)
+    ? profile.favorite_genres
+    : [];
+
+  const decades = Array.isArray(profile.favorite_decades)
+    ? profile.favorite_decades
+    : [];
+
+  const hasCinema = Boolean(
+    quote ||
+    cinema.movie ||
+    cinema.actor ||
+    cinema.director ||
+    genres.length ||
+    decades.length
+  );
+
+  if (!hasCinema) {
+    return "";
+  }
+
+  return `
+    <section class="member-section member-cinema-section">
+      <div class="section-title member-cinema-heading">
+        <div>
+          <div class="eyebrow red-eyebrow">
+            Son cinéma
+          </div>
+
+          <h2>Les films qui composent son carnet</h2>
+        </div>
+      </div>
+
+      ${
+        quote
+          ? `
+            <blockquote class="member-cinema-quote">
+              “${escapeHTML(quote)}”
+            </blockquote>
+          `
+          : ""
+      }
+
+      ${
+        cinema.movie || cinema.actor || cinema.director
+          ? `
+            <div class="member-cinema-favorites">
+              ${renderMemberCinemaMovie(cinema.movie)}
+
+              <div class="member-cinema-talents">
+                ${renderMemberCinemaTalent(cinema.actor, "acting")}
+                ${renderMemberCinemaTalent(cinema.director, "directing")}
+              </div>
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        genres.length || decades.length
+          ? `
+            <div class="member-cinema-tags">
+              ${
+                genres.length
+                  ? `
+                    <div class="member-cinema-tag-group">
+                      <span>Genres</span>
+
+                      <div>
+                        ${genres
+                          .map(
+                            (genre) =>
+                              `<em>${escapeHTML(genre)}</em>`
+                          )
+                          .join("")}
+                      </div>
+                    </div>
+                  `
+                  : ""
+              }
+
+              ${
+                decades.length
+                  ? `
+                    <div class="member-cinema-tag-group">
+                      <span>Décennies</span>
+
+                      <div>
+                        ${decades
+                          .map(
+                            (decade) =>
+                              `<em>${escapeHTML(decade)}</em>`
+                          )
+                          .join("")}
+                      </div>
+                    </div>
+                  `
+                  : ""
+              }
+            </div>
+          `
+          : ""
+      }
+    </section>
+  `;
+}
+
+/* =====================================================
    AMIS PUBLICS — SON CERCLE
-   getAcceptedFriends() et createFriendsMarkup()
-   sont disponibles grâce à friends.js.
    ===================================================== */
 
 function renderMemberFriendsSection(friends) {
@@ -647,54 +919,12 @@ async function getPublicReviewsForMember(userId) {
     profilesById
   );
 
-  /*
-    Garde ton nom de fonction existant :
-    dans ton reviews.js actuel, enrichReviews() est déjà utilisé.
-  */
   return enrichReviews(reviewsWithAuthors);
 }
 
 /* =====================================================
    RENDU DU PROFIL PUBLIC
    ===================================================== */
-
-async function getPublicFriendsForMember(userId) {
-  const { data: friendships, error } = await supabaseClient
-    .from("friendships")
-    .select("requester_id, recipient_id, status")
-    .eq("status", "accepted")
-    .or(`requester_id.eq.${userId},recipient_id.eq.${userId}`);
-
-  if (error) {
-    throw error;
-  }
-
-  const friendIds = [
-    ...new Set(
-      (friendships || []).map((friendship) =>
-        friendship.requester_id === userId
-          ? friendship.recipient_id
-          : friendship.requester_id
-      )
-    ),
-  ];
-
-  if (!friendIds.length) {
-    return [];
-  }
-
-  const { data: profiles, error: profilesError } = await supabaseClient
-    .from("profiles")
-    .select("id, username, bio, avatar_url")
-    .in("id", friendIds)
-    .order("username", { ascending: true });
-
-  if (profilesError) {
-    throw profilesError;
-  }
-
-  return profiles || [];
-}
 
 function getMemberJournalCounts(reviews) {
   const allEntries = reviews || [];
@@ -718,7 +948,8 @@ function renderMemberPage(
   reviews,
   collections,
   friendship,
-  friends
+  friends,
+  cinema
 ) {
   if (!memberPageContent) {
     return;
@@ -737,14 +968,13 @@ function renderMemberPage(
   } = collections;
 
   const friendCount = friends.length;
-  
+
   const {
     microReviewsCount,
     notesCount
   } = getMemberJournalCounts(reviews);
 
-
-  document.title = `${username} — Le dernier rang`;
+  document.title = `${username} — Ciné Mojito`;
 
   memberPageContent.innerHTML = `
     <section class="member-hero-card">
@@ -765,46 +995,47 @@ function renderMemberPage(
       <div class="member-hero-aside">
         ${renderFriendshipAction(profile.id, friendship)}
 
-<div class="member-statistics member-statistics-detailed">
-  <div class="member-stat">
-    <strong>${microReviewsCount}</strong>
+        <div class="member-statistics member-statistics-detailed">
+          <div class="member-stat">
+            <strong>${microReviewsCount}</strong>
 
-    <small>
-      microcritique${
-        microReviewsCount > 1 ? "s" : ""
-      }
-    </small>
-  </div>
+            <small>
+              microcritique${
+                microReviewsCount > 1 ? "s" : ""
+              }
+            </small>
+          </div>
 
-  <div class="member-stat member-stat-notes">
-    <strong>${notesCount}</strong>
+          <div class="member-stat member-stat-notes">
+            <strong>${notesCount}</strong>
 
-    <small>
-      note${notesCount > 1 ? "s" : ""}
-    </small>
-  </div>
+            <small>
+              note${notesCount > 1 ? "s" : ""}
+            </small>
+          </div>
 
-  <div class="member-stat">
-    <strong>${publicListCount}</strong>
+          <div class="member-stat">
+            <strong>${publicListCount}</strong>
 
-    <small>
-      liste${publicListCount > 1 ? "s" : ""} publique${
-        publicListCount > 1 ? "s" : ""
-      }
-    </small>
-  </div>
+            <small>
+              liste${publicListCount > 1 ? "s" : ""} publique${
+                publicListCount > 1 ? "s" : ""
+              }
+            </small>
+          </div>
 
-  <div class="member-stat">
-    <strong>${friendCount}</strong>
+          <div class="member-stat">
+            <strong>${friendCount}</strong>
 
-    <small>
-      ami${friendCount > 1 ? "s" : ""}
-    </small>
-  </div>
-</div>
-
+            <small>
+              ami${friendCount > 1 ? "s" : ""}
+            </small>
+          </div>
+        </div>
       </div>
     </section>
+
+    ${renderMemberCinemaSection(profile, cinema)}
 
     ${renderMemberWishlistSection(
       username,
@@ -846,15 +1077,13 @@ function renderMemberPage(
     <section class="member-section">
       <div class="section-title">
         <div>
+          <div class="eyebrow red-eyebrow">
+            Son journal
+          </div>
 
-<div class="eyebrow red-eyebrow">
-  Son journal
-</div>
-
-<h2>
-  Le carnet de ${escapeHTML(username)}
-</h2>
-
+          <h2>
+            Le carnet de ${escapeHTML(username)}
+          </h2>
         </div>
       </div>
 
@@ -868,11 +1097,9 @@ function renderMemberPage(
                 .join("")
             : `
               <div class="empty-state">
-
-<strong>Pas encore d’entrée publique dans ce carnet.</strong>
-<br /><br />
-Ce carnet garde encore un peu ses silences.
-
+                <strong>Pas encore d’entrée publique dans ce carnet.</strong>
+                <br /><br />
+                Ce carnet garde encore un peu ses silences.
               </div>
             `
         }
@@ -940,7 +1167,16 @@ async function loadMemberPage() {
     const { data: profile, error: profileError } =
       await supabaseClient
         .from("profiles")
-        .select("id, username, bio, avatar_url")
+        .select(`
+          id,
+          username,
+          bio,
+          avatar_url,
+          favorite_quote,
+          favorite_genres,
+          favorite_decades,
+          compatibility_visible
+        `)
         .eq("id", memberId)
         .maybeSingle();
 
@@ -956,21 +1192,18 @@ async function loadMemberPage() {
       return;
     }
 
-    /*
-      Le cercle est séparé des données principales :
-      si une policy RLS manque temporairement sur friendships,
-      le profil du membre reste entièrement lisible.
-    */
     const [
       reviewsResult,
       collectionsResult,
       friendshipResult,
-      friendsResult
+      friendsResult,
+      cinemaResult
     ] = await Promise.allSettled([
       getPublicReviewsForMember(profile.id),
       getPublicCollectionsForMember(profile.id),
       getFriendshipWithMember(profile.id),
-      getAcceptedFriends(profile.id)
+      getAcceptedFriends(profile.id),
+      getMemberCinema(profile.id)
     ]);
 
     if (reviewsResult.status === "rejected") {
@@ -994,6 +1227,15 @@ async function loadMemberPage() {
         ? friendsResult.value
         : [];
 
+    const cinema =
+      cinemaResult.status === "fulfilled"
+        ? cinemaResult.value
+        : {
+            movie: null,
+            actor: null,
+            director: null
+          };
+
     if (friendshipResult.status === "rejected") {
       console.error(
         "Impossible de charger la relation d’amitié :",
@@ -1008,12 +1250,20 @@ async function loadMemberPage() {
       );
     }
 
+    if (cinemaResult.status === "rejected") {
+      console.error(
+        "Impossible de charger les préférences cinéma du membre :",
+        cinemaResult.reason
+      );
+    }
+
     renderMemberPage(
       profile,
       reviews,
       collections,
       friendship,
-      friends
+      friends,
+      cinema
     );
   } catch (error) {
     console.error(
