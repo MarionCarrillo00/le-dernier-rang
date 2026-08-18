@@ -33,9 +33,15 @@ function renderNavigation() {
           class="site-search-button"
           type="button"
           aria-label="Rechercher un film"
+          aria-haspopup="dialog"
           title="Rechercher un film"
         >
-          <span aria-hidden="true">⌕</span>
+          <span
+            class="site-search-button-icon"
+            aria-hidden="true"
+          >
+            ⌕
+          </span>
 
           <span class="site-search-button-label">
             Rechercher un film
@@ -89,6 +95,8 @@ function renderNavigation() {
       </div>
     </nav>
   `;
+
+  document.querySelector("#globalMovieSearchModal")?.remove();
 
   document.body.insertAdjacentHTML(
     "beforeend",
