@@ -91,6 +91,16 @@
             <p id="profileSubtitle">
               Tes films, tes mots, les traces que les séances ont laissées.
             </p>
+            
+<button
+  id="openProfilePreferencesButton"
+  class="profile-preferences-open-button"
+  type="button"
+  hidden
+>
+  Modifier mon profil
+</button>
+
           </div>
         </div>
 
@@ -733,6 +743,280 @@
   </div>
 </div>
 
+<!-- =================================================
+     MODALE : MODIFIER MON PROFIL
+     ================================================= -->
+
+<div
+  id="profilePreferencesModal"
+  class="modal-overlay profile-preferences-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="profilePreferencesTitle"
+>
+  <div class="modal-content profile-preferences-modal-content">
+    <button
+      id="closeProfilePreferencesModal"
+      class="modal-close"
+      type="button"
+      aria-label="Fermer la fenêtre"
+    >
+      ×
+    </button>
+
+    <div class="eyebrow red-eyebrow">
+      Mon espace
+    </div>
+
+    <h2 id="profilePreferencesTitle">
+      Modifier mon profil
+    </h2>
+
+    <p class="profile-preferences-intro">
+      Quelques repères pour raconter ton cinéma, doucement.
+    </p>
+
+    <p
+      id="profilePreferencesMessage"
+      class="profile-preferences-message"
+      aria-live="polite"
+    ></p>
+
+    <form id="profilePreferencesForm">
+      <section class="profile-preferences-group">
+        <div class="profile-preferences-group-heading">
+          <span>01</span>
+
+          <div>
+            <h3>Mon identité</h3>
+            <p>Les quelques mots visibles sur ton carnet.</p>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="profilePreferencesUsername">
+            Pseudo
+          </label>
+
+          <input
+            id="profilePreferencesUsername"
+            type="text"
+            minlength="3"
+            maxlength="30"
+            required
+            autocomplete="username"
+            placeholder="Ton nom de cinéma"
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="profilePreferencesBio">
+            Quelques mots sur toi
+            <span class="optional-label">(facultatif)</span>
+          </label>
+
+          <textarea
+            id="profilePreferencesBio"
+            maxlength="280"
+            rows="4"
+            placeholder="Le cinéma que tu aimes, les séances que tu gardes…"
+          ></textarea>
+
+          <span
+            id="profilePreferencesBioCounter"
+            class="character-counter"
+          >
+            0 / 280
+          </span>
+        </div>
+
+        <div class="form-field">
+          <label for="profilePreferencesQuote">
+            Une phrase de cinéma à garder près de soi
+            <span class="optional-label">(facultatif)</span>
+          </label>
+
+          <textarea
+            id="profilePreferencesQuote"
+            maxlength="180"
+            rows="3"
+            placeholder="Une réplique, une pensée, quelques mots qui restent…"
+          ></textarea>
+
+          <span
+            id="profilePreferencesQuoteCounter"
+            class="character-counter"
+          >
+            0 / 180
+          </span>
+        </div>
+      </section>
+
+      <section class="profile-preferences-group">
+        <div class="profile-preferences-group-heading">
+          <span>02</span>
+
+          <div>
+            <h3>Mon cinéma</h3>
+            <p>Les films et les voix auxquelles tu reviens.</p>
+          </div>
+        </div>
+
+        <div class="profile-favorite-field">
+          <label for="profileFavoriteMovieSearch">
+            Film préféré
+          </label>
+
+          <input
+            id="profileFavoriteMovieSearch"
+            type="search"
+            autocomplete="off"
+            placeholder="Rechercher un film…"
+          />
+
+          <div
+            id="profileFavoriteMovieResults"
+            class="profile-favorite-results"
+          ></div>
+
+          <div
+            id="profileFavoriteMovieSelection"
+            class="profile-favorite-selection"
+          ></div>
+        </div>
+
+        <div class="profile-favorite-field">
+          <label for="profileFavoriteActorSearch">
+            Acteur·rice favori·te
+          </label>
+
+          <input
+            id="profileFavoriteActorSearch"
+            type="search"
+            autocomplete="off"
+            placeholder="Rechercher une personne…"
+          />
+
+          <div
+            id="profileFavoriteActorResults"
+            class="profile-favorite-results"
+          ></div>
+
+          <div
+            id="profileFavoriteActorSelection"
+            class="profile-favorite-selection"
+          ></div>
+        </div>
+
+        <div class="profile-favorite-field">
+          <label for="profileFavoriteDirectorSearch">
+            Réalisateur·rice favori·te
+          </label>
+
+          <input
+            id="profileFavoriteDirectorSearch"
+            type="search"
+            autocomplete="off"
+            placeholder="Rechercher une personne…"
+          />
+
+          <div
+            id="profileFavoriteDirectorResults"
+            class="profile-favorite-results"
+          ></div>
+
+          <div
+            id="profileFavoriteDirectorSelection"
+            class="profile-favorite-selection"
+          ></div>
+        </div>
+
+        <fieldset class="profile-preference-fieldset">
+          <legend>Genres favoris</legend>
+
+          <div
+            id="profileFavoriteGenres"
+            class="profile-preference-pills"
+          >
+            <button type="button" data-profile-genre="Drame">Drame</button>
+            <button type="button" data-profile-genre="Comédie">Comédie</button>
+            <button type="button" data-profile-genre="Romance">Romance</button>
+            <button type="button" data-profile-genre="Horreur">Horreur</button>
+            <button type="button" data-profile-genre="Animation">Animation</button>
+            <button type="button" data-profile-genre="Science-fiction">Science-fiction</button>
+            <button type="button" data-profile-genre="Thriller">Thriller</button>
+            <button type="button" data-profile-genre="Documentaire">Documentaire</button>
+            <button type="button" data-profile-genre="Western">Western</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="profile-preference-fieldset">
+          <legend>Décennies favorites</legend>
+
+          <div
+            id="profileFavoriteDecades"
+            class="profile-preference-pills"
+          >
+            <button type="button" data-profile-decade="Avant 1970">Avant 1970</button>
+            <button type="button" data-profile-decade="1970">1970</button>
+            <button type="button" data-profile-decade="1980">1980</button>
+            <button type="button" data-profile-decade="1990">1990</button>
+            <button type="button" data-profile-decade="2000">2000</button>
+            <button type="button" data-profile-decade="2010">2010</button>
+            <button type="button" data-profile-decade="2020">2020</button>
+          </div>
+        </fieldset>
+      </section>
+
+      <section class="profile-preferences-group">
+        <div class="profile-preferences-group-heading">
+          <span>03</span>
+
+          <div>
+            <h3>Mon cercle</h3>
+            <p>Tu choisis ce que ton cercle peut voir.</p>
+          </div>
+        </div>
+
+        <label class="profile-compatibility-toggle">
+          <input
+            id="profileCompatibilityVisible"
+            type="checkbox"
+          />
+
+          <span>
+            <strong>
+              Autoriser l’affichage de mon affinité cinéphile auprès de mon cercle
+            </strong>
+
+            <small>
+              Ton score ne sera jamais utilisé comme un classement.
+            </small>
+          </span>
+        </label>
+      </section>
+
+      <div class="modal-actions profile-preferences-actions">
+        <button
+          id="saveProfilePreferencesButton"
+          class="button-primary"
+          type="submit"
+        >
+          Enregistrer mon profil
+        </button>
+
+        <button
+          id="cancelProfilePreferencesButton"
+          class="button-text"
+          type="button"
+        >
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
     <!-- =================================================
          MODALE : AUTHENTIFICATION
          ================================================= -->
@@ -863,6 +1147,7 @@
     <script src="assets/js/reviews.js"></script>
     <script src="assets/js/global-movie-search.js"></script>
     <script src="assets/js/friends.js"></script>
-    <script src="assets/js/profile.js"></script>
+    <script src="assets/js/profile.js"></script>    
+    <script src="assets/js/profile-preferences.js"></script>
   </body>
 </html>
