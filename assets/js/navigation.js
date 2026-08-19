@@ -130,14 +130,7 @@ function renderSharedAuthModal() {
               Ce bouton sera activé au prochain pas dans auth.js.
               Il est affiché uniquement sur l'onglet Connexion.
             -->
-            <button
-              id="forgotPasswordButton"
-              class="forgot-password-button"
-              type="button"
-              hidden
-            >
-              Mot de passe oublié ?
-            </button>
+
 
             <button
               class="button-primary"
@@ -146,7 +139,14 @@ function renderSharedAuthModal() {
             >
               Se connecter
             </button>
-
+            <button
+              id="forgotPasswordButton"
+              class="forgot-password-button"
+              type="button"
+              hidden
+            >
+              Mot de passe oublié ?
+            </button>
             <p class="form-note" id="authNote">
               Connecte-toi pour publier une note ou une microcritique
               et retrouver tes films.
