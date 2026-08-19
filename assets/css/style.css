@@ -11619,3 +11619,62 @@ h2 {
 .movie-card-note-only .movie-card-meta {
   border-top-color: rgba(222, 213, 202, 0.92);
 }
+
+/* =====================================================
+   CINÉ MOJITO — CARTES DU FIL VRAIMENT DÉTACHÉES
+   ===================================================== */
+
+.movies-grid .movie-card {
+  position: relative;
+  overflow: hidden;
+
+  background: #ffffff !important;
+  border: 1px solid #cdb9a7 !important;
+  border-radius: 14px;
+
+  box-shadow:
+    0 2px 0 rgba(125, 41, 41, 0.08),
+    0 12px 26px rgba(61, 43, 32, 0.16);
+
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+/* Une légère signature chaude, sur le bord gauche,
+   pour séparer davantage chaque entrée du papier */
+.movies-grid .movie-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: #d7a75d;
+  opacity: 0.72;
+}
+
+/* Notes seules : mêmes cartes blanches, avec une présence franche */
+.movies-grid .movie-card.movie-card-note-only {
+  background: #ffffff !important;
+  border-color: #c7b09b !important;
+  box-shadow:
+    0 2px 0 rgba(125, 41, 41, 0.07),
+    0 10px 22px rgba(61, 43, 32, 0.14);
+}
+
+/* Les séparateurs internes restent visibles sur blanc */
+.movies-grid .movie-card .movie-card-footer,
+.movies-grid .movie-card .movie-card-meta,
+.movies-grid .movie-card hr {
+  border-color: #dfd1c4 !important;
+}
+
+/* Mouvement léger au survol */
+.movies-grid .movie-card:hover {
+  z-index: 1;
+  transform: translateY(-3px);
+  border-color: #a95d52 !important;
+  box-shadow:
+    0 3px 0 rgba(125, 41, 41, 0.10),
+    0 18px 32px rgba(61, 43, 32, 0.21);
+}
