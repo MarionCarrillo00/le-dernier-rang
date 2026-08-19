@@ -1647,10 +1647,17 @@ async function publishReview(payload) {
     );
   }
 
+
   if (reviewError) {
     throw reviewError;
   }
+
+  return {
+    movieId,
+    tmdbMovie
+  };
 }
+
 
 /* =====================================================
    AJOUT AU CARNET DEPUIS UNE WISHLIST
