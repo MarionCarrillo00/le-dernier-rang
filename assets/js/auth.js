@@ -337,6 +337,20 @@ function setupAuth() {
         usernameInput?.focus();
         return;
       }
+      
+      if (
+        authMode === "signup" &&
+        (username.length < 3 || username.length > 18)
+      ) {
+        showAuthMessage(
+          "Ton pseudo doit contenir entre 3 et 18 caractères.",
+          "error"
+        );
+      
+        usernameInput?.focus();
+        return;
+      }
+
 
       authSubmitButton.disabled = true;
       authSubmitButton.textContent = "Un instant…";
