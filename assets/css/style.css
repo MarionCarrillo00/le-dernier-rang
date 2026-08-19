@@ -10669,3 +10669,96 @@ h2 {
   color: var(--red);
   outline: none;
 }
+
+/* =====================================================
+   PAGE — RÉINITIALISATION DU MOT DE PASSE
+   ===================================================== */
+
+.password-page {
+  display: grid;
+  width: min(100% - 40px, 760px);
+  min-height: calc(100vh - 92px - 90px);
+  margin: 0 auto;
+  padding: 72px 0;
+  place-items: center;
+}
+
+.password-card {
+  width: min(100%, 590px);
+  padding: 38px 42px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+.password-card .eyebrow {
+  margin-bottom: 12px;
+}
+
+.password-card h1 {
+  margin: 0;
+  font-size: clamp(2.35rem, 5vw, 3.8rem);
+  line-height: 0.98;
+  letter-spacing: -2px;
+}
+
+.password-page-intro {
+  max-width: 470px;
+  margin: 18px 0 26px;
+  color: var(--grey);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.password-page-submit {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  text-align: center;
+}
+
+.password-page-help {
+  margin: 20px 0 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.password-page-back-link {
+  display: inline-block;
+  margin-top: 20px;
+  color: var(--deep-red);
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.password-page-back-link:hover {
+  color: var(--red);
+}
+
+@media (max-width: 650px) {
+  .password-page {
+    width: min(100% - 32px, 600px);
+    min-height: calc(100vh - 72px - 82px);
+    padding: 38px 0;
+  }
+
+  .password-card {
+    padding: 28px 22px;
+    border-radius: 14px;
+  }
+
+  .password-card h1 {
+    font-size: 2.35rem;
+    letter-spacing: -1.4px;
+  }
+
+  .password-page-intro {
+    margin: 15px 0 23px;
+    font-size: 0.94rem;
+  }
+}
