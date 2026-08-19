@@ -107,12 +107,16 @@ function renderReviewLikePerson(profile) {
       </span>
     `;
 
+
+  const profileLink = getReviewAuthorProfileLink(profile.id);
+
   return `
     <a
       class="review-like-person"
-      href="membre.html?id=${encodeURIComponent(profile.id)}"
+      href="${profileLink}"
       title="Voir le profil de ${escapeHTML(username)}"
     >
+
       ${avatarMarkup}
       <span>${escapeHTML(username)}</span>
     </a>
@@ -326,9 +330,11 @@ function formatReviewCommentDate(dateValue) {
 function renderReviewComment(comment) {
   const username = comment.author?.username || "Membre";
 
+
   const profileLink = comment.user_id
-    ? `membre.html?id=${encodeURIComponent(comment.user_id)}`
+    ? getReviewAuthorProfileLink(comment.user_id)
     : "";
+
 
   const relativeDate = formatReviewCommentDate(
     comment.created_at
@@ -807,9 +813,20 @@ function setupReviewCommentInteractions() {
   });
 }
 
+
 /* =====================================================
    CARTES DE MICROCRITIQUES
    ===================================================== */
+
+function getReviewAuthorProfileLink(authorId) {
+  const isCurrentUser =
+    currentUser &&
+    String(authorId) === String(currentUser.id);
+
+  return isCurrentUser
+    ? "profil.html"
+    : `membre.html?id=${encodeURIComponent(authorId)}`;
+}
 
 
 function createMovieCard(review, index, options = {}) {
@@ -836,10 +853,11 @@ function createMovieCard(review, index, options = {}) {
     ? formatReviewCommentDate(review.created_at)
     : "";
 
-  const authorProfileLink = review.user_id
 
-    ? `membre.html?id=${encodeURIComponent(review.user_id)}`
+  const authorProfileLink = review.user_id
+    ? getReviewAuthorProfileLink(review.user_id)
     : "";
+
 
   const posterUrl = movie.poster_url || "";
   const likeCount = Number(review.like_count || 0);
