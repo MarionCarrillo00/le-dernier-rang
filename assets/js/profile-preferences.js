@@ -727,6 +727,7 @@ function renderProfileCinemaTalent(talent, type) {
 }
 
 
+
 function renderMyCinemaSection() {
   const profileHero = document.querySelector(".profile-hero-card");
 
@@ -862,6 +863,14 @@ function renderMyCinemaSection() {
           </div>
         `
     }
+
+    <a
+      class="cinema-talents-link"
+      href="talents-carnet.html"
+    >
+      Voir les talents de mon carnet
+      <span aria-hidden="true">→</span>
+    </a>
   `;
 
   profileHero.insertAdjacentElement("afterend", section);
@@ -870,6 +879,7 @@ function renderMyCinemaSection() {
     .querySelector("[data-open-profile-preferences]")
     ?.addEventListener("click", openProfilePreferencesModal);
 }
+
 
 
 
@@ -1326,15 +1336,20 @@ async function saveProfilePreferences(event) {
   const bio = profilePreferencesBio.value.trim();
   const favoriteQuote = profilePreferencesQuote.value.trim();
 
-  if (username.length < 3 || username.length > 18) {
-    showProfilePreferencesMessage(
-      "Ton pseudo doit contenir entre 3 et 18 caractères.",
-      "error"
-    );
 
-    profilePreferencesUsername.focus();
-    return;
-  }
+const usernameIsValid =
+  /^[A-Za-zÀ-ÖØ-öø-ÿ0-9_-]{3,18}$/u.test(username);
+
+if (!usernameIsValid) {
+  showProfilePreferencesMessage(
+    "Ton pseudo doit contenir entre 3 et 18 caractères : lettres, chiffres, tirets et underscores uniquement.",
+    "error"
+  );
+
+  profilePreferencesUsername.focus();
+  return;
+}
+
 
   saveProfilePreferencesButton.disabled = true;
   saveProfilePreferencesButton.textContent = "Enregistrement…";
