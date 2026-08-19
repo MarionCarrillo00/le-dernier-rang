@@ -14,14 +14,6 @@ function isCurrentPage(pageName) {
    ===================================================== */
 
 function renderSharedAuthModal() {
-  /*
-    Supprime une éventuelle ancienne version écrite directement
-    dans une page HTML, puis injecte l'unique version commune.
-
-    Cette transition permet de tester navigation.js immédiatement,
-    avant de retirer progressivement les anciens blocs authModal
-    de chaque fichier HTML.
-  */
   document.querySelector("#authModal")?.remove();
 
   document.body.insertAdjacentHTML(
@@ -122,15 +114,9 @@ function renderSharedAuthModal() {
                 required
                 minlength="12"
                 autocomplete="current-password"
-                placeholder="Au moins 12 caractères"
+                placeholder="Ton mot de passe"
               />
             </div>
-
-            <!--
-              Ce bouton sera activé au prochain pas dans auth.js.
-              Il est affiché uniquement sur l'onglet Connexion.
-            -->
-
 
             <button
               class="button-primary"
@@ -139,6 +125,7 @@ function renderSharedAuthModal() {
             >
               Se connecter
             </button>
+
             <button
               id="forgotPasswordButton"
               class="forgot-password-button"
@@ -147,6 +134,7 @@ function renderSharedAuthModal() {
             >
               Mot de passe oublié ?
             </button>
+
             <p class="form-note" id="authNote">
               Connecte-toi pour publier une note ou une microcritique
               et retrouver tes films.
@@ -226,6 +214,113 @@ function renderGlobalMovieSearchModal() {
             class="global-movie-search-results"
             aria-live="polite"
           ></div>
+        </div>
+      </div>
+    `
+  );
+}
+
+/* =====================================================
+   MODALE COMMUNE — AJOUT AU CARNET
+   ===================================================== */
+
+function renderGlobalCarnetModal() {
+  document.querySelector("#globalCarnetModal")?.remove();
+
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
+      <div
+        class="modal global-carnet-modal"
+        id="globalCarnetModal"
+        hidden
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="globalCarnetTitle"
+      >
+        <div class="modal-box global-carnet-modal-box">
+          <div class="modal-head">
+            <div>
+              <div class="eyebrow red-eyebrow">
+                Une nouvelle séance
+              </div>
+
+              <h3 id="globalCarnetTitle">
+                Ajouter à mon carnet
+              </h3>
+            </div>
+
+            <button
+              class="close-button"
+              id="closeGlobalCarnetModal"
+              type="button"
+              aria-label="Fermer"
+            >
+              ×
+            </button>
+          </div>
+
+          <div
+            id="globalCarnetMessage"
+            class="status-message"
+            aria-live="polite"
+          ></div>
+
+          <div
+            id="globalCarnetMovie"
+            class="global-carnet-movie"
+            hidden
+          ></div>
+
+          <form id="globalCarnetForm">
+            <div class="field">
+              <label for="globalCarnetRating">
+                Note *
+              </label>
+
+              <select id="globalCarnetRating" required>
+                <option value="">Choisir une note</option>
+                <option value="1">1 / 5</option>
+                <option value="1.5">1,5 / 5</option>
+                <option value="2">2 / 5</option>
+                <option value="2.5">2,5 / 5</option>
+                <option value="3">3 / 5</option>
+                <option value="3.5">3,5 / 5</option>
+                <option value="4">4 / 5</option>
+                <option value="4.5">4,5 / 5</option>
+                <option value="5">5 / 5</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="globalCarnetContent">
+                Quelques mots sur le film
+                <span class="optional-label">(facultatif)</span>
+              </label>
+
+              <textarea
+                id="globalCarnetContent"
+                maxlength="140"
+                placeholder="Une image, une émotion, une phrase…"
+              ></textarea>
+
+              <p
+                id="globalCarnetCharacterCounter"
+                class="character-counter"
+              >
+                0 / 140
+              </p>
+            </div>
+
+            <button
+              id="globalCarnetSubmitButton"
+              class="button-primary global-carnet-submit"
+              type="submit"
+            >
+              Ajouter à mon carnet
+            </button>
+          </form>
         </div>
       </div>
     `
@@ -325,6 +420,7 @@ function renderNavigation() {
 
   renderSharedAuthModal();
   renderGlobalMovieSearchModal();
+  renderGlobalCarnetModal();
 }
 
 renderNavigation();
