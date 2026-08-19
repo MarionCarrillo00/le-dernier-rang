@@ -435,7 +435,7 @@ function renderTalentsCarnetPage(
       </div>
 
       <h1>
-        Les talents qui reviennent dans ton carnet
+           Les talents de ton carnet
       </h1>
 
       <p>
