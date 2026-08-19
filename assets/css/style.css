@@ -11390,3 +11390,153 @@ h2 {
     -webkit-line-clamp: 1;
   }
 }
+
+/* =====================================================
+   TALENTS DU CARNET — INTRODUCTION PLUS COMPACTE
+   ===================================================== */
+
+.talents-carnet-content {
+  gap: 48px;
+}
+
+.talents-carnet-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px 26px;
+  padding: 0 0 20px;
+  color: var(--ink);
+  background: transparent;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.talents-carnet-hero::after {
+  display: none;
+}
+
+.talents-carnet-hero > * {
+  position: relative;
+  z-index: auto;
+}
+
+.talents-carnet-hero .eyebrow {
+  grid-column: 1 / -1;
+  margin: 0 0 2px;
+  color: var(--red);
+}
+
+.talents-carnet-hero h1 {
+  grid-column: 1;
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(2rem, 3.3vw, 2.75rem);
+  font-weight: normal;
+  line-height: 1.02;
+  letter-spacing: -1.35px;
+}
+
+.talents-carnet-hero p {
+  grid-column: 1 / -1;
+  max-width: 680px;
+  margin: 5px 0 0;
+  color: var(--grey);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.talents-carnet-hero .button-primary {
+  grid-column: 1 / -1;
+  width: fit-content;
+  margin-top: 8px;
+}
+
+.talents-carnet-summary {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: end;
+  display: grid;
+  gap: 3px;
+  min-width: 82px;
+  margin: 0;
+  padding: 8px 10px;
+  text-align: center;
+  background: rgba(215, 167, 93, 0.1);
+  border: 1px solid rgba(215, 167, 93, 0.42);
+  border-radius: 9px;
+}
+
+.talents-carnet-summary strong {
+  color: var(--red);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.talents-carnet-summary span {
+  max-width: none;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.59rem;
+  line-height: 1.2;
+}
+
+/* Les sections restent importantes, mais ne doivent pas
+   écraser les classements qu’elles introduisent. */
+
+.talents-carnet-section {
+  gap: 16px;
+}
+
+.talents-carnet-section-heading {
+  padding-bottom: 13px;
+}
+
+.talents-carnet-section-heading h2 {
+  font-size: clamp(1.55rem, 2.6vw, 2.25rem);
+  letter-spacing: -1px;
+}
+
+@media (max-width: 650px) {
+  .talents-carnet-content {
+    gap: 38px;
+  }
+
+  .talents-carnet-hero {
+    gap: 8px 14px;
+    padding-bottom: 17px;
+  }
+
+  .talents-carnet-hero h1 {
+    font-size: 1.85rem;
+    letter-spacing: -1px;
+  }
+
+  .talents-carnet-hero p {
+    margin-top: 4px;
+    font-size: 0.82rem;
+  }
+
+  .talents-carnet-summary {
+    min-width: 68px;
+    padding: 7px 6px;
+  }
+
+  .talents-carnet-summary strong {
+    font-size: 1.22rem;
+  }
+
+  .talents-carnet-summary span {
+    font-size: 0.55rem;
+  }
+
+  .talents-carnet-section-heading {
+    gap: 8px;
+    padding-bottom: 11px;
+  }
+
+  .talents-carnet-section-heading h2 {
+    font-size: 1.65rem;
+  }
+}
+
