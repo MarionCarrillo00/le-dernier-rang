@@ -516,11 +516,12 @@ function renderGlobalMovieSearchResults(results) {
 
     wishlistButton?.addEventListener("click", () => {
       addGlobalMovieToWishlist(movie, wishlistButton);
+    });    
+    
+    carnetButton?.addEventListener("click", () => {
+      addGlobalMovieToCarnet(movie);
     });
 
-    carnetButton?.addEventListener("click", () => {
-      addGlobalMovieToCarnet(movie.tmdb_id);
-    });
   });
 }
 
