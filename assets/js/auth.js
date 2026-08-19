@@ -14,7 +14,10 @@ function getAuthElements() {
     authNote: document.getElementById("authNote"),
     usernameField: document.getElementById("usernameField"),
     usernameInput: document.getElementById("username"),
-    authPasswordInput: document.getElementById("authPassword"),
+    authPasswordInput: document.getElementById("authPassword"),   
+    forgotPasswordButton: document.getElementById(
+      "forgotPasswordButton"
+    ),
     authMessage: document.getElementById("authMessage"),
     userMenu: document.getElementById("userMenu"),
     userGreeting: document.getElementById("userGreeting"),
@@ -90,7 +93,8 @@ const {
   authNote,
   usernameField,
   usernameInput,
-  authPasswordInput
+  authPasswordInput,
+  forgotPasswordButton
 } = getAuthElements();
 
 
@@ -126,6 +130,11 @@ if (authPasswordInput) {
     ? "12 caractères minimum"
     : "Ton mot de passe";
 }
+  
+if (forgotPasswordButton) {
+  forgotPasswordButton.hidden = isSignup;
+}
+
 
   if (authTitle) {
     authTitle.textContent = isSignup
