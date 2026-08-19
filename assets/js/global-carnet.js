@@ -419,7 +419,8 @@ async function submitGlobalCarnetEntry(event) {
   try {
     const movie = globalCarnetSelectedMovie;
 
-    await publishReview({
+
+    const publishedEntry = await publishReview({
       title: movie.title || "Film sans titre",
       tmdbMovie: movie,
       year: movie.release_year || "",
@@ -429,6 +430,22 @@ async function submitGlobalCarnetEntry(event) {
       content: content || null,
       tags: []
     });
+
+    /*
+      Enrichissement discret du catalogue :
+      réalisation + 8 premiers rôles TMDB.
+      Une erreur de cache ne doit jamais empêcher la publication.
+    */
+    if (
+      publishedEntry?.movieId &&
+      typeof syncMovieTalentsSafely === "function"
+    ) {
+      await syncMovieTalentsSafely(
+        publishedEntry.movieId,
+        movie
+      );
+    }
+
 
     showGlobalCarnetMessage(
       content
