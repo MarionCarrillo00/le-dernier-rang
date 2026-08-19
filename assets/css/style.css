@@ -10762,3 +10762,32 @@ h2 {
     font-size: 0.94rem;
   }
 }
+
+/* =====================================================
+   PROFIL PUBLIC — COMPTEUR D'AMIS
+   ===================================================== */
+
+.member-friends-count {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+
+  color: var(--cream);
+  background: var(--red);
+  border-radius: 50%;
+
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+  font-weight: bold;
+
+  place-items: center;
+}
+
+@media (max-width: 650px) {
+  .member-friends-count {
+    width: 27px;
+    height: 27px;
+    font-size: 0.66rem;
+  }
+}
