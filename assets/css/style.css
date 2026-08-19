@@ -11272,3 +11272,166 @@ h2 {
     -webkit-line-clamp: 1;
   }
 }
+
+
+/* -----------------------------------------------------
+   Introduction discrète
+   Le classement est le véritable sujet de la page.
+   ----------------------------------------------------- */
+
+.talents-carnet-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 24px;
+  padding: 0 0 25px;
+  color: var(--ink);
+  background: transparent;
+  border-bottom: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.talents-carnet-hero::after {
+  display: none;
+}
+
+.talents-carnet-hero .eyebrow {
+  grid-column: 1 / -1;
+  margin: 0 0 -12px;
+  color: var(--red);
+}
+
+.talents-carnet-hero h1 {
+  max-width: 680px;
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(2rem, 3.8vw, 3.15rem);
+  font-weight: normal;
+  line-height: 1.02;
+  letter-spacing: -1.5px;
+}
+
+.talents-carnet-hero p {
+  grid-column: 1;
+  max-width: 620px;
+  margin: 10px 0 0;
+  color: var(--grey);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.talents-carnet-hero .button-primary {
+  grid-column: 1;
+  width: fit-content;
+  margin-top: 12px;
+}
+
+.talents-carnet-summary {
+  grid-column: 2;
+  grid-row: 2 / span 2;
+  align-self: center;
+  display: grid;
+  gap: 3px;
+  min-width: 94px;
+  margin: 0;
+  padding: 11px 13px;
+  color: var(--ink);
+  text-align: center;
+  background: rgba(215, 167, 93, 0.1);
+  border: 1px solid rgba(215, 167, 93, 0.4);
+  border-radius: 10px;
+}
+
+.talents-carnet-summary strong {
+  color: var(--red);
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.talents-carnet-summary span {
+  max-width: none;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.64rem;
+  line-height: 1.25;
+}
+
+
+@media (max-width: 650px) {
+  .talents-carnet-page {
+    width: min(100% - 32px, 600px);
+    padding: 28px 0 70px;
+  }
+
+  .talents-carnet-content {
+    gap: 45px;
+  }
+
+  .talents-carnet-hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    padding: 0 0 20px;
+    border-radius: 0;
+  }
+
+  .talents-carnet-hero .eyebrow {
+    margin-bottom: -8px;
+  }
+
+  .talents-carnet-hero h1 {
+    font-size: 2rem;
+    letter-spacing: -1.2px;
+  }
+
+  .talents-carnet-hero p {
+    font-size: 0.86rem;
+  }
+
+  .talents-carnet-summary {
+    min-width: 75px;
+    padding: 9px 7px;
+  }
+
+  .talents-carnet-summary strong {
+    font-size: 1.4rem;
+  }
+
+  .talents-carnet-summary span {
+    font-size: 0.59rem;
+  }
+
+  .talents-carnet-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 13px;
+  }
+
+  .talents-carnet-section-heading h2 {
+    font-size: 1.9rem;
+  }
+
+  .talents-carnet-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .talents-carnet-card {
+    grid-template-columns: 23px 48px minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .talents-carnet-portrait {
+    width: 48px;
+    height: 48px;
+  }
+
+  .talents-carnet-card-copy strong {
+    font-size: 0.94rem;
+  }
+
+  .talents-carnet-card-movies {
+    -webkit-line-clamp: 1;
+  }
+}
