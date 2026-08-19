@@ -1326,9 +1326,9 @@ async function saveProfilePreferences(event) {
   const bio = profilePreferencesBio.value.trim();
   const favoriteQuote = profilePreferencesQuote.value.trim();
 
-  if (username.length < 3 || username.length > 30) {
+  if (username.length < 3 || username.length > 18) {
     showProfilePreferencesMessage(
-      "Ton pseudo doit contenir entre 3 et 30 caractères.",
+      "Ton pseudo doit contenir entre 3 et 18 caractères.",
       "error"
     );
 
