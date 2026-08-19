@@ -705,18 +705,22 @@ const directorMarkup = directorPerson?.tmdb_id
         </div>
 
         <div class="film-primary-actions">
-          ${
-            tmdbId
-              ? `
-                <a
-                  class="button-primary"
-                  href="${buildWriteReviewLink(tmdbId)}"
-                >
-                  Écrire une microcritique
-                </a>
-              `
-              : ""
-          }
+        
+        ${
+          tmdbId
+            ? `
+              <button
+                class="button-primary"
+                type="button"
+                data-film-carnet
+                data-tmdb-id="${escapeHTML(String(tmdbId))}"
+              >
+                Écrire une microcritique
+              </button>
+            `
+            : ""
+        }
+
 
           ${
             filmExistsInCatalog || tmdbId
@@ -796,18 +800,22 @@ reviews
               <div class="empty-state">
                 <strong>Pas encore de microcritique pour ce film.</strong>
                 <br /><br />
-                ${
-                  tmdbId
-                    ? `
-                      <a
-                        class="button-primary"
-                        href="${buildWriteReviewLink(tmdbId)}"
-                      >
-                        Écrire la première microcritique
-                      </a>
-                    `
-                    : "Sois la première personne à laisser quelques mots."
-                }
+
+              ${
+                tmdbId
+                  ? `
+                    <button
+                      class="button-primary"
+                      type="button"
+                      data-film-carnet
+                      data-tmdb-id="${escapeHTML(String(tmdbId))}"
+                    >
+                      Écrire la première microcritique
+                    </button>
+                  `
+                  : "Sois la première personne à laisser quelques mots."
+              }
+
               </div>
             `
         }
@@ -816,18 +824,54 @@ reviews
   `;
 
 
+
 setupFilmLikeButtons();
+setupFilmCarnetButtons();
 setupListButtons();
 
 if (typeof setupFilmRecommendationButton === "function") {
   setupFilmRecommendationButton();
 }
 
+
 }
 
 /* =====================================================
    INTERACTIONS
    ===================================================== */
+
+function setupFilmCarnetButtons() {
+  document
+    .querySelectorAll("[data-film-carnet]")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        const tmdbId = Number(button.dataset.tmdbId);
+
+        if (!Number.isInteger(tmdbId) || tmdbId <= 0) {
+          return;
+        }
+
+        if (typeof openGlobalCarnetModal !== "function") {
+          console.error(
+            "La modale globale d’ajout au carnet est indisponible."
+          );
+
+          return;
+        }
+
+        await openGlobalCarnetModal(tmdbId, {
+          /*
+            Après l’enregistrement, la fiche se recharge
+            naturellement et affiche la nouvelle note ou
+            microcritique, sans quitter son URL.
+          */
+          onSuccess: async () => {
+            await initialiseFilmPage();
+          }
+        });
+      });
+    });
+}
 
 function setupFilmLikeButtons() {
   document.querySelectorAll(".favorite").forEach((button) => {
