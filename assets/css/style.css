@@ -10885,3 +10885,390 @@ h2 {
     padding: 26px 18px;
   }
 }
+
+/* =====================================================
+   TALENTS DU CARNET — TOP 30 PERSONNEL
+   talents-carnet.html / talents-carnet.js
+   ===================================================== */
+
+.talents-carnet-page {
+  width: min(1120px, 86%);
+  min-height: 75vh;
+  margin: 0 auto;
+  padding: 42px 0 90px;
+}
+
+.talents-carnet-content {
+  display: grid;
+  gap: 64px;
+}
+
+/* -----------------------------------------------------
+   Chargement
+   ----------------------------------------------------- */
+
+.talents-carnet-loading {
+  padding: 55px 25px;
+  color: var(--grey);
+  text-align: center;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  font-family: Arial, sans-serif;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+/* -----------------------------------------------------
+   Hero éditorial
+   ----------------------------------------------------- */
+
+.talents-carnet-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 42px 46px;
+  color: var(--cream);
+  background:
+    linear-gradient(
+      115deg,
+      rgba(31, 19, 18, 0.95),
+      rgba(125, 41, 41, 0.84)
+    ),
+    url("https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1600&q=80")
+    center / cover;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+.talents-carnet-hero::after {
+  position: absolute;
+  right: -95px;
+  bottom: -130px;
+  width: 330px;
+  height: 330px;
+  content: "";
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+}
+
+.talents-carnet-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.talents-carnet-hero .eyebrow {
+  margin-bottom: 11px;
+  color: #f3d8aa;
+}
+
+.talents-carnet-hero h1 {
+  max-width: 720px;
+  margin: 0;
+  color: var(--cream);
+  font-size: clamp(2.45rem, 5.2vw, 4.7rem);
+  font-weight: normal;
+  line-height: 0.97;
+  letter-spacing: -2.4px;
+}
+
+.talents-carnet-hero p {
+  max-width: 590px;
+  margin: 18px 0 0;
+  color: rgba(255, 250, 244, 0.88);
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+
+.talents-carnet-hero .button-primary {
+  margin-top: 25px;
+}
+
+.talents-carnet-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 27px;
+  padding: 11px 14px;
+  color: var(--ink);
+  background: rgba(255, 250, 244, 0.94);
+  border-radius: 10px;
+}
+
+.talents-carnet-summary strong {
+  color: var(--red);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.talents-carnet-summary span {
+  max-width: 92px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+  line-height: 1.22;
+}
+
+/* -----------------------------------------------------
+   Sections : réalisation / interprétation
+   ----------------------------------------------------- */
+
+.talents-carnet-section {
+  display: grid;
+  gap: 20px;
+}
+
+.talents-carnet-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 20px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid var(--line);
+}
+
+.talents-carnet-section-heading .eyebrow {
+  margin-bottom: 8px;
+}
+
+.talents-carnet-section-heading h2 {
+  max-width: 760px;
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.85rem, 3.3vw, 2.8rem);
+  font-weight: normal;
+  line-height: 1.04;
+  letter-spacing: -1.3px;
+}
+
+.talents-carnet-section-count {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  color: var(--deep-red);
+  background: rgba(215, 167, 93, 0.13);
+  border: 1px solid rgba(215, 167, 93, 0.42);
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+/* -----------------------------------------------------
+   Grille de classement
+   ----------------------------------------------------- */
+
+.talents-carnet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.talents-carnet-card {
+  display: grid;
+  grid-template-columns: 24px 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  padding: 12px;
+  color: var(--ink);
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.talents-carnet-card:hover {
+  border-color: rgba(184, 68, 68, 0.48);
+  box-shadow: 0 10px 22px rgba(61, 43, 32, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Le premier rang est présent, sans tomber dans une logique
+   de podium trop démonstrative. */
+
+.talents-carnet-card:first-child {
+  border-color: rgba(215, 167, 93, 0.72);
+  background:
+    linear-gradient(
+      115deg,
+      rgba(215, 167, 93, 0.13),
+      rgba(255, 250, 244, 0.94)
+    );
+}
+
+.talents-carnet-rank {
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.talents-carnet-card:first-child .talents-carnet-rank {
+  color: #a8752a;
+  font-size: 0.86rem;
+}
+
+.talents-carnet-portrait {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  color: var(--cream);
+  background: var(--deep-red);
+  border: 2px solid var(--cream);
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(61, 43, 32, 0.12);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  place-items: center;
+}
+
+.talents-carnet-portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.talents-carnet-card-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.talents-carnet-card-copy strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.98rem;
+  line-height: 1.14;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.talents-carnet-card-copy small {
+  overflow: hidden;
+  color: var(--red);
+  font-family: Arial, sans-serif;
+  font-size: 0.66rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.talents-carnet-card-movies {
+  display: -webkit-box;
+  margin: 2px 0 0;
+  overflow: hidden;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.63rem;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.talents-carnet-arrow {
+  padding-left: 2px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 1.05rem;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.talents-carnet-card:hover .talents-carnet-arrow {
+  color: var(--red);
+  transform: translateX(3px);
+}
+
+/* -----------------------------------------------------
+   États vides
+   ----------------------------------------------------- */
+
+.talents-carnet-empty-state {
+  max-width: none;
+  padding: 38px 24px;
+}
+
+.talents-carnet-empty-state strong {
+  color: var(--ink);
+}
+
+/* -----------------------------------------------------
+   Responsive
+   ----------------------------------------------------- */
+
+@media (max-width: 950px) {
+  .talents-carnet-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .talents-carnet-hero {
+    padding: 36px;
+  }
+}
+
+@media (max-width: 650px) {
+  .talents-carnet-page {
+    width: min(100% - 32px, 600px);
+    padding: 28px 0 70px;
+  }
+
+  .talents-carnet-content {
+    gap: 45px;
+  }
+
+  .talents-carnet-hero {
+    padding: 28px 23px;
+    border-radius: 14px;
+  }
+
+  .talents-carnet-hero h1 {
+    font-size: 2.45rem;
+    letter-spacing: -1.6px;
+  }
+
+  .talents-carnet-hero p {
+    font-size: 0.95rem;
+  }
+
+  .talents-carnet-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 13px;
+  }
+
+  .talents-carnet-section-heading h2 {
+    font-size: 1.9rem;
+  }
+
+  .talents-carnet-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .talents-carnet-card {
+    grid-template-columns: 23px 48px minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .talents-carnet-portrait {
+    width: 48px;
+    height: 48px;
+  }
+
+  .talents-carnet-card-copy strong {
+    font-size: 0.94rem;
+  }
+
+  .talents-carnet-card-movies {
+    -webkit-line-clamp: 1;
+  }
+}
