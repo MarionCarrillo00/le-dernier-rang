@@ -10491,3 +10491,12 @@ body.modal-open {
     align-self: flex-start;
   }
 }
+
+#siteHeader {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(246, 241, 234, 0.94);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(222, 213, 202, 0.9);
+}
