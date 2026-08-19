@@ -731,6 +731,7 @@ function renderMemberCinemaTalent(talent, type) {
 }
 
 
+
 function renderMemberCinemaSection(profile, cinema) {
   const quote = String(profile.favorite_quote || "").trim();
 
@@ -751,9 +752,7 @@ function renderMemberCinemaSection(profile, cinema) {
     decades.length
   );
 
-  if (!hasCinema) {
-    return "";
-  }
+  const memberId = encodeURIComponent(profile.id);
 
   return `
     <section class="member-section member-cinema-section member-cinema-compact-section">
@@ -776,68 +775,87 @@ function renderMemberCinemaSection(profile, cinema) {
       </div>
 
       ${
-        cinema.movie || cinema.actor || cinema.director
+        hasCinema
           ? `
-            <div class="member-cinema-favorites">
-              ${renderMemberCinemaMovie(cinema.movie)}
+            ${
+              cinema.movie || cinema.actor || cinema.director
+                ? `
+                  <div class="member-cinema-favorites">
+                    ${renderMemberCinemaMovie(cinema.movie)}
 
-              <div class="member-cinema-talents">
-                ${renderMemberCinemaTalent(cinema.actor, "acting")}
-                ${renderMemberCinemaTalent(cinema.director, "directing")}
-              </div>
-            </div>
+                    <div class="member-cinema-talents">
+                      ${renderMemberCinemaTalent(cinema.actor, "acting")}
+                      ${renderMemberCinemaTalent(cinema.director, "directing")}
+                    </div>
+                  </div>
+                `
+                : ""
+            }
+
+            ${
+              genres.length || decades.length
+                ? `
+                  <div class="member-cinema-tags">
+                    ${
+                      genres.length
+                        ? `
+                          <div class="member-cinema-tag-group">
+                            <span>Genres</span>
+
+                            <div>
+                              ${genres
+                                .map(
+                                  (genre) =>
+                                    `<em>${escapeHTML(genre)}</em>`
+                                )
+                                .join("")}
+                            </div>
+                          </div>
+                        `
+                        : ""
+                    }
+
+                    ${
+                      decades.length
+                        ? `
+                          <div class="member-cinema-tag-group">
+                            <span>Décennies</span>
+
+                            <div>
+                              ${decades
+                                .map(
+                                  (decade) =>
+                                    `<em>${escapeHTML(decade)}</em>`
+                                )
+                                .join("")}
+                            </div>
+                          </div>
+                        `
+                        : ""
+                    }
+                  </div>
+                `
+                : ""
+            }
           `
-          : ""
+          : `
+            <p class="member-cinema-empty-note">
+              Quelques films et visages se dessinent dans son carnet.
+            </p>
+          `
       }
 
-      ${
-        genres.length || decades.length
-          ? `
-            <div class="member-cinema-tags">
-              ${
-                genres.length
-                  ? `
-                    <div class="member-cinema-tag-group">
-                      <span>Genres</span>
-
-                      <div>
-                        ${genres
-                          .map(
-                            (genre) =>
-                              `<em>${escapeHTML(genre)}</em>`
-                          )
-                          .join("")}
-                      </div>
-                    </div>
-                  `
-                  : ""
-              }
-
-              ${
-                decades.length
-                  ? `
-                    <div class="member-cinema-tag-group">
-                      <span>Décennies</span>
-
-                      <div>
-                        ${decades
-                          .map(
-                            (decade) =>
-                              `<em>${escapeHTML(decade)}</em>`
-                          )
-                          .join("")}
-                      </div>
-                    </div>
-                  `
-                  : ""
-              }
-            </div>
-          `
-          : ""
-      }
+      <a
+        class="cinema-talents-link member-cinema-talents-link"
+        href="talents-carnet.html?id=${memberId}"
+      >
+        Voir les talents de son carnet
+        <span aria-hidden="true">→</span>
+      </a>
     </section>
   `;
 }
+
 
 /* =====================================================
    AFFINITÉ CINÉPHILE
