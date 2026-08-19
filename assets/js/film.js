@@ -1182,6 +1182,19 @@ async function initialiseFilmPage() {
 
     currentFilmMovie = movie;
 
+    /*
+      Si le film est déjà dans le catalogue et que TMDB fournit
+      les crédits, on enrichit doucement movie_talents.
+      Cette synchronisation ne bloque jamais l'affichage de la fiche.
+    */
+    if (
+      movie.id &&
+      tmdbDetails &&
+      typeof syncMovieTalentsSafely === "function"
+    ) {
+      syncMovieTalentsSafely(movie.id, tmdbDetails);
+    }
+
     const [reviews, lists, isInWishlist] = await Promise.all([
       movie.id
         ? getReviewsByMovieId(movie.id)
