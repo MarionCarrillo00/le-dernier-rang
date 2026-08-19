@@ -39,6 +39,21 @@ function showAuthMessage(message, type = "success") {
 }
 
 
+function getUsernameSecurityError(username) {
+  const isValidUsername =
+    /^[A-Za-zÀ-ÖØ-öø-ÿ0-9_-]{3,18}$/u.test(username);
+
+  if (!isValidUsername) {
+    return (
+      "Ton pseudo doit contenir entre 3 et 18 caractères : " +
+      "lettres, chiffres, tirets et underscores uniquement."
+    );
+  }
+
+  return "";
+}
+
+
 function getPasswordSecurityError(password) {
   if (password.length < 12) {
     return "Ton mot de passe doit contenir au moins 12 caractères.";
@@ -354,39 +369,40 @@ function setupAuth() {
         return;
       }
 
-      if (authMode === "signup" && !username) {
-        showAuthMessage(
-          "Choisis un pseudo pour créer ton compte.",
-          "error"
-        );
 
-        usernameInput?.focus();
-        return;
-      }
-      
-      if (
-        authMode === "signup" &&
-        (username.length < 3 || username.length > 18)
-      ) {
-        showAuthMessage(
-          "Ton pseudo doit contenir entre 3 et 18 caractères.",
-          "error"
-        );
-      
-        usernameInput?.focus();
-        return;
-      }
+if (authMode === "signup" && !username) {
+  showAuthMessage(
+    "Choisis un pseudo pour créer ton compte.",
+    "error"
+  );
 
-      if (authMode === "signup") {
-        const passwordSecurityError = getPasswordSecurityError(password);
-      
-        if (passwordSecurityError) {
-          showAuthMessage(passwordSecurityError, "error");
-      
-          passwordInput?.focus();
-          return;
-        }
-      }
+  usernameInput?.focus();
+  return;
+}
+
+if (authMode === "signup") {
+  const usernameSecurityError =
+    getUsernameSecurityError(username);
+
+  if (usernameSecurityError) {
+    showAuthMessage(usernameSecurityError, "error");
+
+    usernameInput?.focus();
+    return;
+  }
+}
+
+if (authMode === "signup") {
+  const passwordSecurityError = getPasswordSecurityError(password);
+
+  if (passwordSecurityError) {
+    showAuthMessage(passwordSecurityError, "error");
+
+    passwordInput?.focus();
+    return;
+  }
+}
+
 
 
       authSubmitButton.disabled = true;
