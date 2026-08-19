@@ -11586,3 +11586,36 @@ h2 {
   font-style: italic;
 }
 
+
+/* =====================================================
+   CINÉ MOJITO — RELIEF DOUX POUR LES CARTES DU FIL
+   ===================================================== */
+
+.movie-card {
+  background: #fffaf4;
+  border-color: rgba(190, 156, 118, 0.38);
+  box-shadow: 0 5px 16px rgba(61, 43, 32, 0.065);
+}
+
+.movie-card:hover {
+  border-color: rgba(184, 68, 68, 0.42);
+  box-shadow: 0 10px 24px rgba(61, 43, 32, 0.11);
+  transform: translateY(-1px);
+}
+
+/* Les notes seules : présence accrue, mais légèreté conservée */
+.movie-card.movie-card-note-only {
+  background: rgba(255, 250, 244, 0.96);
+  border-color: rgba(190, 156, 118, 0.4);
+  box-shadow: 0 4px 13px rgba(61, 43, 32, 0.06);
+}
+
+.movie-card.movie-card-note-only:hover {
+  box-shadow: 0 8px 19px rgba(61, 43, 32, 0.095);
+}
+
+/* Séparateur interne plus lisible sur les notes compactes */
+.movie-card-note-only .movie-card-footer,
+.movie-card-note-only .movie-card-meta {
+  border-top-color: rgba(222, 213, 202, 0.92);
+}
