@@ -38,6 +38,32 @@ function showAuthMessage(message, type = "success") {
   }
 }
 
+
+function getPasswordSecurityError(password) {
+  if (password.length < 12) {
+    return "Ton mot de passe doit contenir au moins 12 caractères.";
+  }
+
+  if (!/[a-z]/.test(password)) {
+    return "Ton mot de passe doit contenir au moins une minuscule.";
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return "Ton mot de passe doit contenir au moins une majuscule.";
+  }
+
+  if (!/\d/.test(password)) {
+    return "Ton mot de passe doit contenir au moins un chiffre.";
+  }
+
+  if (!/[^A-Za-z0-9\s]/.test(password)) {
+    return "Ton mot de passe doit contenir au moins un symbole.";
+  }
+
+  return "";
+}
+
+
 function setAuthMode(mode) {
   authMode = mode === "signup" ? "signup" : "login";
 
@@ -349,6 +375,17 @@ function setupAuth() {
       
         usernameInput?.focus();
         return;
+      }
+
+      if (authMode === "signup") {
+        const passwordSecurityError = getPasswordSecurityError(password);
+      
+        if (passwordSecurityError) {
+          showAuthMessage(passwordSecurityError, "error");
+      
+          passwordInput?.focus();
+          return;
+        }
       }
 
 
