@@ -10500,3 +10500,26 @@ body.modal-open {
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(222, 213, 202, 0.9);
 }
+
+/* =====================================================
+   NAVIGATION GLOBALE — STICKY
+   ===================================================== */
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+#siteHeader,
+.site-header {
+  position: sticky !important;
+  top: 0;
+  z-index: 1000;
+
+  background: rgba(246, 241, 234, 0.94);
+  border-bottom: 1px solid rgba(222, 213, 202, 0.9);
+
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
