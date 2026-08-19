@@ -211,10 +211,19 @@ function restoreGlobalSearchIfNeeded() {
   searchModal.setAttribute("aria-hidden", "false");
 }
 
+
 function closeGlobalCarnetModal() {
   if (!globalCarnetModal) {
     return;
   }
+
+  /*
+    On mémorise le contexte avant de le réinitialiser :
+    depuis la recherche navbar, on veut retrouver la recherche
+    exactement comme elle était.
+  */
+  const shouldReturnToSearch =
+    globalCarnetContext.returnToSearch;
 
   globalCarnetModal.classList.remove("visible");
   globalCarnetModal.setAttribute("hidden", "");
@@ -223,16 +232,27 @@ function closeGlobalCarnetModal() {
   globalCarnetForm?.reset();
 
   globalCarnetSelectedMovie = null;
-  globalCarnetContext = {
-    returnToSearch: false,
-    onSuccess: null
-  };
 
   hideGlobalCarnetMovie();
   clearGlobalCarnetMessage();
   updateGlobalCarnetCharacterCounter();
 
-  restoreGlobalSearchIfNeeded();
+  globalCarnetContext = {
+    returnToSearch: false,
+    onSuccess: null
+  };
+
+  if (shouldReturnToSearch) {
+    const searchModal = document.getElementById(
+      "globalMovieSearchModal"
+    );
+
+    if (searchModal) {
+      searchModal.removeAttribute("hidden");
+      searchModal.classList.add("visible");
+      searchModal.setAttribute("aria-hidden", "false");
+    }
+  }
 
   const anotherModalIsOpen = Boolean(
     document.querySelector(".modal.visible, .modal-overlay.visible")
@@ -243,6 +263,7 @@ function closeGlobalCarnetModal() {
     anotherModalIsOpen
   );
 }
+
 
 /* =====================================================
    OUVERTURE
