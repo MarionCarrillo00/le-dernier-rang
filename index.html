@@ -386,8 +386,14 @@
 
           <input
             id="username"
+            name="username"
+            type="text"
             minlength="3"
             maxlength="18"
+            pattern="[A-Za-zÀ-ÖØ-öø-ÿ0-9_-]{3,18}"
+            title="3 à 18 caractères : lettres, chiffres, tirets et underscores uniquement."
+            autocomplete="username"
+            required
             placeholder="Ex. TotoCinephile"
           />
         </div>
