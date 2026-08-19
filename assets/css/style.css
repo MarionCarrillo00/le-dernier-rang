@@ -6591,12 +6591,6 @@ a.activity-content-link:hover .activity-detail {
    Prévention des débordements
 --------------------------------- */
 
-html,
-body {
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
 .home-reviews-layout,
 .reviews-layout,
 .home-content-layout {
@@ -7695,14 +7689,8 @@ body.modal-open {
   }
 }
 
+
 @media (max-width: 650px) {
-  .talent-filmography-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
-  }
-}
-
-
   .talent-page-content {
     gap: 2.5rem;
   }
@@ -7736,6 +7724,8 @@ body.modal-open {
     padding-bottom: 0;
   }
 }
+
+
 
 /* =====================================================
    TALENT — GRILLE FILMOGRAPHIE FINALE
@@ -10492,15 +10482,6 @@ body.modal-open {
   }
 }
 
-#siteHeader {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background: rgba(246, 241, 234, 0.94);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(222, 213, 202, 0.9);
-}
-
 /* =====================================================
    NAVIGATION GLOBALE — STICKY
    ===================================================== */
@@ -10609,32 +10590,6 @@ h2 {
 .profile-hero-card h1 {
   max-width: 100%;
   overflow-wrap: anywhere;
-}
-
-/* =====================================================
-   AUTHENTIFICATION — MOT DE PASSE OUBLIÉ
-   ===================================================== */
-
-.forgot-password-button {
-  display: inline-block;
-  width: fit-content;
-  margin: -2px 0 14px;
-  padding: 0;
-  color: var(--grey);
-  background: transparent;
-  border: 0;
-  font-family: Arial, sans-serif;
-  font-size: 0.72rem;
-  text-align: left;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-}
-
-.forgot-password-button:hover,
-.forgot-password-button:focus-visible {
-  color: var(--red);
-  outline: none;
 }
 
 /* =====================================================
