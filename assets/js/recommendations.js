@@ -48,6 +48,8 @@ const sendRecommendationButton = document.getElementById(
 );
 
 let recommendationFriendsCache = [];
+let recommendationCatalogMovie = null;
+let recommendationCatalogMoviePromise = null;
 
 /* =====================================================
    OUTILS
@@ -132,6 +134,202 @@ function renderRecommendationFriendAvatar(friend) {
   `;
 }
 
+function getSelectedRecommendationRecipients() {
+  return [
+    ...document.querySelectorAll(
+      'input[name="recommendationRecipients"]:checked'
+    )
+  ]
+    .map((input) => input.value)
+    .filter(Boolean);
+}
+
+function getRecommendationFriendById(friendId) {
+  return recommendationFriendsCache.find(
+    (friend) => String(friend.id) === String(friendId)
+  );
+}
+
+function getRecommendationFriendName(friendId) {
+  return (
+    getRecommendationFriendById(friendId)?.username || "Cette personne"
+  );
+}
+
+/* =====================================================
+   VÉRIFICATION — FILM DÉJÀ PRÉSENT DANS LE CARNET
+   ===================================================== */
+
+/*
+  Le film peut provenir directement de TMDB et ne pas encore
+  avoir un identifiant Supabase. On le crée donc seulement
+  lorsque la vérification ou l'envoi le nécessite.
+
+  La promesse est mémorisée : plusieurs clics sur les cases
+  ne créent jamais plusieurs entrées catalogue.
+*/
+async function getRecommendationCatalogMovie() {
+  if (recommendationCatalogMovie?.id) {
+    return recommendationCatalogMovie;
+  }
+
+  if (recommendationCatalogMoviePromise) {
+    return recommendationCatalogMoviePromise;
+  }
+
+  recommendationCatalogMoviePromise = ensureCurrentFilmInCatalog();
+
+  try {
+    const catalogMovie = await recommendationCatalogMoviePromise;
+
+    if (!catalogMovie?.id) {
+      throw new Error(
+        "Le film n’a pas pu être enregistré dans le catalogue."
+      );
+    }
+
+    recommendationCatalogMovie = catalogMovie;
+
+    return recommendationCatalogMovie;
+  } finally {
+    recommendationCatalogMoviePromise = null;
+  }
+}
+
+function getRecommendationSeenWarningElement() {
+  return document.getElementById("recommendationSeenWarning");
+}
+
+function clearRecommendationSeenWarning() {
+  const warning = getRecommendationSeenWarningElement();
+
+  if (!warning) {
+    return;
+  }
+
+  warning.hidden = true;
+  warning.innerHTML = "";
+}
+
+function renderRecommendationSeenWarning(recipientIds, seenRecipientIds) {
+  const warning = getRecommendationSeenWarningElement();
+
+  if (!warning) {
+    return;
+  }
+
+  if (!seenRecipientIds?.length) {
+    clearRecommendationSeenWarning();
+    return;
+  }
+
+  const seenNames = seenRecipientIds.map(getRecommendationFriendName);
+
+  const selectedNotSeenCount = recipientIds.filter(
+    (recipientId) => !seenRecipientIds.includes(recipientId)
+  ).length;
+
+  let title = "";
+  let description = "";
+
+  if (seenNames.length === 1) {
+    title = `${seenNames[0]} a déjà noté ce film dans son carnet.`;
+  } else if (seenNames.length === 2) {
+    title = `${seenNames[0]} et ${seenNames[1]} ont déjà noté ce film dans leur carnet.`;
+  } else {
+    title = `${seenNames.length} personnes sélectionnées ont déjà noté ce film dans leur carnet.`;
+  }
+
+  if (selectedNotSeenCount > 0) {
+    description =
+      "Tu peux tout de même lui souffler ce film, tandis que les autres personnes le recevront normalement.";
+  } else {
+    description =
+      "Tu peux tout de même leur souffler ce film — une recommandation peut aussi être une jolie invitation à le revoir ou à en reparler.";
+  }
+
+  warning.hidden = false;
+  warning.innerHTML = `
+    <strong>${escapeRecommendationHTML(title)}</strong>
+    <span>${escapeRecommendationHTML(description)}</span>
+  `;
+}
+
+/*
+  Ne récupère volontairement que user_id.
+  Aucun texte, aucune note, aucune information intime issue
+  du carnet de la personne concernée n'est exposée ici.
+*/
+async function checkRecipientsAlreadySawCurrentFilm(recipientIds) {
+  if (!recipientIds?.length) {
+    clearRecommendationSeenWarning();
+    return;
+  }
+
+  try {
+    const catalogMovie = await getRecommendationCatalogMovie();
+
+    const { data, error } = await supabaseClient
+      .from("reviews")
+      .select("user_id")
+      .eq("movie_id", catalogMovie.id)
+      .eq("is_published", true)
+      .in("user_id", recipientIds);
+
+    if (error) {
+      throw error;
+    }
+
+    const seenRecipientIds = [
+      ...new Set(
+        (data || [])
+          .map((review) => review.user_id)
+          .filter(Boolean)
+      )
+    ];
+
+    /*
+      L'utilisatrice a pu décocher une personne pendant
+      le temps de réponse Supabase : on vérifie toujours
+      l'état actuel avant d'afficher le message.
+    */
+    const stillSelectedRecipientIds =
+      getSelectedRecommendationRecipients();
+
+    const stillSeenRecipientIds = seenRecipientIds.filter(
+      (recipientId) =>
+        stillSelectedRecipientIds.includes(recipientId)
+    );
+
+    renderRecommendationSeenWarning(
+      stillSelectedRecipientIds,
+      stillSeenRecipientIds
+    );
+  } catch (error) {
+    /*
+      La vérification est une aide, jamais un blocage :
+      si elle échoue, l'envoi de suggestion reste possible.
+    */
+    console.warn(
+      "Impossible de vérifier si le film est déjà dans les carnets :",
+      error
+    );
+
+    clearRecommendationSeenWarning();
+  }
+}
+
+function handleRecommendationRecipientChange() {
+  const recipientIds = getSelectedRecommendationRecipients();
+
+  if (!recipientIds.length) {
+    clearRecommendationSeenWarning();
+    return;
+  }
+
+  checkRecipientsAlreadySawCurrentFilm(recipientIds);
+}
+
 /* =====================================================
    MODALE
    ===================================================== */
@@ -148,6 +346,7 @@ function closeRecommendationModal() {
   document.body.classList.remove("modal-open");
 
   clearRecommendationMessage();
+  clearRecommendationSeenWarning();
 
   if (recommendationForm) {
     recommendationForm.reset();
@@ -169,12 +368,6 @@ function openRecommendationModal() {
     if (modal !== recommendationModal) {
       modal.classList.remove("is-open");
       modal.setAttribute("aria-hidden", "true");
-
-      /*
-        La modale d'authentification n'a pas forcément l'attribut
-        hidden dans ton HTML : on ne lui impose pas hidden pour ne
-        pas gêner son fonctionnement natif dans auth.js.
-      */
     }
   });
 
@@ -213,6 +406,13 @@ function renderRecommendationFriends(friends) {
     <p class="recommendation-friends-label">
       À qui veux-tu suggérer ce film ?
     </p>
+
+    <div
+      id="recommendationSeenWarning"
+      class="recommendation-seen-warning"
+      hidden
+      aria-live="polite"
+    ></div>
 
     <div class="recommendation-friends-list">
       ${friends
@@ -312,7 +512,17 @@ async function openFilmRecommendationFlow() {
     return;
   }
 
+  /*
+    Chaque ouverture repart d'un état propre.
+    Le film ne sera réellement ajouté au catalogue que si
+    une vérification ou un envoi le nécessite.
+  */
+  recommendationCatalogMovie = null;
+  recommendationCatalogMoviePromise = null;
+
   clearRecommendationMessage();
+  clearRecommendationSeenWarning();
+
   openRecommendationModal();
 
   await loadRecommendationFriends();
@@ -321,16 +531,6 @@ async function openFilmRecommendationFlow() {
 /* =====================================================
    ENVOI DES SUGGESTIONS
    ===================================================== */
-
-function getSelectedRecommendationRecipients() {
-  return [
-    ...document.querySelectorAll(
-      'input[name="recommendationRecipients"]:checked'
-    )
-  ]
-    .map((input) => input.value)
-    .filter(Boolean);
-}
 
 async function sendFilmRecommendations(event) {
   event.preventDefault();
@@ -381,17 +581,7 @@ async function sendFilmRecommendations(event) {
   clearRecommendationMessage();
 
   try {
-    /*
-      Si le film vient directement de TMDB et n'existe pas encore
-      dans Supabase, il est d'abord créé dans le catalogue.
-    */
-    const catalogMovie = await ensureCurrentFilmInCatalog();
-
-    if (!catalogMovie?.id) {
-      throw new Error(
-        "Le film n’a pas pu être enregistré dans le catalogue."
-      );
-    }
+    const catalogMovie = await getRecommendationCatalogMovie();
 
     const recommendations = recipientIds.map((recipientId) => ({
       sender_id: currentUser.id,
@@ -455,6 +645,18 @@ if (recommendationMessage) {
     "input",
     updateRecommendationCharacterCounter
   );
+}
+
+if (recommendationFriends) {
+  recommendationFriends.addEventListener("change", (event) => {
+    if (
+      event.target.matches(
+        'input[name="recommendationRecipients"]'
+      )
+    ) {
+      handleRecommendationRecipientChange();
+    }
+  });
 }
 
 if (recommendationForm) {
