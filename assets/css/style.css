@@ -10636,3 +10636,36 @@ h2 {
   color: var(--red);
   outline: none;
 }
+
+/* =====================================================
+   AUTHENTIFICATION — MOT DE PASSE OUBLIÉ
+   ===================================================== */
+
+#authSubmitButton {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.forgot-password-button {
+  display: block;
+  width: fit-content;
+  margin: 13px auto 0;
+  padding: 0;
+  color: var(--grey);
+  background: transparent;
+  border: 0;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  text-align: center;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.forgot-password-button:hover,
+.forgot-password-button:focus-visible {
+  color: var(--red);
+  outline: none;
+}
