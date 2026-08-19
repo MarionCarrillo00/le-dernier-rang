@@ -14,6 +14,7 @@ function getAuthElements() {
     authNote: document.getElementById("authNote"),
     usernameField: document.getElementById("usernameField"),
     usernameInput: document.getElementById("username"),
+    authPasswordInput: document.getElementById("authPassword"),
     authMessage: document.getElementById("authMessage"),
     userMenu: document.getElementById("userMenu"),
     userGreeting: document.getElementById("userGreeting"),
@@ -82,13 +83,16 @@ function getPasswordSecurityError(password) {
 function setAuthMode(mode) {
   authMode = mode === "signup" ? "signup" : "login";
 
-  const {
-    authTitle,
-    authSubmitButton,
-    authNote,
-    usernameField,
-    usernameInput
-  } = getAuthElements();
+
+const {
+  authTitle,
+  authSubmitButton,
+  authNote,
+  usernameField,
+  usernameInput,
+  authPasswordInput
+} = getAuthElements();
+
 
   const isSignup = authMode === "signup";
 
@@ -110,6 +114,18 @@ function setAuthMode(mode) {
       usernameInput.value = "";
     }
   }
+
+if (authPasswordInput) {
+  authPasswordInput.minLength = isSignup ? 12 : 0;
+
+  authPasswordInput.autocomplete = isSignup
+    ? "new-password"
+    : "current-password";
+
+  authPasswordInput.placeholder = isSignup
+    ? "12 caractères minimum"
+    : "Ton mot de passe";
+}
 
   if (authTitle) {
     authTitle.textContent = isSignup
