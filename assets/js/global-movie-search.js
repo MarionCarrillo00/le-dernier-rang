@@ -164,18 +164,29 @@ function openGlobalMoviePage(tmdbId) {
     `film.html?tmdb=${encodeURIComponent(tmdbId)}`;
 }
 
-function addGlobalMovieToCarnet(tmdbId) {
-  if (!tmdbId) {
+
+function addGlobalMovieToCarnet(movie) {
+  if (!movie?.tmdb_id) {
     return;
   }
 
-  /*
-    home.js sait déjà lire writeTmdb, précharger le film TMDB
-    et ouvrir la modale d’ajout au carnet.
-  */
-  window.location.href =
-    `index.html?writeTmdb=${encodeURIComponent(tmdbId)}`;
+  if (typeof openGlobalCarnetModal !== "function") {
+    console.error(
+      "La modale globale d’ajout au carnet est indisponible."
+    );
+
+    return;
+  }
+
+  openGlobalCarnetModal(movie, {
+    /*
+      La recherche se referme juste le temps de saisir la note,
+      puis revient exactement au même endroit à la fermeture.
+    */
+    returnToSearch: true
+  });
 }
+
 
 async function getOrCreateGlobalWishlist() {
   if (!currentUser) {
