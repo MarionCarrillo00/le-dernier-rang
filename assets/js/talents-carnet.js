@@ -1,8 +1,12 @@
 
 /* =====================================================
-   CINÉ MOJITO — TALENTS QUI REVIENNENT DANS MON CARNET
+   CINÉ MOJITO — TALENTS DU CARNET
 
-   Classement personnel basé sur les films notés :
+   Modes :
+   - Privé : talents-carnet.html
+   - Public : talents-carnet.html?id=<profile.id>
+
+   Classement basé sur les films du carnet :
    - 1 réalisateur·rice par film ;
    - les 8 premiers rôles TMDB par film ;
    - top 30 par catégorie.
@@ -40,6 +44,13 @@ function escapeTalentsCarnetHTML(value) {
     .replace(/'/g, "&#039;");
 }
 
+function getMemberIdFromTalentsCarnetUrl() {
+  const url = new URL(window.location.href);
+  const memberId = String(url.searchParams.get("id") || "").trim();
+
+  return memberId || null;
+}
+
 function renderTalentsCarnetLoading(message) {
   if (!talentsCarnetContent) {
     return;
@@ -66,16 +77,38 @@ function getRoleLabel(roleType, count) {
   }
 
   return count > 1
-    ? `${count} films dans ton carnet`
-    : "1 film dans ton carnet";
+    ? `${count} films dans le carnet`
+    : "1 film dans le carnet";
 }
 
 /* =====================================================
-   FILMS NOTÉS ET CACHE DES CRÉDITS
+   PROFIL PUBLIC
    ===================================================== */
 
-async function getMyReviewedMovies() {
+async function getPublicTalentsCarnetProfile(memberId) {
   const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("id, username")
+    .eq("id", memberId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error("Ce membre est introuvable.");
+  }
+
+  return data;
+}
+
+/* =====================================================
+   FILMS DU CARNET
+   ===================================================== */
+
+async function getReviewedMovies(userId, isPublicMode = false) {
+  let query = supabaseClient
     .from("reviews")
     .select(`
       movie_id,
@@ -85,7 +118,17 @@ async function getMyReviewedMovies() {
         title
       )
     `)
-    .eq("user_id", currentUser.id);
+    .eq("user_id", userId);
+
+  /*
+    En mode public, seules les entrées publiées peuvent
+    contribuer au classement du membre.
+  */
+  if (isPublicMode) {
+    query = query.eq("is_published", true);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw error;
@@ -156,9 +199,9 @@ async function getTmdbDetailsForTalents(tmdbId) {
 }
 
 /*
-  Les films anciens du carnet peuvent ne pas encore avoir été
-  ouverts depuis la création de movie_talents. On les enrichit
-  doucement, par petits groupes, avant de calculer le classement.
+  L’enrichissement TMDB ne se fait que dans le carnet privé :
+  une consultation publique ne doit jamais déclencher
+  d’écriture dans la base de données.
 */
 async function syncMissingMovieTalents(movies, talents) {
   const movieIdsWithTalents = new Set(
@@ -194,10 +237,6 @@ async function syncMissingMovieTalents(movies, talents) {
             tmdbDetails
           );
         } catch (error) {
-          /*
-            Un film indisponible TMDB ne doit jamais bloquer
-            la lecture du reste du carnet.
-          */
           console.warn(
             `Impossible d’enrichir les talents de ${movie.title} :`,
             error
@@ -209,7 +248,7 @@ async function syncMissingMovieTalents(movies, talents) {
 }
 
 /* =====================================================
-   CALCUL DU TOP
+   CALCUL DU CLASSEMENT
    ===================================================== */
 
 function buildTalentRanking(movies, talents, roleType) {
@@ -250,10 +289,6 @@ function buildTalentRanking(movies, talents, roleType) {
         moviesById[talent.movie_id].title || "Film sans titre"
       );
 
-      /*
-        Un portrait TMDB peut être absent lors d'un ancien cache
-        puis présent plus tard : on conserve le premier disponible.
-      */
       if (!person.profile_url && talent.profile_url) {
         person.profile_url = talent.profile_url;
       }
@@ -347,11 +382,7 @@ function renderTalentRankingCard(talent, rank, roleType) {
   `;
 }
 
-function renderTalentRankingSection(
-  roleType,
-  talents,
-  reviewedMoviesCount
-) {
+function renderTalentRankingSection(roleType, talents) {
   const isDirecting = roleType === "directing";
 
   const eyebrow = isDirecting
@@ -359,12 +390,12 @@ function renderTalentRankingSection(
     : "À l’écran";
 
   const title = isDirecting
-    ? "Les cinémas auxquels tu reviens"
-    : "Les visages qui reviennent dans ton carnet";
+    ? "Les cinémas auxquels ce carnet revient"
+    : "Les visages qui reviennent dans ce carnet";
 
   const emptyText = isDirecting
-    ? "Ton carnet n’a pas encore assez de données de réalisation pour dessiner cette partie de ton cinéma."
-    : "Ton carnet n’a pas encore assez de visages pour dessiner cette partie de tes habitudes de spectatrice.";
+    ? "Ce carnet n’a pas encore assez de données de réalisation pour dessiner cette partie de son cinéma."
+    : "Ce carnet n’a pas encore assez de visages pour dessiner cette partie de ses habitudes de spectateur·rice.";
 
   return `
     <section class="talents-carnet-section">
@@ -418,36 +449,64 @@ function renderTalentRankingSection(
 function renderTalentsCarnetPage(
   movies,
   directingTalents,
-  actingTalents
+  actingTalents,
+  options = {}
 ) {
   if (!talentsCarnetContent) {
     return;
   }
 
+  const {
+    isPublicMode = false,
+    profile = null
+  } = options;
+
   const reviewedMoviesCount = movies.length;
 
-  document.title = "Les talents de mon carnet — Ciné Mojito";
+  const profileName = profile?.username || "ce membre";
+
+  const pageTitle = isPublicMode
+    ? `Les talents du carnet de ${profileName} — Ciné Mojito`
+    : "Les talents de mon carnet — Ciné Mojito";
+
+  const title = isPublicMode
+    ? `Les talents du carnet de ${profileName}`
+    : "Les talents de ton carnet";
+
+  const description = isPublicMode
+    ? "Les films publics de ce carnet dessinent peu à peu les visages et les cinémas auxquels cette personne revient."
+    : "Les films que tu notes dessinent peu à peu les visages et les cinémas auxquels tu reviens.";
+
+  document.title = pageTitle;
 
   talentsCarnetContent.innerHTML = `
     <section class="talents-carnet-hero">
       <div class="eyebrow red-eyebrow">
-        Les traces de ton carnet
+        ${
+          isPublicMode
+            ? "Les traces de son carnet"
+            : "Les traces de ton carnet"
+        }
       </div>
 
       <h1>
-           Les talents de ton carnet
+        ${escapeTalentsCarnetHTML(title)}
       </h1>
 
       <p>
-        Les films que tu notes dessinent peu à peu les visages
-        et les cinémas auxquels tu reviens.
+        ${escapeTalentsCarnetHTML(description)}
       </p>
 
       <div class="talents-carnet-summary">
         <strong>${reviewedMoviesCount}</strong>
+
         <span>
           film${reviewedMoviesCount > 1 ? "s" : ""}
-          dans ton carnet
+          dans ${
+            isPublicMode
+              ? "ce carnet"
+              : "ton carnet"
+          }
         </span>
       </div>
     </section>
@@ -457,26 +516,38 @@ function renderTalentsCarnetPage(
         ? `
           ${renderTalentRankingSection(
             "directing",
-            directingTalents,
-            reviewedMoviesCount
+            directingTalents
           )}
 
           ${renderTalentRankingSection(
             "acting",
-            actingTalents,
-            reviewedMoviesCount
+            actingTalents
           )}
         `
         : `
           <div class="empty-state talents-carnet-empty-state">
-            <strong>Ton carnet attend encore sa première séance.</strong>
+            <strong>
+              ${
+                isPublicMode
+                  ? "Ce carnet ne contient pas encore assez de séances publiques."
+                  : "Ton carnet attend encore sa première séance."
+              }
+            </strong>
+
             <br /><br />
-            Chaque note ajoutée fera peu à peu apparaître
-            les talents qui accompagnent ton cinéma.
-            <br /><br />
-            <a class="button-primary" href="index.html#critiques">
-              Découvrir des films
-            </a>
+
+            ${
+              isPublicMode
+                ? "Les talents apparaîtront ici au fil des films publiés dans ce carnet."
+                : `
+                  Chaque note ajoutée fera peu à peu apparaître
+                  les talents qui accompagnent ton cinéma.
+                  <br /><br />
+                  <a class="button-primary" href="index.html#critiques">
+                    Découvrir des films
+                  </a>
+                `
+            }
           </div>
         `
     }
@@ -488,6 +559,8 @@ function renderTalentsCarnetLoginState() {
     return;
   }
 
+  document.title = "Les talents de mon carnet — Ciné Mojito";
+
   talentsCarnetContent.innerHTML = `
     <section class="talents-carnet-hero">
       <div class="eyebrow red-eyebrow">
@@ -495,7 +568,7 @@ function renderTalentsCarnetLoginState() {
       </div>
 
       <h1>
-        Les talents qui reviennent dans ton carnet
+        Les talents de ton carnet
       </h1>
 
       <p>
@@ -521,8 +594,128 @@ function renderTalentsCarnetLoginState() {
     });
 }
 
+function renderTalentsCarnetError(message) {
+  if (!talentsCarnetContent) {
+    return;
+  }
+
+  talentsCarnetContent.innerHTML = `
+    <div class="empty-state talents-carnet-empty-state">
+      <strong>Impossible de lire les talents de ce carnet.</strong>
+      <br /><br />
+      ${escapeTalentsCarnetHTML(message)}
+    </div>
+  `;
+}
+
 /* =====================================================
-   CHARGEMENT
+   CHARGEMENT — MODE PRIVÉ
+   ===================================================== */
+
+async function loadPrivateTalentsCarnetPage() {
+  if (!currentUser) {
+    renderTalentsCarnetLoginState();
+    return;
+  }
+
+  renderTalentsCarnetLoading(
+    "Lecture de ton carnet et de ses visages…"
+  );
+
+  const movies = await getReviewedMovies(currentUser.id);
+
+  if (!movies.length) {
+    renderTalentsCarnetPage([], [], []);
+    return;
+  }
+
+  const movieIds = movies.map((movie) => movie.id);
+
+  let talents = await getMovieTalentsByMovieIds(movieIds);
+
+  renderTalentsCarnetLoading(
+    "Le carnet retrouve doucement les talents de tes films…"
+  );
+
+  await syncMissingMovieTalents(movies, talents);
+
+  talents = await getMovieTalentsByMovieIds(movieIds);
+
+  const directingTalents = buildTalentRanking(
+    movies,
+    talents,
+    "directing"
+  );
+
+  const actingTalents = buildTalentRanking(
+    movies,
+    talents,
+    "acting"
+  );
+
+  renderTalentsCarnetPage(
+    movies,
+    directingTalents,
+    actingTalents
+  );
+}
+
+/* =====================================================
+   CHARGEMENT — MODE PUBLIC
+   ===================================================== */
+
+async function loadPublicTalentsCarnetPage(memberId) {
+  renderTalentsCarnetLoading(
+    "Lecture de ce carnet et de ses talents…"
+  );
+
+  const [profile, movies] = await Promise.all([
+    getPublicTalentsCarnetProfile(memberId),
+    getReviewedMovies(memberId, true)
+  ]);
+
+  if (!movies.length) {
+    renderTalentsCarnetPage([], [], [], {
+      isPublicMode: true,
+      profile
+    });
+
+    return;
+  }
+
+  const movieIds = movies.map((movie) => movie.id);
+
+  /*
+    Lecture uniquement : aucun enrichissement TMDB,
+    aucune écriture lors d’une consultation publique.
+  */
+  const talents = await getMovieTalentsByMovieIds(movieIds);
+
+  const directingTalents = buildTalentRanking(
+    movies,
+    talents,
+    "directing"
+  );
+
+  const actingTalents = buildTalentRanking(
+    movies,
+    talents,
+    "acting"
+  );
+
+  renderTalentsCarnetPage(
+    movies,
+    directingTalents,
+    actingTalents,
+    {
+      isPublicMode: true,
+      profile
+    }
+  );
+}
+
+/* =====================================================
+   INITIALISATION
    ===================================================== */
 
 async function loadTalentsCarnetPage() {
@@ -530,82 +723,38 @@ async function loadTalentsCarnetPage() {
     return;
   }
 
-  if (!currentUser) {
-    renderTalentsCarnetLoginState();
-    return;
-  }
-
   isLoadingTalentsCarnet = true;
 
-  renderTalentsCarnetLoading(
-    "Lecture de ton carnet et de ses visages…"
-  );
-
   try {
-    const movies = await getMyReviewedMovies();
+    const memberId = getMemberIdFromTalentsCarnetUrl();
 
-    if (!movies.length) {
-      renderTalentsCarnetPage([], [], []);
-      return;
+    if (memberId) {
+      await loadPublicTalentsCarnetPage(memberId);
+    } else {
+      await loadPrivateTalentsCarnetPage();
     }
-
-    const movieIds = movies.map((movie) => movie.id);
-
-    let talents = await getMovieTalentsByMovieIds(movieIds);
-
-    renderTalentsCarnetLoading(
-      "Le carnet retrouve doucement les talents de tes films…"
-    );
-
-    await syncMissingMovieTalents(movies, talents);
-
-    /*
-      Relecture indispensable après l’enrichissement
-      des anciens films du carnet.
-    */
-    talents = await getMovieTalentsByMovieIds(movieIds);
-
-    const directingTalents = buildTalentRanking(
-      movies,
-      talents,
-      "directing"
-    );
-
-    const actingTalents = buildTalentRanking(
-      movies,
-      talents,
-      "acting"
-    );
-
-    renderTalentsCarnetPage(
-      movies,
-      directingTalents,
-      actingTalents
-    );
   } catch (error) {
     console.error(
       "Erreur de chargement des talents du carnet :",
       error
     );
 
-    talentsCarnetContent.innerHTML = `
-      <div class="empty-state talents-carnet-empty-state">
-        <strong>Impossible de lire les talents de ton carnet.</strong>
-        <br /><br />
-        Réessaie dans quelques instants.
-      </div>
-    `;
+    renderTalentsCarnetError(
+      "Réessaie dans quelques instants."
+    );
   } finally {
     isLoadingTalentsCarnet = false;
   }
 }
 
-/* =====================================================
-   INITIALISATION
-   ===================================================== */
-
+/*
+  Le mode privé doit se rafraîchir après connexion/déconnexion.
+  Le mode public reste indépendant de la session active.
+*/
 document.addEventListener("authChanged", () => {
-  loadTalentsCarnetPage();
+  if (!getMemberIdFromTalentsCarnetUrl()) {
+    loadTalentsCarnetPage();
+  }
 });
 
 loadTalentsCarnetPage();
