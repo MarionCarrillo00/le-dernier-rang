@@ -10523,3 +10523,35 @@ body {
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
+
+/* =====================================================
+   SUGGESTIONS — FILM DÉJÀ DANS LE CARNET
+   Avertissement doux, jamais bloquant.
+   ===================================================== */
+
+.recommendation-seen-warning {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  color: var(--deep-red);
+  background: rgba(215, 167, 93, 0.12);
+  border-left: 2px solid var(--gold);
+  border-radius: 0 7px 7px 0;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.recommendation-seen-warning[hidden] {
+  display: none !important;
+}
+
+.recommendation-seen-warning strong {
+  color: var(--ink);
+  font-size: 0.74rem;
+}
+
+.recommendation-seen-warning span {
+  color: var(--grey);
+}
