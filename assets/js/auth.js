@@ -352,6 +352,7 @@ function setupAuth() {
     authForm,
     authSubmitButton,
     usernameInput,
+    forgotPasswordButton,
     logoutButton
   } = getAuthElements();
 
@@ -364,6 +365,13 @@ function setupAuth() {
   if (closeButton) {
     closeButton.addEventListener("click", closeAuthModal);
   }
+  
+if (forgotPasswordButton) {
+  forgotPasswordButton.addEventListener("click", () => {
+    window.location.href = "reset-password.html";
+  });
+}
+
 
   if (authModal) {
     authModal.addEventListener("click", (event) => {
