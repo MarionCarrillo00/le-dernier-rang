@@ -188,11 +188,22 @@ function renderFriendAvatar(friend) {
   `;
 }
 
+function getFriendProfileUrl(friendId) {
+  const isCurrentUser =
+    currentUser &&
+    String(friendId) === String(currentUser.id);
+
+  return isCurrentUser
+    ? "profil.html"
+    : `${MEMBER_PROFILE_PAGE}?id=${encodeURIComponent(friendId)}`;
+}
+
 function createFriendCard(friend) {
   const username = friend?.username || "Membre";
 
-  const profileUrl =
-    `${MEMBER_PROFILE_PAGE}?id=${encodeURIComponent(friend.id)}`;
+
+  const profileUrl = getFriendProfileUrl(friend.id);
+
 
   const biography = friend?.bio?.trim()
     ? `
