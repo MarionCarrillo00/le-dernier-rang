@@ -46,10 +46,13 @@ const globalCarnetSubmitButton = document.getElementById(
 
 let globalCarnetSelectedMovie = null;
 
+
 let globalCarnetContext = {
   returnToSearch: false,
-  onSuccess: null
+  onSuccess: null,
+  initialRating: null
 };
+
 
 /* =====================================================
    OUTILS
@@ -237,10 +240,13 @@ function closeGlobalCarnetModal() {
   clearGlobalCarnetMessage();
   updateGlobalCarnetCharacterCounter();
 
+
   globalCarnetContext = {
     returnToSearch: false,
-    onSuccess: null
+    onSuccess: null,
+    initialRating: null
   };
+
 
   if (shouldReturnToSearch) {
     const searchModal = document.getElementById(
@@ -293,13 +299,33 @@ async function openGlobalCarnetModal(movieOrTmdbId, options = {}) {
     return;
   }
 
+
+  const initialRating = Number(options.initialRating);
+
+  const allowedRatings = [
+    0.5,
+    1,
+    1.5,
+    2,
+    2.5,
+    3,
+    3.5,
+    4,
+    4.5,
+    5
+  ];
+
   globalCarnetContext = {
     returnToSearch: Boolean(options.returnToSearch),
     onSuccess:
       typeof options.onSuccess === "function"
         ? options.onSuccess
-        : null
+        : null,
+    initialRating: allowedRatings.includes(initialRating)
+      ? initialRating
+      : null
   };
+
 
   /*
     Depuis la recherche globale, on masque temporairement
@@ -320,10 +346,26 @@ async function openGlobalCarnetModal(movieOrTmdbId, options = {}) {
 
   document.body.classList.add("modal-open");
 
+   
   globalCarnetForm?.reset();
+
+  /*
+    Une note peut être préremplie depuis les étoiles
+    affichées sur une fiche film.
+  */
+  if (
+    globalCarnetRating &&
+    globalCarnetContext.initialRating !== null
+  ) {
+    globalCarnetRating.value = String(
+      globalCarnetContext.initialRating
+    );
+  }
+
   clearGlobalCarnetMessage();
   hideGlobalCarnetMovie();
   updateGlobalCarnetCharacterCounter();
+
 
   if (globalCarnetSubmitButton) {
     globalCarnetSubmitButton.disabled = true;
