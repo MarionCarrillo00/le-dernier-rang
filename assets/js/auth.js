@@ -135,17 +135,32 @@ function setAuthMode(mode) {
     tab.setAttribute("aria-selected", String(isActive));
   });
 
-  if (usernameField) {
-    usernameField.hidden = !isSignup;
-  }
 
-  if (usernameInput) {
-    usernameInput.required = isSignup;
+if (usernameField) {
+  usernameField.hidden = !isSignup;
 
-    if (!isSignup) {
-      usernameInput.value = "";
-    }
+  /*
+    Safari ne doit pas pouvoir remplir un champ qui ne fait
+    pas partie du parcours actuellement affiché.
+  */
+  usernameField
+    .querySelectorAll("input, select, textarea")
+    .forEach((field) => {
+      field.disabled = !isSignup;
+    });
+}
+
+
+
+if (usernameInput) {
+  usernameInput.required = isSignup;
+  usernameInput.disabled = !isSignup;
+
+  if (!isSignup) {
+    usernameInput.value = "";
   }
+}
+
 
   if (authPasswordInput) {
     authPasswordInput.minLength = isSignup ? 12 : 0;
