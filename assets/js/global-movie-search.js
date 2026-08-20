@@ -27,9 +27,6 @@ function openGlobalMovieSearch() {
     return;
   }
 
-  /*
-    Évite de laisser une autre modale ouverte derrière la recherche.
-  */
   document
     .querySelectorAll(".modal.visible, .modal-overlay.visible")
     .forEach((modal) => {
@@ -38,10 +35,6 @@ function openGlobalMovieSearch() {
       }
     });
 
-  /*
-    Important : la modale est initialement masquée avec l'attribut
-    HTML hidden. Il faut le retirer avant d'ajouter .visible.
-  */
   globalMovieSearchModal.removeAttribute("hidden");
   globalMovieSearchModal.classList.add("visible");
   globalMovieSearchModal.setAttribute("aria-hidden", "false");
@@ -52,8 +45,6 @@ function openGlobalMovieSearch() {
     globalMovieSearchInput?.focus();
   }, 50);
 }
-
-
 
 function closeGlobalMovieSearch() {
   if (!globalMovieSearchModal) {
@@ -81,7 +72,6 @@ function closeGlobalMovieSearch() {
 
   globalMovieSearchOpenButton?.focus();
 }
-
 
 function clearGlobalMovieSearchResults() {
   if (!globalMovieSearchResults) {
@@ -155,6 +145,59 @@ function getGlobalMoviePosterMarkup(movie) {
   `;
 }
 
+function getGlobalTalentPortraitMarkup(person) {
+  const name = person?.name || "Talent";
+
+  if (person?.profile_url) {
+    return `
+      <img
+        src="${escapeHTML(person.profile_url)}"
+        alt="Photo de ${escapeHTML(name)}"
+        loading="lazy"
+      />
+    `;
+  }
+
+  return `
+    <span class="global-talent-portrait-placeholder">
+      ${escapeHTML(name.charAt(0).toUpperCase() || "?")}
+    </span>
+  `;
+}
+
+function getGlobalTalentDepartmentLabel(department) {
+  const labels = {
+    Acting: "Interprétation",
+    Directing: "Réalisation",
+    Writing: "Écriture",
+    Production: "Production",
+    Camera: "Image",
+    Editing: "Montage",
+    Sound: "Son",
+    Art: "Direction artistique",
+    Crew: "Équipe cinéma"
+  };
+
+  return labels[department] || "Cinéma";
+}
+
+function buildGlobalTalentKnownFor(person) {
+  const knownFor = person?.known_for || [];
+
+  if (!knownFor.length) {
+    return "";
+  }
+
+  const titles = knownFor
+    .map((work) => work.title)
+    .filter(Boolean)
+    .slice(0, 3);
+
+  return titles.length
+    ? `Connu·e pour ${titles.join(" · ")}`
+    : "";
+}
+
 function openGlobalMoviePage(tmdbId) {
   if (!tmdbId) {
     return;
@@ -164,6 +207,14 @@ function openGlobalMoviePage(tmdbId) {
     `film.html?tmdb=${encodeURIComponent(tmdbId)}`;
 }
 
+function openGlobalTalentPage(tmdbId) {
+  if (!tmdbId) {
+    return;
+  }
+
+  window.location.href =
+    `talent.html?tmdb=${encodeURIComponent(tmdbId)}`;
+}
 
 function addGlobalMovieToCarnet(movie) {
   if (!movie?.tmdb_id) {
@@ -179,14 +230,9 @@ function addGlobalMovieToCarnet(movie) {
   }
 
   openGlobalCarnetModal(movie, {
-    /*
-      La recherche se referme juste le temps de saisir la note,
-      puis revient exactement au même endroit à la fermeture.
-    */
     returnToSearch: true
   });
 }
-
 
 async function getOrCreateGlobalWishlist() {
   if (!currentUser) {
@@ -223,10 +269,6 @@ async function getOrCreateGlobalWishlist() {
       .select("id")
       .single();
 
-  /*
-    Protection si la wishlist a été créée en parallèle
-    dans un autre onglet.
-  */
   if (createError?.code === "23505") {
     const { data: concurrentWishlist, error: retryError } =
       await supabaseClient
@@ -296,10 +338,6 @@ async function getOrCreateGlobalCatalogMovie(movie) {
       .select("id")
       .single();
 
-  /*
-    Même sécurité : si le film vient d'être créé dans un autre onglet,
-    on récupère l'existant plutôt que de signaler un faux échec.
-  */
   if (createError?.code === "23505") {
     const { data: concurrentMovie, error: retryError } =
       await supabaseClient
@@ -409,104 +447,143 @@ async function addGlobalMovieToWishlist(movie, button) {
   }
 }
 
-function renderGlobalMovieSearchResults(results) {
-  if (!globalMovieSearchResults) {
-    return;
-  }
+function renderGlobalTalentSearchResult(person) {
+  const name = person.name || "Talent non précisé";
+  const tmdbId = String(person.tmdb_id || "");
+  const department = getGlobalTalentDepartmentLabel(
+    person.known_for_department
+  );
 
-  /*
-    L’Edge Function renvoie `type: "movie"` ou `type: "person"`.
-    La recherche globale de cette version affiche seulement les films.
-  */
-  const movies = (results || [])
-    .filter((result) => result?.type === "movie")
-    .slice(0, 7);
+  const knownFor = buildGlobalTalentKnownFor(person);
 
-  if (!movies.length) {
-    renderGlobalMovieSearchMessage(
-      "Aucun film trouvé. Essaie avec un autre titre."
+  return `
+    <article
+      class="global-talent-result"
+      data-global-talent-id="${escapeHTML(tmdbId)}"
+    >
+      <button
+        class="global-talent-result-main"
+        type="button"
+        data-global-talent-open="${escapeHTML(tmdbId)}"
+        aria-label="Ouvrir la fiche de ${escapeHTML(name)}"
+      >
+        <span class="global-talent-portrait">
+          ${getGlobalTalentPortraitMarkup(person)}
+        </span>
+
+        <span class="global-talent-result-copy">
+          <strong>${escapeHTML(name)}</strong>
+
+          <span class="global-talent-department">
+            ${escapeHTML(department)}
+          </span>
+
+          ${
+            knownFor
+              ? `
+                <small>
+                  ${escapeHTML(knownFor)}
+                </small>
+              `
+              : ""
+          }
+        </span>
+
+        <span
+          class="global-talent-result-arrow"
+          aria-hidden="true"
+        >
+          →
+        </span>
+      </button>
+    </article>
+  `;
+}
+
+function renderGlobalMovieSearchResult(movie) {
+  const title = movie.title || "Film sans titre";
+  const meta = buildGlobalMovieMeta(movie);
+  const tmdbId = String(movie.tmdb_id || "");
+
+  return `
+    <article
+      class="global-movie-result"
+      data-tmdb-id="${escapeHTML(tmdbId)}"
+    >
+      <button
+        class="global-movie-result-main"
+        type="button"
+        data-global-movie-open="${escapeHTML(tmdbId)}"
+        aria-label="Ouvrir la fiche de ${escapeHTML(title)}"
+      >
+        <span class="global-movie-poster">
+          ${getGlobalMoviePosterMarkup(movie)}
+        </span>
+
+        <span class="global-movie-result-copy">
+          <strong>${escapeHTML(title)}</strong>
+
+          ${
+            meta
+              ? `<span>${escapeHTML(meta)}</span>`
+              : ""
+          }
+        </span>
+
+        <span
+          class="global-movie-result-arrow"
+          aria-hidden="true"
+        >
+          →
+        </span>
+      </button>
+
+      <div class="global-movie-result-actions">
+        <button
+          class="global-movie-wishlist-action"
+          type="button"
+          data-global-movie-wishlist="${escapeHTML(tmdbId)}"
+        >
+          + À voir
+        </button>
+
+        <button
+          class="global-movie-carnet-action"
+          type="button"
+          data-global-movie-carnet="${escapeHTML(tmdbId)}"
+        >
+          Noter
+        </button>
+      </div>
+    </article>
+  `;
+}
+
+function setupGlobalSearchResultInteractions(movies, talents) {
+  talents.forEach((person) => {
+    const tmdbId = String(person.tmdb_id || "");
+
+    const openButton = globalMovieSearchResults?.querySelector(
+      `[data-global-talent-open="${CSS.escape(tmdbId)}"]`
     );
 
-    return;
-  }
-
-  globalMovieSearchResults.innerHTML = movies
-    .map((movie) => {
-      const title = movie.title || "Film sans titre";
-      const meta = buildGlobalMovieMeta(movie);
-      const tmdbId = String(movie.tmdb_id || "");
-
-      return `
-        <article
-          class="global-movie-result"
-          data-tmdb-id="${escapeHTML(tmdbId)}"
-        >
-          <button
-            class="global-movie-result-main"
-            type="button"
-            data-global-movie-open="${escapeHTML(tmdbId)}"
-            aria-label="Ouvrir la fiche de ${escapeHTML(title)}"
-          >
-            <span class="global-movie-poster">
-              ${getGlobalMoviePosterMarkup(movie)}
-            </span>
-
-            <span class="global-movie-result-copy">
-              <strong>${escapeHTML(title)}</strong>
-
-              ${
-                meta
-                  ? `<span>${escapeHTML(meta)}</span>`
-                  : ""
-              }
-            </span>
-
-            <span
-              class="global-movie-result-arrow"
-              aria-hidden="true"
-            >
-              →
-            </span>
-          </button>
-
-          <div class="global-movie-result-actions">
-            <button
-              class="global-movie-wishlist-action"
-              type="button"
-              data-global-movie-wishlist="${escapeHTML(tmdbId)}"
-            >
-              + À voir
-            </button>
-
-            <button
-              class="global-movie-carnet-action"
-              type="button"
-              data-global-movie-carnet="${escapeHTML(tmdbId)}"
-            >
-              Noter
-            </button>
-          </div>
-        </article>
-      `;
-    })
-    .join("");
+    openButton?.addEventListener("click", () => {
+      openGlobalTalentPage(person.tmdb_id);
+    });
+  });
 
   movies.forEach((movie) => {
     const tmdbId = String(movie.tmdb_id || "");
 
-    /*
-      Recherche limitée à la modale : plus propre et évite
-      de récupérer un éventuel bouton similaire ailleurs sur la page.
-    */
-    const openButton = globalMovieSearchResults.querySelector(
+    const openButton = globalMovieSearchResults?.querySelector(
       `[data-global-movie-open="${CSS.escape(tmdbId)}"]`
     );
 
-    const wishlistButton = globalMovieSearchResults.querySelector(
+    const wishlistButton = globalMovieSearchResults?.querySelector(
       `[data-global-movie-wishlist="${CSS.escape(tmdbId)}"]`
     );
 
-    const carnetButton = globalMovieSearchResults.querySelector(
+    const carnetButton = globalMovieSearchResults?.querySelector(
       `[data-global-movie-carnet="${CSS.escape(tmdbId)}"]`
     );
 
@@ -516,15 +593,75 @@ function renderGlobalMovieSearchResults(results) {
 
     wishlistButton?.addEventListener("click", () => {
       addGlobalMovieToWishlist(movie, wishlistButton);
-    });    
-    
+    });
+
     carnetButton?.addEventListener("click", () => {
       addGlobalMovieToCarnet(movie);
     });
-
   });
 }
 
+function renderGlobalMovieSearchResults(results) {
+  if (!globalMovieSearchResults) {
+    return;
+  }
+
+  const talents = (results || [])
+    .filter((result) => result?.type === "person")
+    .slice(0, 4);
+
+  const movies = (results || [])
+    .filter((result) => result?.type === "movie")
+    .slice(0, 7);
+
+  if (!talents.length && !movies.length) {
+    renderGlobalMovieSearchMessage(
+      "Aucun film ou talent trouvé. Essaie avec un autre nom."
+    );
+
+    return;
+  }
+
+  globalMovieSearchResults.innerHTML = `
+    ${
+      talents.length
+        ? `
+          <section class="global-search-results-section">
+            <p class="global-search-results-heading">
+              Talents
+            </p>
+
+            <div class="global-talent-results-list">
+              ${talents
+                .map(renderGlobalTalentSearchResult)
+                .join("")}
+            </div>
+          </section>
+        `
+        : ""
+    }
+
+    ${
+      movies.length
+        ? `
+          <section class="global-search-results-section">
+            <p class="global-search-results-heading">
+              Films
+            </p>
+
+            <div class="global-movie-results-list">
+              ${movies
+                .map(renderGlobalMovieSearchResult)
+                .join("")}
+            </div>
+          </section>
+        `
+        : ""
+    }
+  `;
+
+  setupGlobalSearchResultInteractions(movies, talents);
+}
 
 async function searchGlobalMovies(query) {
   const cleanQuery = String(query || "").trim();
@@ -548,10 +685,6 @@ async function searchGlobalMovies(query) {
       }
     );
 
-    /*
-      Compatibilité avec ton ancienne Edge Function tmdb-search,
-      si tmdb-discover n'est pas celle actuellement déployée.
-    */
     if (error) {
       const fallback = await supabaseClient.functions.invoke(
         "tmdb-search",
@@ -570,7 +703,10 @@ async function searchGlobalMovies(query) {
         return;
       }
 
-      renderGlobalMovieSearchResults(fallback.data?.results || []);
+      renderGlobalMovieSearchResults(
+        fallback.data?.results || []
+      );
+
       return;
     }
 
@@ -581,13 +717,13 @@ async function searchGlobalMovies(query) {
     renderGlobalMovieSearchResults(data?.results || []);
   } catch (error) {
     console.error(
-      "Erreur de recherche globale de films :",
+      "Erreur de recherche globale de films et talents :",
       error
     );
 
     if (latestGlobalMovieSearchQuery === cleanQuery) {
       renderGlobalMovieSearchMessage(
-        "Impossible de rechercher des films pour le moment."
+        "Impossible de rechercher dans le cinéma pour le moment."
       );
     }
   }
