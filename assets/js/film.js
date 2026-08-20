@@ -573,6 +573,333 @@ function buildWriteReviewLink(tmdbId) {
 }
 
 /* =====================================================
+   NOTE PERSONNELLE SUR LA FICHE FILM
+   ===================================================== */
+
+async function getMyReviewForMovie(movieId) {
+  if (!currentUser || !movieId) {
+    return null;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("reviews")
+    .select(`
+      id,
+      rating,
+      content,
+      created_at
+    `)
+    .eq("user_id", currentUser.id)
+    .eq("movie_id", movieId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data || null;
+}
+
+function getFilmPersonalStarClass(rating, starNumber) {
+  const numericRating = Number(rating || 0);
+
+  if (numericRating >= starNumber) {
+    return "is-full";
+  }
+
+  if (
+    numericRating >= starNumber - 0.5 &&
+    numericRating < starNumber
+  ) {
+    return "is-half";
+  }
+
+  return "";
+}
+
+function renderFilmPersonalRating(personalReview, title) {
+  const personalRating = Number(personalReview?.rating || 0);
+  const hasPersonalRating = personalRating > 0;
+
+  return `
+    <aside
+      class="film-personal-rating"
+      data-film-personal-rating
+      data-current-rating="${hasPersonalRating ? personalRating : ""}"
+      data-review-id="${escapeHTML(personalReview?.id || "")}"
+      aria-label="Votre note pour ${escapeHTML(title)}"
+    >
+      <span class="film-personal-rating-label">
+        ${hasPersonalRating ? "Votre note" : "Noter ce film"}
+      </span>
+
+      <div
+        class="film-personal-stars"
+        role="group"
+        aria-label="Choisir une note sur cinq"
+      >
+        ${[1, 2, 3, 4, 5]
+          .map(
+            (starNumber) => `
+              <button
+                class="film-personal-rating-star ${getFilmPersonalStarClass(
+                  personalRating,
+                  starNumber
+                )}"
+                type="button"
+                data-star-number="${starNumber}"
+                aria-label="Donner entre ${
+                  starNumber - 0.5
+                } et ${starNumber} étoile${
+                  starNumber > 1 ? "s" : ""
+                }"
+                title="Moitié gauche : ${
+                  starNumber - 0.5
+                } · moitié droite : ${starNumber}"
+              >
+                ★
+              </button>
+            `
+          )
+          .join("")}
+      </div>
+
+      <span
+        class="film-personal-rating-value"
+        data-film-personal-rating-value
+        aria-live="polite"
+      >
+        ${
+          hasPersonalRating
+            ? `${String(personalRating).replace(".", ",")} / 5`
+            : "Choisis ta note"
+        }
+      </span>
+    </aside>
+  `;
+}
+
+function updateFilmPersonalRatingVisual(container, rating, isPreview = false) {
+  if (!container) {
+    return;
+  }
+
+  const numericRating = Number(rating || 0);
+
+  container.querySelectorAll("[data-star-number]").forEach((button) => {
+    const starNumber = Number(button.dataset.starNumber);
+
+    button.classList.toggle(
+      "is-full",
+      numericRating >= starNumber
+    );
+
+    button.classList.toggle(
+      "is-half",
+      numericRating >= starNumber - 0.5 &&
+        numericRating < starNumber
+    );
+  });
+
+  const value = container.querySelector(
+    "[data-film-personal-rating-value]"
+  );
+
+  if (!value) {
+    return;
+  }
+
+  if (!numericRating) {
+    value.textContent = "Choisis ta note";
+    return;
+  }
+
+  value.textContent = isPreview
+    ? `Aperçu : ${String(numericRating).replace(".", ",")} / 5`
+    : `${String(numericRating).replace(".", ",")} / 5`;
+}
+
+function getSelectedRatingFromStar(button, event) {
+  const starNumber = Number(button.dataset.starNumber);
+
+  if (!Number.isInteger(starNumber) || starNumber < 1) {
+    return null;
+  }
+
+  const bounds = button.getBoundingClientRect();
+
+  /*
+    Moitié gauche = demi-point.
+    Moitié droite = étoile entière.
+  */
+  const isLeftHalf =
+    event.clientX &&
+    event.clientX < bounds.left + bounds.width / 2;
+
+  return isLeftHalf ? starNumber - 0.5 : starNumber;
+}
+
+function setupFilmPersonalRating() {
+  const ratingContainer = document.querySelector(
+    "[data-film-personal-rating]"
+  );
+
+  if (!ratingContainer) {
+    return;
+  }
+
+  const currentRating = Number(
+    ratingContainer.dataset.currentRating || 0
+  );
+
+  const reviewId = ratingContainer.dataset.reviewId || "";
+
+  const tmdbId = Number(currentTmdbMovieId);
+
+  const starButtons = ratingContainer.querySelectorAll(
+    "[data-star-number]"
+  );
+
+  starButtons.forEach((button) => {
+    button.addEventListener("pointermove", (event) => {
+      const previewRating = getSelectedRatingFromStar(
+        button,
+        event
+      );
+
+      if (previewRating) {
+        updateFilmPersonalRatingVisual(
+          ratingContainer,
+          previewRating,
+          true
+        );
+      }
+    });
+
+    button.addEventListener("focus", () => {
+      const starNumber = Number(button.dataset.starNumber);
+
+      updateFilmPersonalRatingVisual(
+        ratingContainer,
+        starNumber,
+        true
+      );
+    });
+
+    button.addEventListener("click", async (event) => {
+      const selectedRating = getSelectedRatingFromStar(
+        button,
+        event
+      );
+
+      if (!selectedRating) {
+        return;
+      }
+
+      if (!currentUser) {
+        setAuthMode("login");
+        openAuthModal();
+
+        showAuthMessage(
+          "Connecte-toi ou crée un compte pour noter ce film.",
+          "error"
+        );
+
+        return;
+      }
+
+      /*
+        Une note existe déjà : mise à jour immédiate,
+        sans créer une deuxième entrée dans le carnet.
+      */
+      if (reviewId) {
+        starButtons.forEach((starButton) => {
+          starButton.disabled = true;
+        });
+
+        try {
+          await updateReviewRating(reviewId, selectedRating);
+
+          updateFilmPersonalRatingVisual(
+            ratingContainer,
+            selectedRating
+          );
+
+          const label = ratingContainer.querySelector(
+            ".film-personal-rating-label"
+          );
+
+          if (label) {
+            label.textContent = "Votre note";
+          }
+
+          await initialiseFilmPage();
+        } catch (error) {
+          console.error(
+            "Erreur de mise à jour de la note personnelle :",
+            error
+          );
+
+          alert(
+            `Impossible de modifier ta note : ${error.message}`
+          );
+
+          updateFilmPersonalRatingVisual(
+            ratingContainer,
+            currentRating
+          );
+        } finally {
+          starButtons.forEach((starButton) => {
+            starButton.disabled = false;
+          });
+        }
+
+        return;
+      }
+
+      /*
+        Première note : ouverture du carnet avec la valeur
+        déjà choisie dans la ligne des étoiles.
+      */
+      if (
+        !Number.isInteger(tmdbId) ||
+        tmdbId <= 0 ||
+        typeof openGlobalCarnetModal !== "function"
+      ) {
+        console.error(
+          "La modale d’ajout au carnet est indisponible."
+        );
+
+        return;
+      }
+
+      await openGlobalCarnetModal(tmdbId, {
+        initialRating: selectedRating,
+        onSuccess: async () => {
+          await initialiseFilmPage();
+        }
+      });
+    });
+  });
+
+  ratingContainer.addEventListener("pointerleave", () => {
+    updateFilmPersonalRatingVisual(
+      ratingContainer,
+      currentRating
+    );
+  });
+
+  ratingContainer.addEventListener("focusout", (event) => {
+    if (!ratingContainer.contains(event.relatedTarget)) {
+      updateFilmPersonalRatingVisual(
+        ratingContainer,
+        currentRating
+      );
+    }
+  });
+}
+
+/* =====================================================
    RENDU DE LA FICHE FILM
    ===================================================== */
 
@@ -581,7 +908,8 @@ function renderFilmPage(
   tmdbDetails,
   reviews,
   lists = [],
-  isInWishlist = false
+  isInWishlist = false,
+  personalReview = null
 ) {
   const title = tmdbDetails?.title || movie.title || "Film sans titre";
 
@@ -629,7 +957,7 @@ const directorMarkup = directorPerson?.tmdb_id
   const averageRating = formatAverageRating(reviews);
   const filmExistsInCatalog = Boolean(movie.id);
 
-  document.title = `${title} — Le dernier rang`;
+  document.title = `${title} — Ciné Mojito`;
 
   filmPageContent.innerHTML = `
     <section class="film-hero-card">
@@ -650,10 +978,16 @@ const directorMarkup = directorPerson?.tmdb_id
         }
       </div>
 
+
       <div class="film-main-info">
-        <div class="eyebrow red-eyebrow">Fiche film</div>
+        <div class="film-main-heading">
+          <div class="eyebrow red-eyebrow">Fiche film</div>
+
+          ${renderFilmPersonalRating(personalReview, title)}
+        </div>
 
         <h1>${escapeHTML(title)}</h1>
+
 
         ${
           originalTitle && originalTitle !== title
@@ -828,6 +1162,7 @@ reviews
 setupFilmLikeButtons();
 setupFilmCarnetButtons();
 setupListButtons();
+setupFilmPersonalRating();
 
 if (typeof setupFilmRecommendationButton === "function") {
   setupFilmRecommendationButton();
@@ -1195,26 +1530,34 @@ async function initialiseFilmPage() {
       syncMovieTalentsSafely(movie.id, tmdbDetails);
     }
 
-    const [reviews, lists, isInWishlist] = await Promise.all([
-      movie.id
-        ? getReviewsByMovieId(movie.id)
-        : Promise.resolve([]),
 
-      currentUser && movie.id
-        ? getMyListsForMovie(movie.id)
-        : Promise.resolve([]),
+    const [reviews, lists, isInWishlist, personalReview] =
+      await Promise.all([
+        movie.id
+          ? getReviewsByMovieId(movie.id)
+          : Promise.resolve([]),
 
-      currentUser && movie.id
-        ? getWishlistStatusForMovie(movie.id)
-        : Promise.resolve(false)
-    ]);
+        currentUser && movie.id
+          ? getMyListsForMovie(movie.id)
+          : Promise.resolve([]),
+
+        currentUser && movie.id
+          ? getWishlistStatusForMovie(movie.id)
+          : Promise.resolve(false),
+
+        currentUser && movie.id
+          ? getMyReviewForMovie(movie.id)
+          : Promise.resolve(null)
+      ]);
+
 
     renderFilmPage(
       movie,
       tmdbDetails,
       reviews,
       lists,
-      isInWishlist
+      isInWishlist,
+      personalReview
     );
   } catch (error) {
     console.error("Erreur de chargement de la fiche film :", error);
