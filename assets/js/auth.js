@@ -193,8 +193,10 @@ function openAuthModal(mode = "login") {
 
   setAuthMode(mode);
 
+  authModal.removeAttribute("hidden");
   authModal.classList.add("visible");
   authModal.setAttribute("aria-hidden", "false");
+
 
   updateModalBodyState();
 
@@ -213,8 +215,10 @@ function closeAuthModal() {
 
   if (authModal) {
     authModal.classList.remove("visible");
+    authModal.setAttribute("hidden", "");
     authModal.setAttribute("aria-hidden", "true");
   }
+
 
   if (authForm) {
     authForm.reset();
@@ -466,8 +470,9 @@ if (authMode === "signup") {
 
           authForm.reset();
           setAuthMode("login");
+
         } else {
-          const { error } =
+          const { data, error } =
             await supabaseClient.auth.signInWithPassword({
               email,
               password
@@ -477,8 +482,29 @@ if (authMode === "signup") {
             throw error;
           }
 
+          /*
+            Sur iPhone et dans certains navigateurs intégrés
+            (notamment Outlook), on ne dépend pas uniquement
+            de onAuthStateChange pour mettre l'interface à jour.
+          */
+          currentUser =
+            data?.user ||
+            data?.session?.user ||
+            null;
+
+          if (!currentUser) {
+            throw new Error(
+              "La connexion a réussi, mais la session n’a pas pu être récupérée."
+            );
+          }
+
           closeAuthModal();
+
+          await loadCurrentProfile();
+
+          emitAuthChanged();
         }
+
       } catch (error) {
         console.error(
           "Erreur d’authentification :",
@@ -565,19 +591,27 @@ async function initialiseAuth() {
 
   emitAuthChanged();
 
+
   supabaseClient.auth.onAuthStateChange(
-    async (_event, session) => {
-      currentUser = session?.user || null;
+    (_event, session) => {
+      /*
+        On diffère les appels asynchrones : cela évite les
+        comportements instables de certains WebViews iOS.
+      */
+      window.setTimeout(async () => {
+        currentUser = session?.user || null;
 
-      await loadCurrentProfile();
+        await loadCurrentProfile();
 
-      if (currentUser) {
-        closeAuthModal();
-      }
+        if (currentUser) {
+          closeAuthModal();
+        }
 
-      emitAuthChanged();
+        emitAuthChanged();
+      }, 0);
     }
   );
+
 }
 
 initialiseAuth();
