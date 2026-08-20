@@ -2,6 +2,7 @@
 let currentUser = null;
 let currentProfile = null;
 let authMode = "login";
+let authRequestInProgress = false;
 
 function getAuthElements() {
   return {
@@ -14,7 +15,7 @@ function getAuthElements() {
     authNote: document.getElementById("authNote"),
     usernameField: document.getElementById("usernameField"),
     usernameInput: document.getElementById("username"),
-    authPasswordInput: document.getElementById("authPassword"),   
+    authPasswordInput: document.getElementById("authPassword"),
     forgotPasswordButton: document.getElementById(
       "forgotPasswordButton"
     ),
@@ -26,6 +27,34 @@ function getAuthElements() {
     adminLink: document.getElementById("adminLink")
   };
 }
+
+/* =====================================================
+   OUTIL — ÉVITE UN BOUTON BLOQUÉ À L’INFINI
+   ===================================================== */
+
+function withAuthTimeout(promise, timeoutMs = 12000) {
+  let timeoutId = null;
+
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = window.setTimeout(() => {
+      reject(
+        new Error(
+          "La connexion prend trop de temps. Vérifie ta connexion internet puis réessaie."
+        )
+      );
+    }, timeoutMs);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+  });
+}
+
+/* =====================================================
+   MESSAGES ET VALIDATION
+   ===================================================== */
 
 function showAuthMessage(message, type = "success") {
   const { authMessage } = getAuthElements();
@@ -42,7 +71,6 @@ function showAuthMessage(message, type = "success") {
   }
 }
 
-
 function getUsernameSecurityError(username) {
   const isValidUsername =
     /^[A-Za-zÀ-ÖØ-öø-ÿ0-9_-]{3,18}$/u.test(username);
@@ -56,7 +84,6 @@ function getUsernameSecurityError(username) {
 
   return "";
 }
-
 
 function getPasswordSecurityError(password) {
   if (password.length < 12) {
@@ -82,21 +109,22 @@ function getPasswordSecurityError(password) {
   return "";
 }
 
+/* =====================================================
+   MODALE
+   ===================================================== */
 
 function setAuthMode(mode) {
   authMode = mode === "signup" ? "signup" : "login";
 
-
-const {
-  authTitle,
-  authSubmitButton,
-  authNote,
-  usernameField,
-  usernameInput,
-  authPasswordInput,
-  forgotPasswordButton
-} = getAuthElements();
-
+  const {
+    authTitle,
+    authSubmitButton,
+    authNote,
+    usernameField,
+    usernameInput,
+    authPasswordInput,
+    forgotPasswordButton
+  } = getAuthElements();
 
   const isSignup = authMode === "signup";
 
@@ -119,22 +147,21 @@ const {
     }
   }
 
-if (authPasswordInput) {
-  authPasswordInput.minLength = isSignup ? 12 : 0;
+  if (authPasswordInput) {
+    authPasswordInput.minLength = isSignup ? 12 : 0;
 
-  authPasswordInput.autocomplete = isSignup
-    ? "new-password"
-    : "current-password";
+    authPasswordInput.autocomplete = isSignup
+      ? "new-password"
+      : "current-password";
 
-  authPasswordInput.placeholder = isSignup
-    ? "12 caractères minimum"
-    : "Ton mot de passe";
-}
-  
-if (forgotPasswordButton) {
-  forgotPasswordButton.hidden = isSignup;
-}
+    authPasswordInput.placeholder = isSignup
+      ? "12 caractères minimum"
+      : "Ton mot de passe";
+  }
 
+  if (forgotPasswordButton) {
+    forgotPasswordButton.hidden = isSignup;
+  }
 
   if (authTitle) {
     authTitle.textContent = isSignup
@@ -160,43 +187,54 @@ if (forgotPasswordButton) {
 function updateModalBodyState() {
   const authModal = document.getElementById("authModal");
   const reviewModal = document.getElementById("reviewModal");
+  const globalCarnetModal = document.getElementById(
+    "globalCarnetModal"
+  );
 
   const authIsOpen = authModal?.classList.contains("visible");
+
   const reviewIsOpen = reviewModal?.classList.contains("visible");
+
+  const carnetIsOpen = globalCarnetModal?.classList.contains(
+    "visible"
+  );
 
   document.body.classList.toggle(
     "modal-open",
-    Boolean(authIsOpen || reviewIsOpen)
+    Boolean(authIsOpen || reviewIsOpen || carnetIsOpen)
   );
 }
 
 function openAuthModal(mode = "login") {
   const { authModal, authForm } = getAuthElements();
-  const reviewModal = document.getElementById("reviewModal");
 
   if (!authModal) {
     return;
   }
 
   /*
-    Une seule modale doit être ouverte à la fois.
-    Si la fenêtre « Ajouter à mon carnet » est ouverte,
-    elle est fermée avant l'affichage de l'authentification.
+    Une seule modale est active à la fois.
   */
-  if (reviewModal) {
-    reviewModal.classList.remove("visible");
-  }
+  document
+    .querySelectorAll(".modal.visible, .modal-overlay.visible")
+    .forEach((modal) => {
+      if (modal.id !== "authModal") {
+        modal.classList.remove("visible");
+        modal.setAttribute("aria-hidden", "true");
+      }
+    });
 
   if (authForm) {
     authForm.reset();
   }
+
+  authRequestInProgress = false;
 
   setAuthMode(mode);
 
   authModal.removeAttribute("hidden");
   authModal.classList.add("visible");
   authModal.setAttribute("aria-hidden", "false");
-
 
   updateModalBodyState();
 
@@ -219,15 +257,20 @@ function closeAuthModal() {
     authModal.setAttribute("aria-hidden", "true");
   }
 
-
   if (authForm) {
     authForm.reset();
   }
+
+  authRequestInProgress = false;
 
   showAuthMessage("");
 
   updateModalBodyState();
 }
+
+/* =====================================================
+   PROFIL ET NAVIGATION
+   ===================================================== */
 
 async function loadCurrentProfile() {
   if (!currentUser) {
@@ -266,6 +309,7 @@ function updateNavigation() {
   } = getAuthElements();
 
   const isLoggedIn = Boolean(currentUser);
+
   const isAdmin = Boolean(
     currentUser && currentProfile?.is_admin
   );
@@ -348,6 +392,10 @@ function emitAuthChanged() {
   );
 }
 
+/* =====================================================
+   CONNEXION / INSCRIPTION
+   ===================================================== */
+
 function setupAuth() {
   const {
     authButton,
@@ -360,94 +408,111 @@ function setupAuth() {
     logoutButton
   } = getAuthElements();
 
-  if (authButton) {
-    authButton.addEventListener("click", () => {
-      openAuthModal("login");
-    });
-  }
+  authButton?.addEventListener("click", () => {
+    openAuthModal("login");
+  });
 
-  if (closeButton) {
-    closeButton.addEventListener("click", closeAuthModal);
-  }
-  
-if (forgotPasswordButton) {
-  forgotPasswordButton.addEventListener("click", () => {
+  closeButton?.addEventListener("click", closeAuthModal);
+
+  forgotPasswordButton?.addEventListener("click", () => {
     window.location.href = "reset-password.html";
   });
-}
 
-
-  if (authModal) {
-    authModal.addEventListener("click", (event) => {
-      if (event.target === authModal) {
-        closeAuthModal();
-      }
-    });
-  }
+  authModal?.addEventListener("click", (event) => {
+    if (event.target === authModal) {
+      closeAuthModal();
+    }
+  });
 
   document.querySelectorAll(".auth-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
-      setAuthMode(tab.dataset.authMode);
+      if (!authRequestInProgress) {
+        setAuthMode(tab.dataset.authMode);
+      }
     });
   });
 
-  if (authForm) {
-    authForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
+  authForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-      const emailInput = document.getElementById("authEmail");
-      const passwordInput = document.getElementById("authPassword");
+    if (authRequestInProgress) {
+      return;
+    }
 
-      const email = emailInput?.value.trim() || "";
-      const password = passwordInput?.value || "";
-      const username = usernameInput?.value.trim() || "";
+    const emailInput = document.getElementById("authEmail");
 
-      if (!authSubmitButton) {
+    const passwordInput = document.getElementById(
+      "authPassword"
+    );
+
+    /*
+      Lecture directe de la valeur au moment du submit :
+      compatible avec le remplissage automatique Safari.
+    */
+    const email = String(emailInput?.value || "")
+      .trim()
+      .toLowerCase();
+
+    const password = String(passwordInput?.value || "");
+
+    const username = String(usernameInput?.value || "").trim();
+
+    if (!authSubmitButton) {
+      return;
+    }
+
+    if (!email || !password) {
+      showAuthMessage(
+        "Renseigne ton adresse e-mail et ton mot de passe.",
+        "error"
+      );
+
+      return;
+    }
+
+    if (authMode === "signup" && !username) {
+      showAuthMessage(
+        "Choisis un pseudo pour créer ton compte.",
+        "error"
+      );
+
+      usernameInput?.focus();
+      return;
+    }
+
+    if (authMode === "signup") {
+      const usernameSecurityError =
+        getUsernameSecurityError(username);
+
+      if (usernameSecurityError) {
+        showAuthMessage(usernameSecurityError, "error");
+
+        usernameInput?.focus();
         return;
       }
 
+      const passwordSecurityError =
+        getPasswordSecurityError(password);
 
-if (authMode === "signup" && !username) {
-  showAuthMessage(
-    "Choisis un pseudo pour créer ton compte.",
-    "error"
-  );
+      if (passwordSecurityError) {
+        showAuthMessage(passwordSecurityError, "error");
 
-  usernameInput?.focus();
-  return;
-}
+        passwordInput?.focus();
+        return;
+      }
+    }
 
-if (authMode === "signup") {
-  const usernameSecurityError =
-    getUsernameSecurityError(username);
+    authRequestInProgress = true;
 
-  if (usernameSecurityError) {
-    showAuthMessage(usernameSecurityError, "error");
+    authSubmitButton.disabled = true;
+    authSubmitButton.textContent = "Un instant…";
 
-    usernameInput?.focus();
-    return;
-  }
-}
+    showAuthMessage("");
 
-if (authMode === "signup") {
-  const passwordSecurityError = getPasswordSecurityError(password);
-
-  if (passwordSecurityError) {
-    showAuthMessage(passwordSecurityError, "error");
-
-    passwordInput?.focus();
-    return;
-  }
-}
-
-
-
-      authSubmitButton.disabled = true;
-      authSubmitButton.textContent = "Un instant…";
-
-      try {
-        if (authMode === "signup") {
-          const { error } = await supabaseClient.auth.signUp({
+    try {
+      if (authMode === "signup") {
+        const { error } = await withAuthTimeout(
+          supabaseClient.auth.signUp({
             email,
             password,
             options: {
@@ -457,106 +522,118 @@ if (authMode === "signup") {
               emailRedirectTo:
                 window.location.origin + window.location.pathname
             }
-          });
-
-          if (error) {
-            throw error;
-          }
-
-          showAuthMessage(
-            "Ton compte a été créé. Regarde ta boîte e-mail et confirme ton adresse avant de te connecter.",
-            "success"
-          );
-
-          authForm.reset();
-          setAuthMode("login");
-
-        } else {
-          const { data, error } =
-            await supabaseClient.auth.signInWithPassword({
-              email,
-              password
-            });
-
-          if (error) {
-            throw error;
-          }
-
-          /*
-            Sur iPhone et dans certains navigateurs intégrés
-            (notamment Outlook), on ne dépend pas uniquement
-            de onAuthStateChange pour mettre l'interface à jour.
-          */
-          currentUser =
-            data?.user ||
-            data?.session?.user ||
-            null;
-
-          if (!currentUser) {
-            throw new Error(
-              "La connexion a réussi, mais la session n’a pas pu être récupérée."
-            );
-          }
-
-          closeAuthModal();
-
-          await loadCurrentProfile();
-
-          emitAuthChanged();
-        }
-
-      } catch (error) {
-        console.error(
-          "Erreur d’authentification :",
-          error
+          })
         );
-
-        showAuthMessage(
-          error.message ||
-            "Une erreur est survenue. Réessaie dans un instant.",
-          "error"
-        );
-      } finally {
-        authSubmitButton.disabled = false;
-
-        authSubmitButton.textContent =
-          authMode === "signup"
-            ? "Créer mon compte"
-            : "Se connecter";
-      }
-    });
-  }
-
-  if (logoutButton) {
-    logoutButton.addEventListener("click", async () => {
-      try {
-        const { error } = await supabaseClient.auth.signOut();
 
         if (error) {
           throw error;
         }
 
-        currentUser = null;
-        currentProfile = null;
-
-        updateNavigation();
-        emitAuthChanged();
-
-        if (window.location.pathname.endsWith("profil.html")) {
-          window.location.href = "index.html";
-        }
-      } catch (error) {
-        console.error(
-          "Erreur de déconnexion :",
-          error
+        showAuthMessage(
+          "Ton compte a été créé. Regarde ta boîte e-mail et confirme ton adresse avant de te connecter.",
+          "success"
         );
 
-        alert(
-          "La déconnexion n'a pas pu être effectuée. Réessaie."
+        authForm.reset();
+        setAuthMode("login");
+
+        return;
+      }
+
+      const { data, error } = await withAuthTimeout(
+        supabaseClient.auth.signInWithPassword({
+          email,
+          password
+        })
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      currentUser =
+        data?.session?.user ||
+        data?.user ||
+        null;
+
+      if (!currentUser) {
+        throw new Error(
+          "Connexion non finalisée : aucune session n’a été créée."
         );
       }
-    });
-  }
+
+      /*
+        L'interface se ferme avant le chargement du profil :
+        la connexion est visuellement immédiate.
+      */
+      closeAuthModal();
+
+      /*
+        Le menu est rendu immédiatement avec le fallback e-mail,
+        puis enrichi dès que le profil est chargé.
+      */
+      updateNavigation();
+      emitAuthChanged();
+
+      /*
+        Cette requête ne doit jamais maintenir la modale ouverte.
+      */
+      await loadCurrentProfile();
+
+      emitAuthChanged();
+    } catch (error) {
+      console.error(
+        "Erreur d’authentification :",
+        error
+      );
+
+      showAuthMessage(
+        error?.message ||
+          "Une erreur est survenue. Réessaie dans un instant.",
+        "error"
+      );
+    } finally {
+      authRequestInProgress = false;
+
+      authSubmitButton.disabled = false;
+
+      authSubmitButton.textContent =
+        authMode === "signup"
+          ? "Créer mon compte"
+          : "Se connecter";
+    }
+  });
+
+  logoutButton?.addEventListener("click", async () => {
+    try {
+      const { error } = await withAuthTimeout(
+        supabaseClient.auth.signOut()
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      currentUser = null;
+      currentProfile = null;
+
+      updateNavigation();
+      emitAuthChanged();
+
+      if (window.location.pathname.endsWith("profil.html")) {
+        window.location.href = "index.html";
+      }
+    } catch (error) {
+      console.error(
+        "Erreur de déconnexion :",
+        error
+      );
+
+      alert(
+        "La déconnexion n'a pas pu être effectuée. Réessaie."
+      );
+    }
+  });
 
   document.addEventListener("keydown", (event) => {
     if (
@@ -568,50 +645,73 @@ if (authMode === "signup") {
   });
 }
 
+/* =====================================================
+   INITIALISATION SUPABASE
+   ===================================================== */
+
 async function initialiseAuth() {
   setupAuth();
   setAuthMode("login");
 
-  const {
-    data: { session }
-  } = await supabaseClient.auth.getSession();
+  try {
+    const {
+      data: { session }
+    } = await withAuthTimeout(
+      supabaseClient.auth.getSession(),
+      10000
+    );
 
-  currentUser = session?.user || null;
+    currentUser = session?.user || null;
 
-  await loadCurrentProfile();
+    await loadCurrentProfile();
 
-  /*
-    Si Supabase restaure une session existante,
-    une ancienne modale de connexion ne doit jamais
-    rester affichée.
-  */
-  if (currentUser) {
-    closeAuthModal();
+    if (currentUser) {
+      closeAuthModal();
+    }
+
+    emitAuthChanged();
+  } catch (error) {
+    console.error(
+      "Impossible de restaurer la session Supabase :",
+      error
+    );
+
+    currentUser = null;
+    currentProfile = null;
+
+    updateNavigation();
+    emitAuthChanged();
   }
 
-  emitAuthChanged();
-
-
+  /*
+    Le callback reste volontairement léger.
+    Les appels asynchrones sont effectués après sa fin.
+  */
   supabaseClient.auth.onAuthStateChange(
     (_event, session) => {
-      /*
-        On diffère les appels asynchrones : cela évite les
-        comportements instables de certains WebViews iOS.
-      */
+      currentUser = session?.user || null;
+
       window.setTimeout(async () => {
-        currentUser = session?.user || null;
+        try {
+          await loadCurrentProfile();
 
-        await loadCurrentProfile();
+          if (currentUser) {
+            closeAuthModal();
+          }
 
-        if (currentUser) {
-          closeAuthModal();
+          emitAuthChanged();
+        } catch (error) {
+          console.error(
+            "Erreur lors de la mise à jour de session :",
+            error
+          );
+
+          updateNavigation();
+          emitAuthChanged();
         }
-
-        emitAuthChanged();
       }, 0);
     }
   );
-
 }
 
 initialiseAuth();
