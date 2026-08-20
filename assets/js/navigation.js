@@ -22,6 +22,7 @@ function renderSharedAuthModal() {
       <div
         class="modal"
         id="authModal"
+        hidden
         aria-hidden="true"
         role="dialog"
         aria-modal="true"
@@ -76,7 +77,12 @@ function renderSharedAuthModal() {
           ></div>
 
           <form id="authForm">
-            <div class="field" id="usernameField" hidden>
+            <div
+              class="field"
+              id="usernameField"
+              hidden
+              aria-hidden="true"
+            >
               <label for="username">Pseudo *</label>
 
               <input
@@ -88,7 +94,6 @@ function renderSharedAuthModal() {
                 pattern="[A-Za-zÀ-ÖØ-öø-ÿ0-9_-]{3,18}"
                 title="3 à 18 caractères : lettres, chiffres, tirets et underscores uniquement."
                 autocomplete="username"
-                required
                 placeholder="Ex. TotoCinephile"
               />
             </div>
@@ -98,9 +103,14 @@ function renderSharedAuthModal() {
 
               <input
                 id="authEmail"
+                name="email"
                 type="email"
+                inputmode="email"
+                autocapitalize="none"
+                autocorrect="off"
+                spellcheck="false"
                 required
-                autocomplete="email"
+                autocomplete="username"
                 placeholder="vous@exemple.fr"
               />
             </div>
@@ -110,9 +120,9 @@ function renderSharedAuthModal() {
 
               <input
                 id="authPassword"
+                name="password"
                 type="password"
                 required
-                minlength="12"
                 autocomplete="current-password"
                 placeholder="Ton mot de passe"
               />
@@ -199,6 +209,9 @@ function renderGlobalMovieSearchModal() {
               id="globalMovieSearchInput"
               type="search"
               autocomplete="off"
+              autocorrect="off"
+              autocapitalize="none"
+              spellcheck="false"
               placeholder="Un titre, un souvenir de séance…"
               aria-label="Rechercher un film"
             />
