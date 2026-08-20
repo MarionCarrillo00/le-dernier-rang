@@ -11827,3 +11827,160 @@ h2 {
     text-align: left;
   }
 }
+
+/* =====================================================
+   RECHERCHE GLOBALE — TALENTS ET FILMS
+   ===================================================== */
+
+.global-search-results-section {
+  display: grid;
+  gap: 9px;
+}
+
+.global-search-results-section + .global-search-results-section {
+  margin-top: 10px;
+}
+
+.global-search-results-heading {
+  margin: 7px 2px 2px;
+  color: var(--red);
+  font-family: Arial, sans-serif;
+  font-size: 0.64rem;
+  font-weight: bold;
+  letter-spacing: 1.35px;
+  text-transform: uppercase;
+}
+
+.global-talent-results-list,
+.global-movie-results-list {
+  display: grid;
+  gap: 9px;
+}
+
+/* -----------------------------------------------------
+   Résultat talent
+   ----------------------------------------------------- */
+
+.global-talent-result {
+  overflow: hidden;
+  background: rgba(255, 250, 244, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.global-talent-result:hover {
+  border-color: rgba(184, 68, 68, 0.45);
+  box-shadow: 0 8px 18px rgba(61, 43, 32, 0.08);
+  transform: translateY(-1px);
+}
+
+.global-talent-result-main {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  color: var(--ink);
+  text-align: left;
+  background: transparent;
+  border: 0;
+}
+
+.global-talent-portrait {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  color: var(--cream);
+  background: var(--deep-red);
+  border: 2px solid var(--cream);
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(61, 43, 32, 0.12);
+  place-items: center;
+}
+
+.global-talent-portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.global-talent-portrait-placeholder {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.2rem;
+  place-items: center;
+}
+
+.global-talent-result-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.global-talent-result-copy strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.03rem;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.global-talent-department {
+  overflow: hidden;
+  color: var(--red);
+  font-family: Arial, sans-serif;
+  font-size: 0.67rem;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.global-talent-result-copy small {
+  overflow: hidden;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.global-talent-result-arrow {
+  padding-left: 5px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 1.05rem;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.global-talent-result:hover .global-talent-result-copy strong,
+.global-talent-result-main:hover .global-talent-result-copy strong {
+  color: var(--red);
+}
+
+.global-talent-result-main:hover .global-talent-result-arrow {
+  color: var(--red);
+  transform: translateX(3px);
+}
+
+@media (max-width: 650px) {
+  .global-talent-result-copy strong,
+  .global-talent-result-copy small {
+    white-space: normal;
+  }
+}
