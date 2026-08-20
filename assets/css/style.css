@@ -11678,3 +11678,152 @@ h2 {
     0 3px 0 rgba(125, 41, 41, 0.10),
     0 18px 32px rgba(61, 43, 32, 0.21);
 }
+
+/* =====================================================
+   FICHE FILM — NOTE PERSONNELLE INTERACTIVE
+   Cinq étoiles alignées, demi-notes au survol et au clic.
+   ===================================================== */
+
+.film-main-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.film-main-heading > .eyebrow {
+  margin-bottom: 18px;
+}
+
+.film-personal-rating {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+  flex: 0 0 auto;
+  min-width: 148px;
+  margin-top: -2px;
+  padding: 8px 0 8px 13px;
+  border-left: 1px solid rgba(222, 213, 202, 0.9);
+  text-align: right;
+}
+
+.film-personal-rating-label {
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.62rem;
+  font-weight: bold;
+  letter-spacing: 1.25px;
+  text-transform: uppercase;
+}
+
+.film-personal-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.film-personal-rating-star {
+  position: relative;
+  width: 24px;
+  height: 28px;
+  padding: 0;
+  overflow: hidden;
+  color: rgba(215, 167, 93, 0.25);
+  background: transparent;
+  border: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.45rem;
+  line-height: 1;
+  text-align: center;
+  transition:
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.film-personal-rating-star:hover,
+.film-personal-rating-star:focus-visible {
+  transform: translateY(-1px) scale(1.08);
+  outline: none;
+}
+
+.film-personal-rating-star.is-full {
+  color: var(--gold);
+}
+
+.film-personal-rating-star.is-half {
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    var(--gold) 0 50%,
+    rgba(215, 167, 93, 0.25) 50% 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.film-personal-rating-star:focus-visible {
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(184, 68, 68, 0.23);
+}
+
+.film-personal-rating-value {
+  min-height: 14px;
+  color: var(--deep-red);
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+  line-height: 1.25;
+}
+
+/* Le bloc devient une invitation plus douce lorsqu'aucune
+   note n'est encore présente dans le carnet. */
+
+.film-personal-rating:not([data-current-rating]) .film-personal-rating-value {
+  color: var(--grey);
+}
+
+/* Mobile : les étoiles restent confortables à manipuler. */
+
+@media (max-width: 650px) {
+  .film-main-heading {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .film-personal-rating {
+    min-width: 126px;
+    margin-top: -4px;
+    padding-left: 10px;
+  }
+
+  .film-personal-rating-star {
+    width: 20px;
+    height: 25px;
+    font-size: 1.22rem;
+  }
+
+  .film-personal-rating-label {
+    font-size: 0.57rem;
+    letter-spacing: 1px;
+  }
+
+  .film-personal-rating-value {
+    font-size: 0.62rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .film-main-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .film-personal-rating {
+    justify-items: start;
+    min-width: 0;
+    padding: 8px 0 0;
+    border-top: 1px solid rgba(222, 213, 202, 0.9);
+    border-left: 0;
+    text-align: left;
+  }
+}
