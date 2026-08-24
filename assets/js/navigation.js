@@ -341,6 +341,128 @@ function renderGlobalCarnetModal() {
 }
 
 /* =====================================================
+   MODALE COMMUNE — SIGNALER UNE MICROCRITIQUE
+   ===================================================== */
+
+function renderReviewReportModal() {
+  document.querySelector("#reviewReportModal")?.remove();
+
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
+      <div
+        class="modal"
+        id="reviewReportModal"
+        hidden
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reviewReportTitle"
+      >
+        <div class="modal-box review-report-modal-box">
+          <div class="modal-head">
+            <div>
+              <div class="eyebrow red-eyebrow">
+                Modération
+              </div>
+
+              <h3 id="reviewReportTitle">
+                Signaler cette critique
+              </h3>
+            </div>
+
+            <button
+              class="close-button"
+              id="closeReviewReportModal"
+              type="button"
+              aria-label="Fermer"
+            >
+              ×
+            </button>
+          </div>
+
+          <p class="review-report-intro">
+            Ton signalement sera examiné avec attention par La régie.
+            Il reste confidentiel.
+          </p>
+
+          <p
+            id="reviewReportMovie"
+            class="review-report-movie"
+          ></p>
+
+          <div
+            id="reviewReportMessage"
+            class="status-message"
+            aria-live="polite"
+          ></div>
+
+          <form id="reviewReportForm">
+            <input
+              id="reviewReportReviewId"
+              type="hidden"
+            />
+
+            <div class="field">
+              <label for="reviewReportReason">
+                Quel est le problème ? *
+              </label>
+
+              <select id="reviewReportReason" required>
+                <option value="">Choisir un motif</option>
+                <option value="offensive">
+                  Contenu offensant ou discriminatoire
+                </option>
+                <option value="harassment">
+                  Harcèlement ou attaque personnelle
+                </option>
+                <option value="spam">
+                  Spam ou publicité
+                </option>
+                <option value="spoiler">
+                  Spoiler non signalé
+                </option>
+                <option value="other">
+                  Autre problème
+                </option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="reviewReportDetails">
+                Ajouter une précision
+                <span class="optional-label">(facultatif)</span>
+              </label>
+
+              <textarea
+                id="reviewReportDetails"
+                maxlength="500"
+                placeholder="Quelques mots pour aider La régie à comprendre…"
+              ></textarea>
+
+              <p
+                id="reviewReportCharacterCounter"
+                class="character-counter"
+              >
+                0 / 500
+              </p>
+            </div>
+
+            <button
+              id="reviewReportSubmitButton"
+              class="button-primary"
+              type="submit"
+            >
+              Envoyer le signalement
+            </button>
+          </form>
+        </div>
+      </div>
+    `
+  );
+}
+
+/* =====================================================
    NAVIGATION
    ===================================================== */
 
@@ -434,6 +556,7 @@ function renderNavigation() {
   renderSharedAuthModal();
   renderGlobalMovieSearchModal();
   renderGlobalCarnetModal();
+  renderReviewReportModal();
 }
 
 renderNavigation();
