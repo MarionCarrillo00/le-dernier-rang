@@ -3,210 +3,60 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Ciné Mojito — Microcritiques cinéma</title>
+  <title>Liste — Ciné Mojito</title>
 
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 
 <body>
+
   <header id="siteHeader"></header>
 
-  <section class="hero" aria-labelledby="homeHeroTitle">
-    <div class="hero-content">
-      <div class="eyebrow">Microcritiques de cinéma</div>
+  <main class="list-page">
+    <a class="back-link" href="profil.html">
+      ← Retour à mon espace
+    </a>
 
-      <h1 id="homeHeroTitle">
-        Les films restent.<br />
-        <em>Nous aussi.</em>
-      </h1>
-
-      <p>
-        Ciné Mojito est un lieu pour partager ce qu’un film laisse derrière
-        lui : une image, une émotion, une phrase, parfois une petite secousse.
-      </p>
-
-      <button
-        class="button-primary"
-        type="button"
-        onclick="document.querySelector('#critiques').scrollIntoView({ behavior: 'smooth' })"
-      >
-        Explorer les critiques
-      </button>
+    <div id="listPageContent">
+      <div class="film-loading">
+        Chargement de la liste…
+      </div>
     </div>
-  </section>
-
-  <main>
-    <section id="critiques">
-      <div class="section-title home-section-title">
-        <div>
-          <div class="eyebrow red-eyebrow">À lire en ce moment</div>
-          <h2>Actualité</h2>
-        </div>
-
-        <div class="home-section-summary">
-          <p>
-            Quelques mots seulement. Parce qu’un film n’a parfois besoin
-            que d’une phrase pour continuer à vivre.
-          </p>
-
-          <span
-            id="movieCount"
-            class="home-movie-count"
-            aria-live="polite"
-          ></span>
-        </div>
-      </div>
-
-      <!--
-        La recherche est volontairement centralisée dans la navbar.
-        Les notes seules ne seront pas affichées dans les trois flux
-        éditoriaux de la page d'accueil.
-      -->
-      <nav
-        id="homeFeedTabs"
-        class="home-feed-tabs"
-        aria-label="Choisir un fil de critiques"
-        role="tablist"
-      >
-        <button
-          id="homeFeedLatest"
-          class="home-feed-tab is-active"
-          type="button"
-          role="tab"
-          aria-selected="true"
-          aria-controls="moviesGrid"
-          data-home-feed="latest"
-        >
-          Dernières critiques
-        </button>
-
-        <button
-          id="homeFeedReleases"
-          class="home-feed-tab"
-          type="button"
-          role="tab"
-          aria-selected="false"
-          aria-controls="moviesGrid"
-          data-home-feed="releases"
-        >
-          Dernières sorties
-        </button>
-
-        <button
-          id="homeFeedPopular"
-          class="home-feed-tab"
-          type="button"
-          role="tab"
-          aria-selected="false"
-          aria-controls="moviesGrid"
-          data-home-feed="popular"
-        >
-          Les plus aimées
-        </button>
-      </nav>
-
-      <div class="home-content-layout">
-        <div class="home-reviews-column">
-          <div
-            class="movies-grid"
-            id="moviesGrid"
-            role="tabpanel"
-            aria-labelledby="homeFeedLatest"
-          ></div>
-
-          <div
-            id="homeReviewsPagination"
-            class="home-pagination"
-            hidden
-          ></div>
-        </div>
-
-        <aside
-          id="circleActivitySidebar"
-          class="circle-activity-sidebar"
-          aria-labelledby="circleActivityTitle"
-        >
-          <div class="circle-activity-heading">
-            <div>
-              <div class="eyebrow red-eyebrow">
-                Dans mon cercle
-              </div>
-
-              <h2 id="circleActivityTitle">
-                Les dernières séances de vos amis
-              </h2>
-
-              <p
-                id="circleActivitySubtitle"
-                class="circle-activity-subtitle"
-              >
-                Les films, les mots et les petits élans de votre cercle.
-              </p>
-            </div>
-
-            <a
-              id="circleActivitySeeAll"
-              class="circle-activity-see-all"
-              href="activite.html"
-              hidden
-            >
-              Voir toute l’activité →
-            </a>
-          </div>
-
-          <div
-            id="circleActivityFeed"
-            class="circle-activity-feed"
-            aria-live="polite"
-          >
-            <div class="circle-activity-loading">
-              Chargement de l’activité de votre cercle…
-            </div>
-          </div>
-
-          <div
-            id="circleActivityPagination"
-            class="circle-activity-pagination"
-            hidden
-          ></div>
-        </aside>
-      </div>
-    </section>
-
-    <section id="a-propos" class="about-section">
-      <div class="about-content">
-        <div class="eyebrow red-eyebrow">À propos</div>
-
-        <h2>Un endroit pour ne pas oublier.</h2>
-
-        <p>
-          Ciné Mojito est un petit refuge cinéphile : des impressions
-          brèves, des coups de cœur, des films qui consolent et ceux qui
-          laissent une étrange lumière plusieurs jours après.
-        </p>
-      </div>
-    </section>
   </main>
 
   <footer>
-    Ciné Mojito · Microcritiques de cinéma · Fait avec attention
-    et beaucoup trop d’émotions devant les génériques.
+    Ciné Mojito · Les films que l’on garde près de soi.
   </footer>
 
-  <!-- MODALE : publication d'une critique ou d'une note -->
-  <div class="modal" id="reviewModal">
-    <div class="modal-box">
+  <!-- =================================================
+       MODALE : FILM VU → AJOUT AU CARNET
+       ================================================= -->
+
+  <div
+    class="modal"
+    id="watchlistReviewModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="watchlistReviewModalTitle"
+    hidden
+  >
+    <div class="modal-box watchlist-review-modal-box">
       <div class="modal-head">
-        <h3>Ajouter à mon carnet</h3>
+        <div>
+          <div class="eyebrow red-eyebrow">
+            Une séance de plus
+          </div>
+
+          <h3 id="watchlistReviewModalTitle">
+            Cette séance mérite-t-elle quelques mots ?
+          </h3>
+        </div>
 
         <button
           class="close-button"
-          id="closeModal"
+          id="closeWatchlistReviewModal"
           type="button"
           aria-label="Fermer"
         >
@@ -214,141 +64,81 @@
         </button>
       </div>
 
-      <form id="reviewForm">
-        <div class="tmdb-search-section">
-          <label for="tmdbSearchInput">
-            Rechercher un film
+      <div class="watchlist-review-film" id="watchlistReviewFilm">
+        <!-- Film sélectionné injecté par JavaScript -->
+      </div>
+
+      <form id="watchlistReviewForm">
+        <div class="field">
+          <label for="watchlistReviewRating">
+            Ma note *
           </label>
 
-          <div class="tmdb-search-row">
-            <input
-              id="tmdbSearchInput"
-              type="search"
-              autocomplete="off"
-              placeholder="Ex. Le Voyage de Chihiro"
-            />
+          <select id="watchlistReviewRating" required>
+            <option value="">Choisir une note</option>
+            <option value="1">★ — 1 sur 5</option>
+            <option value="1.5">★½ — 1,5 sur 5</option>
+            <option value="2">★★ — 2 sur 5</option>
+            <option value="2.5">★★½ — 2,5 sur 5</option>
+            <option value="3">★★★ — 3 sur 5</option>
+            <option value="3.5">★★★½ — 3,5 sur 5</option>
+            <option value="4">★★★★ — 4 sur 5</option>
+            <option value="4.5">★★★★½ — 4,5 sur 5</option>
+            <option value="5">★★★★★ — 5 sur 5</option>
+          </select>
+        </div>
 
-            <button
-              class="button-secondary"
-              type="button"
-              id="tmdbSearchButton"
-            >
-              Rechercher
-            </button>
-          </div>
+        <div class="field">
+          <label for="watchlistReviewContent">
+            Quelques mots
+            <span class="optional-label">(facultatif)</span>
+          </label>
 
-          <p class="form-note">
-            Choisis un résultat pour récupérer automatiquement les informations
-            du film.
-          </p>
+          <textarea
+            id="watchlistReviewContent"
+            maxlength="1000"
+            placeholder="Ce que la séance a laissé avec toi…"
+          ></textarea>
 
           <div
-            id="tmdbSearchMessage"
-            class="status-message"
-            aria-live="polite"
-          ></div>
-
-          <div
-            id="tmdbResults"
-            class="tmdb-results"
-            aria-live="polite"
-          ></div>
-        </div>
-
-        <div
-          class="selected-movie-card"
-          id="selectedMovieCard"
-          hidden
-        >
-          <img
-            id="selectedMoviePoster"
-            class="selected-movie-poster"
-            alt=""
-            hidden
-          />
-
-          <div class="selected-movie-content">
-            <strong id="selectedMovieTitle"></strong>
-
-            <p id="selectedMovieMeta"></p>
-
-            <p id="selectedMovieOverview"></p>
+            class="character-counter"
+            id="watchlistReviewCharacterCounter"
+          >
+            0 / 1000
           </div>
         </div>
 
-        <!-- Données alimentées automatiquement par TMDB -->
-        <input id="title" type="hidden" />
-        <input id="year" type="hidden" />
-        <input id="director" type="hidden" />
-        <input id="genre" type="hidden" />
+        <div class="watchlist-review-actions">
+          <button
+            class="button-primary"
+            id="saveWatchlistReviewButton"
+            type="submit"
+          >
+            Garder dans mon carnet
+          </button>
 
-        <div class="form-grid">
-          <div class="field">
-            <label for="rating">Note *</label>
-
-            <select id="rating" required>
-              <option value="">Choisir</option>
-              <option value="1">1 / 5</option>
-              <option value="1.5">1,5 / 5</option>
-              <option value="2">2 / 5</option>
-              <option value="2.5">2,5 / 5</option>
-              <option value="3">3 / 5</option>
-              <option value="3.5">3,5 / 5</option>
-              <option value="4">4 / 5</option>
-              <option value="4.5">4,5 / 5</option>
-              <option value="5">5 / 5</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="tags">Tags personnels</label>
-
-            <input
-              id="tags"
-              placeholder="solitude, Paris, pluie"
-            />
-          </div>
-
-          <div class="field full">
-            <label for="review">
-              Quelques mots sur le film
-              <span class="optional-label">(facultatif)</span>
-            </label>
-
-            <textarea
-              id="review"
-              maxlength="140"
-              placeholder="Une image, une émotion, une phrase… ou simplement une note."
-            ></textarea>
-
-            <p
-              class="character-counter"
-              id="reviewCharacterCounter"
-            >
-              0 / 140
-            </p>
-          </div>
+          <button
+            class="button-text"
+            id="cancelWatchlistReviewButton"
+            type="button"
+          >
+            Pas maintenant
+          </button>
         </div>
-
-        <button class="button-primary" type="submit">
-          Ajouter à mon carnet
-        </button>
       </form>
     </div>
   </div>
 
-  <!-- Supabase puis scripts du projet -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script src="assets/js/config.js"></script>
   <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/navigation.js"></script>
   <script src="assets/js/auth.js"></script>
-  <script src="assets/js/reviews.js"></script>
+  <script src="assets/js/reviews.js"></script>  
   <script src="assets/js/movie-talents.js"></script>
   <script src="assets/js/global-carnet.js"></script>
   <script src="assets/js/global-movie-search.js"></script>
-  <script src="assets/js/friends.js"></script>
-  <script src="assets/js/home.js"></script>
+  <script src="assets/js/list.js"></script>
 </body>
 </html>
