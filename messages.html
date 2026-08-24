@@ -1,1 +1,52 @@
-Test
+
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
+    <title>Mes échanges · Ciné Mojito</title>
+
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+
+  <body>
+    <header id="siteHeader"></header>
+
+    <main class="messages-page">
+      <a class="back-link" href="profil.html">
+        ← Retour à mon espace
+      </a>
+
+      <section
+        id="messagesPageContent"
+        class="messages-page-content"
+        aria-live="polite"
+      >
+        <div class="messages-loading">
+          Chargement de tes échanges…
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Ciné Mojito · Quelques mots entre deux séances.
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/navigation.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/reviews.js"></script>
+    <script src="assets/js/movie-talents.js"></script>
+    <script src="assets/js/global-carnet.js"></script>
+    <script src="assets/js/global-movie-search.js"></script>
+    <script src="assets/js/friends.js"></script>
+    <script src="assets/js/messages.js"></script>
+  </body>
+</html>
