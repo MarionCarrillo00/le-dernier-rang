@@ -44,7 +44,7 @@
     <section id="critiques">
       <div class="section-title home-section-title">
         <div>
-          <div class="eyebrow red-eyebrow">Dernières séances</div>
+          <div class="eyebrow red-eyebrow">À lire en ce moment</div>
           <h2>Actualité</h2>
         </div>
 
@@ -62,85 +62,61 @@
         </div>
       </div>
 
-      <div class="home-discovery-controls">
-        <div class="controls">
-          <div class="search-box">
-            <input
-              id="searchInput"
-              type="search"
-              autocomplete="off"
-              placeholder="Quel film as-tu envie de retrouver ?"
-              aria-label="Rechercher un film, un réalisateur ou une microcritique"
-            />
+      <!--
+        La recherche est volontairement centralisée dans la navbar.
+        Les notes seules ne seront pas affichées dans les trois flux
+        éditoriaux de la page d'accueil.
+      -->
+      <nav
+        id="homeFeedTabs"
+        class="home-feed-tabs"
+        aria-label="Choisir un fil de critiques"
+        role="tablist"
+      >
+        <button
+          id="homeFeedLatest"
+          class="home-feed-tab is-active"
+          type="button"
+          role="tab"
+          aria-selected="true"
+          aria-controls="moviesGrid"
+          data-home-feed="latest"
+        >
+          Dernières critiques
+        </button>
 
-            <div
-              class="home-tmdb-results"
-              id="homeTmdbResults"
-              aria-live="polite"
-            ></div>
-          </div>
+        <button
+          id="homeFeedReleases"
+          class="home-feed-tab"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="moviesGrid"
+          data-home-feed="releases"
+        >
+          Dernières sorties
+        </button>
 
-          <div
-            class="filters"
-            id="filters"
-            aria-label="Filtrer les séances par genre"
-          >
-            <button
-              class="filter active"
-              type="button"
-              data-genre="Tous"
-            >
-              Tous
-            </button>
-
-            <button
-              class="filter"
-              type="button"
-              data-genre="Drame"
-            >
-              Drame
-            </button>
-
-            <button
-              class="filter"
-              type="button"
-              data-genre="Romance"
-            >
-              Romance
-            </button>
-
-            <button
-              class="filter"
-              type="button"
-              data-genre="Horreur"
-            >
-              Horreur
-            </button>
-
-            <button
-              class="filter"
-              type="button"
-              data-genre="Animation"
-            >
-              Animation
-            </button>
-
-            <button
-              class="filter"
-              type="button"
-              data-genre="Science-fiction"
-            >
-              Science-fiction
-            </button>
-          </div>
-        </div>
-      </div>
+        <button
+          id="homeFeedPopular"
+          class="home-feed-tab"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="moviesGrid"
+          data-home-feed="popular"
+        >
+          Les plus aimées
+        </button>
+      </nav>
 
       <div class="home-content-layout">
         <div class="home-reviews-column">
           <div
             class="movies-grid"
             id="moviesGrid"
+            role="tabpanel"
+            aria-labelledby="homeFeedLatest"
           ></div>
 
           <div
@@ -153,23 +129,43 @@
         <aside
           id="circleActivitySidebar"
           class="circle-activity-sidebar"
+          aria-labelledby="circleActivityTitle"
         >
-          <div class="section-title circle-activity-heading">
+          <div class="circle-activity-heading">
             <div>
               <div class="eyebrow red-eyebrow">
                 Dans mon cercle
               </div>
 
-              <h2>Activité des amis</h2>
+              <h2 id="circleActivityTitle">
+                Les dernières séances de vos amis
+              </h2>
+
+              <p
+                id="circleActivitySubtitle"
+                class="circle-activity-subtitle"
+              >
+                Les films, les mots et les petits élans de votre cercle.
+              </p>
             </div>
+
+            <a
+              id="circleActivitySeeAll"
+              class="circle-activity-see-all"
+              href="activite.html"
+              hidden
+            >
+              Voir toute l’activité →
+            </a>
           </div>
 
           <div
             id="circleActivityFeed"
             class="circle-activity-feed"
+            aria-live="polite"
           >
             <div class="circle-activity-loading">
-              Chargement de l’activité…
+              Chargement de l’activité de votre cercle…
             </div>
           </div>
 
@@ -348,7 +344,7 @@
   <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/navigation.js"></script>
   <script src="assets/js/auth.js"></script>
-  <script src="assets/js/reviews.js"></script>   
+  <script src="assets/js/reviews.js"></script>
   <script src="assets/js/movie-talents.js"></script>
   <script src="assets/js/global-carnet.js"></script>
   <script src="assets/js/global-movie-search.js"></script>
