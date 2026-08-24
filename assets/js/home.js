@@ -1,25 +1,25 @@
 
 let publicReviews = [];
-let selectedGenre = "Tous";
+let selectedHomeFeed = "latest";
 let selectedTmdbMovie = null;
 let isLoadingWriteTmdb = false;
 
-let homeTmdbSearchTimeout = null;
-let lastHomeTmdbQuery = "";
-let homeSearchQuery = "";
-
 const HOME_REVIEWS_PAGE_SIZE = 8;
-const CIRCLE_ACTIVITY_PAGE_SIZE = 4;
+const CIRCLE_ACTIVITY_PAGE_SIZE = 3;
+const RECENT_RELEASES_MONTHS = 12;
 
 let visibleHomeReviewsCount = HOME_REVIEWS_PAGE_SIZE;
 let visibleCircleActivityCount = CIRCLE_ACTIVITY_PAGE_SIZE;
 let circleActivityEvents = [];
 
+/* ---------------------------------
+   Accueil : éléments DOM
+--------------------------------- */
+
 const grid = document.getElementById("moviesGrid");
-const searchInput = document.getElementById("searchInput");
-const filters = document.getElementById("filters");
 const movieCount = document.getElementById("movieCount");
-const homeTmdbResults = document.getElementById("homeTmdbResults");
+
+const homeFeedTabs = document.getElementById("homeFeedTabs");
 
 const homeReviewsPagination = document.getElementById(
   "homeReviewsPagination"
@@ -29,16 +29,24 @@ const circleActivityPagination = document.getElementById(
   "circleActivityPagination"
 );
 
-/* ---------------------------------
-   Activité du cercle
---------------------------------- */
-
 const circleActivitySidebar = document.getElementById(
   "circleActivitySidebar"
 );
 
 const circleActivityFeed = document.getElementById(
   "circleActivityFeed"
+);
+
+const circleActivityTitle = document.getElementById(
+  "circleActivityTitle"
+);
+
+const circleActivitySubtitle = document.getElementById(
+  "circleActivitySubtitle"
+);
+
+const circleActivitySeeAll = document.getElementById(
+  "circleActivitySeeAll"
 );
 
 /* ---------------------------------
@@ -58,6 +66,7 @@ const selectedMovieCard = document.getElementById("selectedMovieCard");
 const selectedMoviePoster = document.getElementById("selectedMoviePoster");
 const selectedMovieTitle = document.getElementById("selectedMovieTitle");
 const selectedMovieMeta = document.getElementById("selectedMovieMeta");
+
 const selectedMovieOverview = document.getElementById(
   "selectedMovieOverview"
 );
@@ -162,9 +171,17 @@ function resetSelectedTmdbMovie() {
     selectedMoviePoster.alt = "";
   }
 
-  if (selectedMovieTitle) selectedMovieTitle.textContent = "";
-  if (selectedMovieMeta) selectedMovieMeta.textContent = "";
-  if (selectedMovieOverview) selectedMovieOverview.textContent = "";
+  if (selectedMovieTitle) {
+    selectedMovieTitle.textContent = "";
+  }
+
+  if (selectedMovieMeta) {
+    selectedMovieMeta.textContent = "";
+  }
+
+  if (selectedMovieOverview) {
+    selectedMovieOverview.textContent = "";
+  }
 
   const title = document.getElementById("title");
   const year = document.getElementById("year");
@@ -190,8 +207,13 @@ function displaySelectedTmdbMovie(movie) {
   const directorInput = document.getElementById("director");
   const genreInput = document.getElementById("genre");
 
-  if (titleInput) titleInput.value = movie.title || "";
-  if (yearInput) yearInput.value = movie.release_year || "";
+  if (titleInput) {
+    titleInput.value = movie.title || "";
+  }
+
+  if (yearInput) {
+    yearInput.value = movie.release_year || "";
+  }
 
   if (directorInput) {
     directorInput.value =
@@ -297,6 +319,7 @@ function displayTmdbResults(results) {
     showTmdbSearchMessage(
       "Aucun film trouvé. Essaie avec un autre titre."
     );
+
     return;
   }
 
@@ -344,6 +367,7 @@ async function searchTmdbMovies() {
     showTmdbSearchMessage(
       "Saisis au moins 2 caractères pour rechercher un film."
     );
+
     return;
   }
 
@@ -476,193 +500,6 @@ async function handleWriteTmdbFromUrl() {
 }
 
 /* ---------------------------------
-   Recherche TMDB depuis l'accueil
---------------------------------- */
-
-function clearHomeTmdbResults() {
-  if (!homeTmdbResults) {
-    return;
-  }
-
-  homeTmdbResults.replaceChildren();
-  homeTmdbResults.classList.remove("visible");
-}
-
-function displayHomeTmdbMessage(message) {
-  if (!homeTmdbResults) {
-    return;
-  }
-
-  homeTmdbResults.innerHTML = `
-    <div class="home-tmdb-message">
-      ${escapeHTML(message)}
-    </div>
-  `;
-
-  homeTmdbResults.classList.add("visible");
-}
-
-function openFilmFromHomeTmdb(movie) {
-  if (!movie?.tmdb_id) {
-    return;
-  }
-
-  window.location.href =
-    `film.html?tmdb=${encodeURIComponent(movie.tmdb_id)}`;
-}
-
-function writeReviewFromHomeTmdb(movie) {
-  if (!movie?.tmdb_id) {
-    return;
-  }
-
-  window.location.href =
-    `index.html?writeTmdb=${encodeURIComponent(movie.tmdb_id)}`;
-}
-
-function displayHomeTmdbResults(results) {
-  clearHomeTmdbResults();
-
-  if (!results || results.length === 0) {
-    displayHomeTmdbMessage(
-      "Aucun autre film trouvé dans le catalogue TMDB."
-    );
-    return;
-  }
-
-  const heading = document.createElement("div");
-
-  heading.className = "home-tmdb-heading";
-  heading.textContent = "Découvrir dans le cinéma";
-
-  homeTmdbResults?.appendChild(heading);
-
-  results.slice(0, 5).forEach((movie) => {
-    const item = document.createElement("article");
-    const details = document.createElement("div");
-    const title = document.createElement("strong");
-    const overview = document.createElement("p");
-    const actions = document.createElement("div");
-
-    item.className = "home-tmdb-item";
-    details.className = "home-tmdb-details";
-    actions.className = "home-tmdb-actions";
-
-    title.textContent =
-      `${movie.title || "Film sans titre"} (${
-        movie.release_year || "—"
-      })`;
-
-    overview.textContent =
-      movie.overview || "Synopsis non disponible.";
-
-    const filmButton = document.createElement("button");
-
-    filmButton.type = "button";
-    filmButton.className = "home-tmdb-film-button";
-    filmButton.textContent = "Fiche";
-
-    filmButton.addEventListener("click", () => {
-      openFilmFromHomeTmdb(movie);
-    });
-
-    const writeButton = document.createElement("button");
-
-    writeButton.type = "button";
-    writeButton.className = "home-tmdb-write-button";
-    writeButton.textContent = "Ajouter";
-
-    writeButton.addEventListener("click", () => {
-      writeReviewFromHomeTmdb(movie);
-    });
-
-    details.appendChild(title);
-    details.appendChild(overview);
-
-    actions.appendChild(filmButton);
-    actions.appendChild(writeButton);
-
-    item.appendChild(details);
-    item.appendChild(actions);
-
-    homeTmdbResults?.appendChild(item);
-  });
-
-  homeTmdbResults?.classList.add("visible");
-}
-
-async function searchTmdbFromHome(query) {
-  const cleanQuery = query.trim();
-
-  if (cleanQuery.length < 2) {
-    clearHomeTmdbResults();
-    return;
-  }
-
-  lastHomeTmdbQuery = cleanQuery;
-
-  displayHomeTmdbMessage("Recherche dans le catalogue cinéma…");
-
-  try {
-    const { data, error } = await supabaseClient.functions.invoke(
-      "tmdb-search",
-      {
-        body: {
-          query: cleanQuery
-        }
-      }
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    if (lastHomeTmdbQuery !== cleanQuery) {
-      return;
-    }
-
-    displayHomeTmdbResults(data?.results || []);
-  } catch (error) {
-    console.error(
-      "Erreur de recherche TMDB depuis l'accueil :",
-      error
-    );
-
-    if (lastHomeTmdbQuery === cleanQuery) {
-      displayHomeTmdbMessage(
-        "Impossible de rechercher des films pour le moment."
-      );
-    }
-  }
-}
-
-function handleHomeSearchInput() {
-  if (!searchInput) {
-    return;
-  }
-
-  const query = searchInput.value.trim();
-
-
-homeSearchQuery = query;
-resetHomeReviewsPagination();
-renderHomeReviews();
-
-
-  clearTimeout(homeTmdbSearchTimeout);
-
-  if (query.length < 2) {
-    lastHomeTmdbQuery = "";
-    clearHomeTmdbResults();
-    return;
-  }
-
-  homeTmdbSearchTimeout = setTimeout(() => {
-    searchTmdbFromHome(query);
-  }, 450);
-}
-
-/* ---------------------------------
    Activité du cercle
 --------------------------------- */
 
@@ -672,6 +509,11 @@ function formatCircleActivityDate(dateValue) {
   }
 
   const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
   const now = new Date();
 
   const differenceInSeconds = Math.max(
@@ -786,7 +628,7 @@ async function getCircleActivityEvents() {
     .order("created_at", {
       ascending: false
     })
-    .limit(8);
+    .limit(12);
 
   if (error) {
     throw error;
@@ -942,7 +784,7 @@ function renderCircleActivityItem(event) {
 
     detailMarkup = content
       ? `« ${content} »`
-      : `A ajouté une note de ${event.review?.rating || "—"}/5.`;
+      : `A ajouté une note de ${event.review?.rating || "—"} / 5.`;
 
     destination = movieUrl;
   }
@@ -959,7 +801,7 @@ function renderCircleActivityItem(event) {
       <span>à sa liste À voir</span>
     `;
 
-    detailMarkup = "Prochaines séances";
+    detailMarkup = "Prochaine séance à garder près de soi.";
     destination = listUrl || movieUrl;
   }
 
@@ -1025,6 +867,39 @@ function renderCircleActivityItem(event) {
   `;
 }
 
+function renderDisconnectedCircleActivity() {
+  if (!circleActivitySidebar || !circleActivityFeed) {
+    return;
+  }
+
+  circleActivitySidebar.hidden = false;
+
+  if (circleActivityTitle) {
+    circleActivityTitle.textContent = "Un cercle à retrouver";
+  }
+
+  if (circleActivitySubtitle) {
+    circleActivitySubtitle.textContent =
+      "Les dernières séances de vos amis vous attendent ici.";
+  }
+
+  if (circleActivitySeeAll) {
+    circleActivitySeeAll.hidden = true;
+  }
+
+  if (circleActivityPagination) {
+    circleActivityPagination.hidden = true;
+    circleActivityPagination.innerHTML = "";
+  }
+
+  circleActivityFeed.innerHTML = `
+    <div class="circle-activity-empty-state">
+      <strong>Connecte-toi pour retrouver les séances de ton cercle.</strong>
+      <br /><br />
+      Les critiques, listes et films gardés par tes amis apparaîtront ici.
+    </div>
+  `;
+}
 
 function renderCircleActivity(events) {
   if (!circleActivityFeed || !circleActivitySidebar) {
@@ -1032,18 +907,24 @@ function renderCircleActivity(events) {
   }
 
   if (!currentUser) {
-    circleActivitySidebar.hidden = true;
-    circleActivityFeed.innerHTML = "";
-
-    if (circleActivityPagination) {
-      circleActivityPagination.hidden = true;
-      circleActivityPagination.innerHTML = "";
-    }
-
+    renderDisconnectedCircleActivity();
     return;
   }
 
   circleActivitySidebar.hidden = false;
+
+  if (circleActivityTitle) {
+    circleActivityTitle.textContent = "Les dernières séances de tes amis";
+  }
+
+  if (circleActivitySubtitle) {
+    circleActivitySubtitle.textContent =
+      "Les films, les mots et les petits élans de ton cercle.";
+  }
+
+  if (circleActivitySeeAll) {
+    circleActivitySeeAll.hidden = events.length <= CIRCLE_ACTIVITY_PAGE_SIZE;
+  }
 
   if (!events.length) {
     circleActivityFeed.innerHTML = `
@@ -1077,8 +958,7 @@ function renderCircleActivity(events) {
     return;
   }
 
-  const hasMoreEvents =
-    visibleEvents.length < events.length;
+  const hasMoreEvents = visibleEvents.length < events.length;
 
   circleActivityPagination.hidden = !hasMoreEvents;
 
@@ -1089,13 +969,12 @@ function renderCircleActivity(events) {
         class="circle-activity-show-more"
         type="button"
       >
-        Voir l’activité du cercle
+        Voir davantage de séances
         <span aria-hidden="true">↓</span>
       </button>
     `
     : "";
 }
-
 
 async function refreshCircleActivity() {
   if (!circleActivityFeed || !circleActivitySidebar) {
@@ -1103,24 +982,22 @@ async function refreshCircleActivity() {
   }
 
   if (!currentUser) {
-    renderCircleActivity([]);
+    renderDisconnectedCircleActivity();
     return;
   }
 
   circleActivityFeed.innerHTML = `
     <div class="circle-activity-loading">
-      Chargement de l’activité…
+      Chargement de l’activité de ton cercle…
     </div>
   `;
 
   try {
+    circleActivityEvents = await getCircleActivityEvents();
 
-circleActivityEvents = await getCircleActivityEvents();
+    visibleCircleActivityCount = CIRCLE_ACTIVITY_PAGE_SIZE;
 
-visibleCircleActivityCount = CIRCLE_ACTIVITY_PAGE_SIZE;
-
-renderCircleActivity(circleActivityEvents);
-
+    renderCircleActivity(circleActivityEvents);
   } catch (error) {
     console.error(
       "Erreur de chargement de l’activité du cercle :",
@@ -1128,6 +1005,19 @@ renderCircleActivity(circleActivityEvents);
     );
 
     circleActivitySidebar.hidden = false;
+
+    if (circleActivityTitle) {
+      circleActivityTitle.textContent = "Dans mon cercle";
+    }
+
+    if (circleActivitySubtitle) {
+      circleActivitySubtitle.textContent =
+        "Les dernières séances de tes amis.";
+    }
+
+    if (circleActivitySeeAll) {
+      circleActivitySeeAll.hidden = true;
+    }
 
     circleActivityFeed.innerHTML = `
       <div class="circle-activity-empty-state">
@@ -1138,134 +1028,204 @@ renderCircleActivity(circleActivityEvents);
 }
 
 /* ---------------------------------
-   Accueil : critiques
+   Accueil : fils éditoriaux
 --------------------------------- */
 
-function allHomeReviews() {
-  return publicReviews;
+function isWrittenReview(review) {
+  return String(review?.content || "").trim().length > 0;
 }
 
-function getPrimaryGenre(review) {
-  return getPrimarySiteGenre(review.movies?.genres || []);
+function getReviewLikesCount(review) {
+  const directCount = Number(
+    review?.like_count ??
+      review?.likes_count ??
+      review?.likesCount ??
+      review?.review_likes_count
+  );
+
+  if (Number.isFinite(directCount)) {
+    return directCount;
+  }
+
+  if (Array.isArray(review?.likes)) {
+    return review.likes.length;
+  }
+
+  return 0;
+}
+
+function getReviewCreationTimestamp(review) {
+  const timestamp = new Date(review?.created_at || 0).getTime();
+
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function getMovieReleaseDate(movie) {
+  if (!movie) {
+    return null;
+  }
+
+  const fullReleaseDate =
+    movie.release_date ||
+    movie.released_at ||
+    movie.releaseDate ||
+    null;
+
+  if (fullReleaseDate) {
+    const date = new Date(fullReleaseDate);
+
+    if (!Number.isNaN(date.getTime())) {
+      return date;
+    }
+  }
+
+  const year = Number(movie.release_year);
+
+  if (
+    Number.isInteger(year) &&
+    year >= 1888 &&
+    year <= new Date().getFullYear() + 1
+  ) {
+    return new Date(year, 0, 1);
+  }
+
+  return null;
+}
+
+function getMovieReleaseTimestamp(movie) {
+  const releaseDate = getMovieReleaseDate(movie);
+
+  return releaseDate ? releaseDate.getTime() : 0;
+}
+
+function isRecentReleaseReview(review) {
+  const releaseDate = getMovieReleaseDate(review?.movies);
+
+  if (!releaseDate) {
+    return false;
+  }
+
+  const minimumDate = new Date();
+  minimumDate.setMonth(
+    minimumDate.getMonth() - RECENT_RELEASES_MONTHS
+  );
+
+  minimumDate.setHours(0, 0, 0, 0);
+
+  return releaseDate >= minimumDate;
 }
 
 function resetHomeReviewsPagination() {
   visibleHomeReviewsCount = HOME_REVIEWS_PAGE_SIZE;
 }
 
+function getHomeFeedReviews() {
+  const writtenReviews = publicReviews.filter(isWrittenReview);
 
-function renderHomeReviews() {
-  if (!grid || !movieCount) {
-    return;
+  if (selectedHomeFeed === "releases") {
+    return writtenReviews
+      .filter(isRecentReleaseReview)
+      .sort((firstReview, secondReview) => {
+        const releaseDifference =
+          getMovieReleaseTimestamp(secondReview.movies) -
+          getMovieReleaseTimestamp(firstReview.movies);
+
+        if (releaseDifference !== 0) {
+          return releaseDifference;
+        }
+
+        return (
+          getReviewCreationTimestamp(secondReview) -
+          getReviewCreationTimestamp(firstReview)
+        );
+      });
   }
 
-  const normalizedSearch = homeSearchQuery
-    .trim()
-    .toLocaleLowerCase("fr-FR");
+  if (selectedHomeFeed === "popular") {
+    return writtenReviews.sort((firstReview, secondReview) => {
+      const likesDifference =
+        getReviewLikesCount(secondReview) -
+        getReviewLikesCount(firstReview);
 
-  const filteredReviews = allHomeReviews().filter((review) => {
-    const primaryGenre = getPrimaryGenre(review);
+      if (likesDifference !== 0) {
+        return likesDifference;
+      }
 
-    const matchesGenre =
-      selectedGenre === "Tous" ||
-      primaryGenre === selectedGenre;
+      return (
+        getReviewCreationTimestamp(secondReview) -
+        getReviewCreationTimestamp(firstReview)
+      );
+    });
+  }
 
-    if (!normalizedSearch) {
-      return matchesGenre;
-    }
-
-    const searchableText = [
-      review.movies?.title,
-      review.movies?.original_title,
-      review.movies?.director,
-      review.content,
-      review.author?.username,
-      ...(review.movies?.genres || []),
-      ...(review.tags || [])
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLocaleLowerCase("fr-FR");
-
+  return writtenReviews.sort((firstReview, secondReview) => {
     return (
-      matchesGenre &&
-      searchableText.includes(normalizedSearch)
+      getReviewCreationTimestamp(secondReview) -
+      getReviewCreationTimestamp(firstReview)
     );
   });
+}
 
-  const visibleReviews = filteredReviews.slice(
-    0,
-    visibleHomeReviewsCount
-  );
-
-
-const totalLabel =
-  filteredReviews.length > 1 ? "séances" : "séance";
-
-const visibleLabel =
-  visibleReviews.length > 1 ? "affichées" : "affichée";
-
-const isFiltering =
-  selectedGenre !== "Tous" || Boolean(normalizedSearch);
-
-movieCount.textContent = filteredReviews.length
-  ? `${filteredReviews.length} ${totalLabel} ${
-      isFiltering
-        ? "dans cette sélection"
-        : "dans le carnet"
-    } · ${visibleReviews.length} ${visibleLabel}`
-  : "";
-
-
-  if (!filteredReviews.length) {
-    grid.innerHTML = `
-      <div class="empty-state">
-        <strong>Aucune séance ne correspond à cette recherche.</strong>
-        <br /><br />
-        Essaie un autre titre, un autre genre ou découvre un film
-        dans les résultats TMDB ci-dessus.
-      </div>
+function getHomeFeedEmptyState() {
+  if (selectedHomeFeed === "releases") {
+    return `
+      <strong>Pas encore de critique sur une sortie récente.</strong>
+      <br /><br />
+      Les films sortis ces douze derniers mois et racontés par le carnet
+      apparaîtront ici.
     `;
+  }
 
-    if (homeReviewsPagination) {
-      homeReviewsPagination.hidden = true;
-      homeReviewsPagination.innerHTML = "";
+  if (selectedHomeFeed === "popular") {
+    return `
+      <strong>Les critiques les plus aimées arrivent ici.</strong>
+      <br /><br />
+      Dès que le cercle glissera quelques cœurs, elles remonteront dans ce fil.
+    `;
+  }
+
+  return `
+    <strong>Pas encore de microcritique à lire.</strong>
+    <br /><br />
+    Les notes seules vivent dans les carnets personnels ; ici, on garde
+    les films accompagnés de quelques mots.
+  `;
+}
+
+function getHomeFeedCountLabel(totalCount) {
+  if (!totalCount) {
+    return "";
+  }
+
+  const reviewLabel =
+    totalCount > 1 ? "critiques à lire" : "critique à lire";
+
+  if (selectedHomeFeed === "releases") {
+    return `${totalCount} ${reviewLabel} · sorties récentes`;
+  }
+
+  if (selectedHomeFeed === "popular") {
+    return `${totalCount} ${reviewLabel} · les plus aimées`;
+  }
+
+  return `${totalCount} ${reviewLabel}`;
+}
+
+function updateHomeFeedTabs() {
+  document.querySelectorAll("[data-home-feed]").forEach((button) => {
+    const isActive =
+      button.dataset.homeFeed === selectedHomeFeed;
+
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+
+    if (isActive && grid) {
+      grid.setAttribute("aria-labelledby", button.id);
     }
+  });
+}
 
-    return;
-  }
-
-  grid.innerHTML = visibleReviews
-    .map((review, index) => createMovieCard(review, index))
-    .join("");
-
-  if (homeReviewsPagination) {
-    const hasMoreReviews =
-      visibleReviews.length < filteredReviews.length;
-
-    homeReviewsPagination.hidden = !hasMoreReviews;
-
-
-homeReviewsPagination.innerHTML = hasMoreReviews
-  ? `
-    <button
-      id="showMoreHomeReviewsButton"
-      class="home-show-more-button"
-      type="button"
-    >
-      Continuer la séance · ${
-        Math.min(
-          HOME_REVIEWS_PAGE_SIZE,
-          filteredReviews.length - visibleReviews.length
-        )
-      } de plus
-      <span aria-hidden="true">↓</span>
-    </button>
-  `
-  : "";
-
-  }
-
+function renderHomeLikeButtons() {
   document.querySelectorAll(".favorite").forEach((button) => {
     button.addEventListener("click", async () => {
       if (!currentUser) {
@@ -1303,6 +1263,70 @@ homeReviewsPagination.innerHTML = hasMoreReviews
   });
 }
 
+function renderHomeReviews() {
+  if (!grid || !movieCount) {
+    return;
+  }
+
+  const filteredReviews = getHomeFeedReviews();
+
+  const visibleReviews = filteredReviews.slice(
+    0,
+    visibleHomeReviewsCount
+  );
+
+  movieCount.textContent = getHomeFeedCountLabel(
+    filteredReviews.length
+  );
+
+  updateHomeFeedTabs();
+
+  if (!filteredReviews.length) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        ${getHomeFeedEmptyState()}
+      </div>
+    `;
+
+    if (homeReviewsPagination) {
+      homeReviewsPagination.hidden = true;
+      homeReviewsPagination.innerHTML = "";
+    }
+
+    return;
+  }
+
+  grid.innerHTML = visibleReviews
+    .map((review, index) => createMovieCard(review, index))
+    .join("");
+
+  if (homeReviewsPagination) {
+    const hasMoreReviews =
+      visibleReviews.length < filteredReviews.length;
+
+    homeReviewsPagination.hidden = !hasMoreReviews;
+
+    homeReviewsPagination.innerHTML = hasMoreReviews
+      ? `
+        <button
+          id="showMoreHomeReviewsButton"
+          class="home-show-more-button"
+          type="button"
+        >
+          Continuer la séance · ${
+            Math.min(
+              HOME_REVIEWS_PAGE_SIZE,
+              filteredReviews.length - visibleReviews.length
+            )
+          } de plus
+          <span aria-hidden="true">↓</span>
+        </button>
+      `
+      : "";
+  }
+
+  renderHomeLikeButtons();
+}
 
 async function refreshHomeReviews() {
   if (!grid || !movieCount) {
@@ -1311,7 +1335,8 @@ async function refreshHomeReviews() {
 
   try {
     publicReviews = await getPublicReviews();
-   resetHomeReviewsPagination();
+
+    resetHomeReviewsPagination();
     renderHomeReviews();
   } catch (error) {
     console.error(
@@ -1351,10 +1376,6 @@ function openReviewModal() {
     return;
   }
 
-  /*
-    Une personne connectée ne doit jamais conserver
-    une modale d'authentification ouverte derrière elle.
-  */
   if (authModal) {
     authModal.classList.remove("visible");
     authModal.setAttribute("aria-hidden", "true");
@@ -1374,6 +1395,70 @@ function closeReviewModal() {
 /* ---------------------------------
    Événements
 --------------------------------- */
+
+function setupHomeFeedTabs() {
+  if (!homeFeedTabs) {
+    return;
+  }
+
+  homeFeedTabs.addEventListener("click", (event) => {
+    const tab = event.target.closest("[data-home-feed]");
+
+    if (!tab) {
+      return;
+    }
+
+    const nextFeed = tab.dataset.homeFeed;
+
+    if (
+      !nextFeed ||
+      nextFeed === selectedHomeFeed
+    ) {
+      return;
+    }
+
+    selectedHomeFeed = nextFeed;
+
+    resetHomeReviewsPagination();
+    renderHomeReviews();
+  });
+
+  homeFeedTabs.addEventListener("keydown", (event) => {
+    const tabs = [
+      ...homeFeedTabs.querySelectorAll("[data-home-feed]")
+    ];
+
+    const currentIndex = tabs.findIndex(
+      (tab) => tab === document.activeElement
+    );
+
+    if (currentIndex < 0) {
+      return;
+    }
+
+    let nextIndex = currentIndex;
+
+    if (event.key === "ArrowRight") {
+      nextIndex = (currentIndex + 1) % tabs.length;
+    }
+
+    if (event.key === "ArrowLeft") {
+      nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    }
+
+    if (
+      event.key !== "ArrowRight" &&
+      event.key !== "ArrowLeft"
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    tabs[nextIndex].focus();
+    tabs[nextIndex].click();
+  });
+}
 
 function setupHome() {
   if (tmdbSearchButton) {
@@ -1401,6 +1486,8 @@ function setupHome() {
 
   updateReviewCharacterCounter();
 
+  setupHomeFeedTabs();
+
   document.addEventListener("click", (event) => {
     const openReviewButton = event.target.closest("#openModal");
 
@@ -1422,37 +1509,6 @@ function setupHome() {
         closeReviewModal();
       }
     });
-  }
-
-  if (filters) {
-    filters.addEventListener("click", (event) => {
-      const filterButton = event.target.closest(".filter");
-
-      if (!filterButton) {
-        return;
-      }
-
-      document.querySelectorAll(".filter").forEach((button) => {
-        button.classList.remove("active");
-      });
-
-      filterButton.classList.add("active");
-
-
-selectedGenre =
-  filterButton.dataset.genre || "Tous";
-
-resetHomeReviewsPagination();
-renderHomeReviews();
-
-    });
-  }
-
-  if (searchInput) {
-    searchInput.addEventListener(
-      "input",
-      handleHomeSearchInput
-    );
   }
 
   if (homeReviewsPagination) {
@@ -1484,6 +1540,25 @@ renderHomeReviews();
       visibleCircleActivityCount += CIRCLE_ACTIVITY_PAGE_SIZE;
 
       renderCircleActivity(circleActivityEvents);
+    });
+  }
+
+  if (circleActivitySeeAll) {
+    circleActivitySeeAll.addEventListener("click", (event) => {
+      if (!currentUser || !circleActivityEvents.length) {
+        return;
+      }
+
+      event.preventDefault();
+
+      visibleCircleActivityCount = circleActivityEvents.length;
+
+      renderCircleActivity(circleActivityEvents);
+
+      circleActivitySidebar?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
     });
   }
 
@@ -1565,24 +1640,10 @@ renderHomeReviews();
 
         closeReviewModal();
 
-        selectedGenre = "Tous";
-        homeSearchQuery = "";
-        lastHomeTmdbQuery = "";
-
-        if (searchInput) {
-          searchInput.value = "";
-        }
-
-        clearHomeTmdbResults();
-
-        document.querySelectorAll(".filter").forEach((button) => {
-          button.classList.toggle(
-            "active",
-            button.dataset.genre === "Tous"
-          );
-        });
+        selectedHomeFeed = "latest";
 
         await refreshHomeReviews();
+        await refreshCircleActivity();
 
         document
           .querySelector("#critiques")
@@ -1621,10 +1682,6 @@ renderHomeReviews();
   });
 
   document.addEventListener("authChanged", async () => {
-    /*
-      Après restauration ou connexion de session :
-      la modale de connexion ne doit pas subsister.
-    */
     if (currentUser) {
       const authModal = document.getElementById("authModal");
 
