@@ -12653,4 +12653,30 @@ main {
   }
 }
 
+/* =====================================================
+   NAVIGATION MOBILE — LOGO CENTRÉ
+   ===================================================== */
+
+@media (max-width: 700px) {
+  .site-navigation {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 14px 0 12px;
+  }
+
+  .site-logo {
+    justify-self: center;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  .site-navigation-actions {
+    justify-content: center;
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
 
