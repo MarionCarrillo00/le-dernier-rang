@@ -474,6 +474,7 @@ function renderNavigation() {
   }
 
   const isProfilePage = isCurrentPage("profil.html");
+  const isMessagesPage = isCurrentPage("messages.html");
   const isAdminPage = isCurrentPage("admin.html");
 
   siteHeader.className = "site-header";
@@ -529,6 +530,25 @@ function renderNavigation() {
             ${isProfilePage ? 'aria-current="page"' : ""}
           >
             Mon espace
+          </a>
+
+          <a
+            href="messages.html"
+            class="site-messages-link ${
+              isMessagesPage ? "site-nav-current" : ""
+            }"
+            ${isMessagesPage ? 'aria-current="page"' : ""}
+          >
+            <span>Mes échanges</span>
+
+            <span
+              id="unreadMessagesBadge"
+              class="unread-messages-badge"
+              aria-label="Messages non lus"
+              hidden
+            >
+              0
+            </span>
           </a>
 
           <a
