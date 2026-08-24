@@ -5,6 +5,10 @@ let adminInitialised = false;
 let adminData = null;
 let adminReviewFilter = "all";
 
+/* =====================================================
+   OUTILS
+   ===================================================== */
+
 function adminEscapeHTML(value) {
   if (typeof escapeHTML === "function") {
     return escapeHTML(value);
@@ -49,6 +53,10 @@ function truncateAdminText(value, maxLength = 110) {
   return `${text.slice(0, maxLength).trim()}…`;
 }
 
+/* =====================================================
+   ÉTATS DE PAGE
+   ===================================================== */
+
 function renderAdminMessage(title, text, isError = false) {
   if (!adminPageContent) {
     return;
@@ -57,8 +65,11 @@ function renderAdminMessage(title, text, isError = false) {
   adminPageContent.innerHTML = `
     <section class="admin-message ${isError ? "admin-message-error" : ""}">
       <p class="eyebrow">La régie</p>
+
       <h1>${adminEscapeHTML(title)}</h1>
+
       <p>${adminEscapeHTML(text)}</p>
+
       <a class="button-primary" href="index.html">
         Retourner au carnet
       </a>
@@ -78,36 +89,56 @@ function renderAdminLoading() {
   `;
 }
 
+/* =====================================================
+   CHARGEMENT DES DONNÉES
+   ===================================================== */
+
 async function getAdminDashboardData() {
   const [
     membersResult,
     publishedReviewsResult,
     publicListsResult,
     adminReviewsResult,
+    adminReportsResult,
     recentProfilesResult
   ] = await Promise.all([
     supabaseClient
       .from("profiles")
-      .select("*", { count: "exact", head: true }),
+      .select("*", {
+        count: "exact",
+        head: true
+      }),
 
     supabaseClient
       .from("reviews")
-      .select("*", { count: "exact", head: true })
+      .select("*", {
+        count: "exact",
+        head: true
+      })
       .eq("is_published", true),
 
     supabaseClient
       .from("movie_lists")
-      .select("*", { count: "exact", head: true })
+      .select("*", {
+        count: "exact",
+        head: true
+      })
       .eq("is_public", true),
 
     supabaseClient.rpc("admin_get_reviews", {
       p_limit: 200
     }),
 
+    supabaseClient.rpc("admin_get_review_reports", {
+      p_limit: 150
+    }),
+
     supabaseClient
       .from("profiles")
       .select("id, username, avatar_url, created_at")
-      .order("created_at", { ascending: false })
+      .order("created_at", {
+        ascending: false
+      })
       .limit(12)
   ]);
 
@@ -116,6 +147,7 @@ async function getAdminDashboardData() {
     publishedReviewsResult.error,
     publicListsResult.error,
     adminReviewsResult.error,
+    adminReportsResult.error,
     recentProfilesResult.error
   ].filter(Boolean);
 
@@ -131,12 +163,45 @@ async function getAdminDashboardData() {
     content: review.review_content,
     is_published: review.review_is_published,
     created_at: review.review_created_at,
+
     movies: {
       title: review.movie_title,
       release_year: review.movie_release_year
     },
+
     author: {
-      username: review.author_username
+      username: review.author_username || "Membre"
+    }
+  }));
+
+  const reports = (adminReportsResult.data || []).map((report) => ({
+    id: report.report_id,
+    reason: report.report_reason,
+    details: report.report_details,
+    status: report.report_status,
+    created_at: report.report_created_at,
+
+    reporter: {
+      id: report.reporter_id,
+      username: report.reporter_username || "Membre"
+    },
+
+    review: {
+      id: report.review_id,
+      user_id: report.review_user_id,
+      movie_id: report.review_movie_id,
+      rating: report.review_rating,
+      content: report.review_content,
+      is_published: report.review_is_published,
+      created_at: report.review_created_at,
+
+      movie: {
+        title: report.movie_title || "Film sans titre"
+      },
+
+      author: {
+        username: report.author_username || "Membre"
+      }
     }
   }));
 
@@ -147,10 +212,16 @@ async function getAdminDashboardData() {
       allReviews: reviews.length,
       lists: publicListsResult.count || 0
     },
+
     reviews,
+    reports,
     recentProfiles: recentProfilesResult.data || []
   };
 }
+
+/* =====================================================
+   MODÉRATION DES CRITIQUES
+   ===================================================== */
 
 function getFilteredAdminReviews() {
   if (!adminData?.reviews) {
@@ -186,9 +257,14 @@ function renderAdminReviewRow(review) {
         <a href="film.html?id=${encodeURIComponent(review.movie_id)}">
           ${adminEscapeHTML(movieTitle)}
         </a>
+
         ${
           releaseYear
-            ? `<span class="admin-table-year">(${adminEscapeHTML(releaseYear)})</span>`
+            ? `
+              <span class="admin-table-year">
+                (${adminEscapeHTML(releaseYear)})
+              </span>
+            `
             : ""
         }
       </td>
@@ -293,6 +369,222 @@ function renderAdminReviewTable() {
   `;
 }
 
+/* =====================================================
+   SIGNALEMENTS
+   ===================================================== */
+
+function getAdminReportReasonLabel(reason) {
+  const labels = {
+    offensive: "Contenu offensant ou discriminatoire",
+    harassment: "Harcèlement ou attaque personnelle",
+    spam: "Spam ou publicité",
+    spoiler: "Spoiler non signalé",
+    other: "Autre problème"
+  };
+
+  return labels[reason] || "Motif non précisé";
+}
+
+function getAdminReportStatusLabel(status) {
+  const labels = {
+    new: "Nouveau",
+    in_review: "À examiner",
+    resolved: "Traité",
+    dismissed: "Écarté"
+  };
+
+  return labels[status] || "Inconnu";
+}
+
+function getPendingAdminReportsCount() {
+  return (adminData?.reports || []).filter((report) => {
+    return (
+      report.status === "new" ||
+      report.status === "in_review"
+    );
+  }).length;
+}
+
+function renderAdminReportCard(report) {
+  const review = report.review || {};
+  const movie = review.movie || {};
+  const author = review.author || {};
+  const reporter = report.reporter || {};
+
+  const movieTitle = movie.title || "Film sans titre";
+  const authorName = author.username || "Membre";
+  const reporterName = reporter.username || "Membre";
+
+  const reviewContent = String(review.content || "").trim();
+
+  const reportStatus = report.status || "new";
+
+  return `
+    <article class="admin-report-card">
+      <div class="admin-report-card-top">
+        <div>
+          <span
+            class="admin-report-status admin-report-status-${adminEscapeHTML(
+              reportStatus
+            )}"
+          >
+            ${adminEscapeHTML(
+              getAdminReportStatusLabel(reportStatus)
+            )}
+          </span>
+
+          <span class="admin-report-reason">
+            ${adminEscapeHTML(
+              getAdminReportReasonLabel(report.reason)
+            )}
+          </span>
+        </div>
+
+        <time class="admin-report-date">
+          ${formatAdminDate(report.created_at)}
+        </time>
+      </div>
+
+      <h3>${adminEscapeHTML(movieTitle)}</h3>
+
+      <p class="admin-report-meta">
+        Critique de
+
+        <a href="membre.html?id=${encodeURIComponent(review.user_id)}">
+          ${adminEscapeHTML(authorName)}
+        </a>
+
+        · signalée par
+
+        <a href="membre.html?id=${encodeURIComponent(reporter.id)}">
+          ${adminEscapeHTML(reporterName)}
+        </a>
+      </p>
+
+      <blockquote class="admin-report-review-content">
+        ${
+          reviewContent
+            ? `« ${adminEscapeHTML(
+                truncateAdminText(reviewContent, 230)
+              )} »`
+            : "Note seule"
+        }
+      </blockquote>
+
+      ${
+        report.details
+          ? `
+            <p class="admin-report-details">
+              <strong>Précision :</strong>
+              ${adminEscapeHTML(report.details)}
+            </p>
+          `
+          : ""
+      }
+
+      <div class="admin-report-actions">
+        <a
+          class="button-text"
+          href="film.html?id=${encodeURIComponent(
+            review.movie_id
+          )}#review-${encodeURIComponent(review.id)}"
+        >
+          Voir la critique
+        </a>
+
+        ${
+          review.is_published
+            ? `
+              <button
+                class="button-text admin-unpublish-button"
+                type="button"
+                data-review-id="${review.id}"
+              >
+                Dépublier
+              </button>
+            `
+            : `
+              <button
+                class="button-text admin-republish-button"
+                type="button"
+                data-review-id="${review.id}"
+              >
+                Republier
+              </button>
+            `
+        }
+
+        ${
+          reportStatus !== "in_review"
+            ? `
+              <button
+                class="button-text admin-report-status-button"
+                type="button"
+                data-report-id="${report.id}"
+                data-report-status="in_review"
+              >
+                À examiner
+              </button>
+            `
+            : ""
+        }
+
+        ${
+          reportStatus !== "resolved"
+            ? `
+              <button
+                class="button-text admin-report-status-button"
+                type="button"
+                data-report-id="${report.id}"
+                data-report-status="resolved"
+              >
+                Marquer comme traité
+              </button>
+            `
+            : ""
+        }
+
+        ${
+          reportStatus !== "dismissed"
+            ? `
+              <button
+                class="button-text admin-report-status-button"
+                type="button"
+                data-report-id="${report.id}"
+                data-report-status="dismissed"
+              >
+                Écarter
+              </button>
+            `
+            : ""
+        }
+      </div>
+    </article>
+  `;
+}
+
+function renderAdminReports() {
+  const reports = adminData?.reports || [];
+
+  if (!reports.length) {
+    return `
+      <div class="admin-reports-empty">
+        Aucun signalement à examiner pour le moment.
+      </div>
+    `;
+  }
+
+  return `
+    <div class="admin-reports-list">
+      ${reports.map(renderAdminReportCard).join("")}
+    </div>
+  `;
+}
+
+/* =====================================================
+   MEMBRES
+   ===================================================== */
+
 function renderAdminMemberCard(profile) {
   const username = profile.username || "Membre";
   const initial = username.charAt(0).toUpperCase() || "M";
@@ -315,7 +607,10 @@ function renderAdminMemberCard(profile) {
 
       <div>
         <h3>${adminEscapeHTML(username)}</h3>
-        <p>Inscription : ${formatAdminDate(profile.created_at)}</p>
+
+        <p>
+          Inscription : ${formatAdminDate(profile.created_at)}
+        </p>
 
         <a
           class="button-text"
@@ -328,13 +623,19 @@ function renderAdminMemberCard(profile) {
   `;
 }
 
+/* =====================================================
+   RENDU PRINCIPAL
+   ===================================================== */
+
 function renderAdminDashboard() {
   if (!adminPageContent || !adminData) {
     return;
   }
 
   const membersMarkup = adminData.recentProfiles.length
-    ? adminData.recentProfiles.map(renderAdminMemberCard).join("")
+    ? adminData.recentProfiles
+        .map(renderAdminMemberCard)
+        .join("")
     : `
       <div class="empty-state">
         Aucun membre inscrit pour le moment.
@@ -349,14 +650,18 @@ function renderAdminDashboard() {
     (review) => !review.is_published
   ).length;
 
+  const pendingReportsCount = getPendingAdminReportsCount();
+
   adminPageContent.innerHTML = `
     <section class="admin-hero">
       <div>
         <p class="eyebrow">Espace administratrice</p>
+
         <h1>La régie</h1>
+
         <p>
           Veiller sur les films, les mots et les visages
-          du dernier rang.
+          de Ciné Mojito.
         </p>
       </div>
 
@@ -367,19 +672,54 @@ function renderAdminDashboard() {
 
     <section class="admin-stats-grid" aria-label="Indicateurs du site">
       <article class="admin-stat-card">
-        <span class="admin-stat-number">${adminData.stats.members}</span>
-        <span class="admin-stat-label">membres</span>
+        <span class="admin-stat-number">
+          ${adminData.stats.members}
+        </span>
+
+        <span class="admin-stat-label">
+          membres
+        </span>
       </article>
 
       <article class="admin-stat-card">
-        <span class="admin-stat-number">${publishedCount}</span>
-        <span class="admin-stat-label">microcritiques publiées</span>
+        <span class="admin-stat-number">
+          ${publishedCount}
+        </span>
+
+        <span class="admin-stat-label">
+          microcritiques publiées
+        </span>
       </article>
 
       <article class="admin-stat-card">
-        <span class="admin-stat-number">${unpublishedCount}</span>
-        <span class="admin-stat-label">microcritiques dépubliées</span>
+        <span class="admin-stat-number">
+          ${unpublishedCount}
+        </span>
+
+        <span class="admin-stat-label">
+          microcritiques dépubliées
+        </span>
       </article>
+    </section>
+
+    <section class="admin-section admin-reports-section">
+      <div class="admin-section-heading">
+        <div>
+          <p class="eyebrow">Modération prioritaire</p>
+          <h2>Signalements à examiner</h2>
+        </div>
+
+        <span class="admin-report-total">
+          ${pendingReportsCount}
+          ${
+            pendingReportsCount > 1
+              ? "en attente"
+              : "en attente"
+          }
+        </span>
+      </div>
+
+      ${renderAdminReports()}
     </section>
 
     <section class="admin-section">
@@ -450,6 +790,10 @@ function renderAdminDashboard() {
   setupAdminActions();
 }
 
+/* =====================================================
+   RAFRAÎCHISSEMENT
+   ===================================================== */
+
 async function refreshAdminDashboard() {
   renderAdminLoading();
 
@@ -467,6 +811,10 @@ async function refreshAdminDashboard() {
     );
   }
 }
+
+/* =====================================================
+   ACTIONS SUR LES CRITIQUES
+   ===================================================== */
 
 async function setReviewPublication(reviewId, isPublished, button) {
   if (!reviewId) {
@@ -557,6 +905,57 @@ async function deleteAdminReview(reviewId, movieTitle, button) {
   }
 }
 
+/* =====================================================
+   ACTIONS SUR LES SIGNALEMENTS
+   ===================================================== */
+
+async function updateAdminReportStatus(reportId, status, button) {
+  if (!reportId || !status) {
+    return;
+  }
+
+  const previousText = button?.textContent || "";
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Un instant…";
+  }
+
+  try {
+    const { error } = await supabaseClient.rpc(
+      "admin_update_review_report",
+      {
+        p_report_id: reportId,
+        p_status: status
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    await refreshAdminDashboard();
+  } catch (error) {
+    console.error(
+      "Erreur de mise à jour du signalement :",
+      error
+    );
+
+    alert(
+      `Impossible de modifier ce signalement : ${error.message}`
+    );
+
+    if (button) {
+      button.disabled = false;
+      button.textContent = previousText;
+    }
+  }
+}
+
+/* =====================================================
+   ÉCOUTEURS
+   ===================================================== */
+
 function setupAdminActions() {
   const refreshButton = document.getElementById("refreshAdminButton");
 
@@ -564,35 +963,69 @@ function setupAdminActions() {
     refreshButton.addEventListener("click", refreshAdminDashboard);
   }
 
-  document.querySelectorAll(".admin-filter-button").forEach((button) => {
-    button.addEventListener("click", () => {
-      adminReviewFilter = button.dataset.adminFilter || "all";
-      renderAdminDashboard();
-    });
-  });
+  document
+    .querySelectorAll(".admin-filter-button")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        adminReviewFilter =
+          button.dataset.adminFilter || "all";
 
-  document.querySelectorAll(".admin-unpublish-button").forEach((button) => {
-    button.addEventListener("click", () => {
-      setReviewPublication(button.dataset.reviewId, false, button);
+        renderAdminDashboard();
+      });
     });
-  });
 
-  document.querySelectorAll(".admin-republish-button").forEach((button) => {
-    button.addEventListener("click", () => {
-      setReviewPublication(button.dataset.reviewId, true, button);
+  document
+    .querySelectorAll(".admin-unpublish-button")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        setReviewPublication(
+          button.dataset.reviewId,
+          false,
+          button
+        );
+      });
     });
-  });
 
-  document.querySelectorAll(".admin-delete-button").forEach((button) => {
-    button.addEventListener("click", () => {
-      deleteAdminReview(
-        button.dataset.reviewId,
-        button.dataset.movieTitle || "ce film",
-        button
-      );
+  document
+    .querySelectorAll(".admin-republish-button")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        setReviewPublication(
+          button.dataset.reviewId,
+          true,
+          button
+        );
+      });
     });
-  });
+
+  document
+    .querySelectorAll(".admin-delete-button")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        deleteAdminReview(
+          button.dataset.reviewId,
+          button.dataset.movieTitle || "ce film",
+          button
+        );
+      });
+    });
+
+  document
+    .querySelectorAll(".admin-report-status-button")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        updateAdminReportStatus(
+          button.dataset.reportId,
+          button.dataset.reportStatus,
+          button
+        );
+      });
+    });
 }
+
+/* =====================================================
+   ACCÈS ADMINISTRATEUR
+   ===================================================== */
 
 function handleAdminAuthChanged() {
   if (!currentUser) {
@@ -600,15 +1033,17 @@ function handleAdminAuthChanged() {
       "La régie est privée",
       "Connecte-toi avec un compte administrateur pour accéder à cet espace."
     );
+
     return;
   }
 
   if (!currentProfile?.is_admin) {
     renderAdminMessage(
       "Accès réservé",
-      "Cet espace est réservé à l’administration du Dernier rang.",
+      "Cet espace est réservé à l’administration de Ciné Mojito.",
       true
     );
+
     return;
   }
 
