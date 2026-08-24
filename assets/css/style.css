@@ -12679,4 +12679,212 @@ main {
   }
 }
 
+/* =====================================================
+   SIGNALER UNE MICROCRITIQUE
+   ===================================================== */
+
+.report-review {
+  padding: 0;
+  color: var(--grey);
+  background: transparent;
+  border: 0;
+  font-family: Arial, sans-serif;
+  font-size: 0.66rem;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.report-review:hover,
+.report-review:focus-visible {
+  color: var(--red);
+  outline: none;
+}
+
+.review-report-modal-box {
+  width: min(560px, 100%);
+}
+
+.review-report-intro {
+  margin: 0 0 14px;
+  color: var(--grey);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.review-report-movie {
+  margin: 0 0 20px;
+  padding: 10px 12px;
+  color: var(--deep-red);
+  background: rgba(215, 167, 93, 0.11);
+  border-left: 2px solid var(--gold);
+  font-family: Arial, sans-serif;
+  font-size: 0.75rem;
+}
+
+/* =====================================================
+   LA RÉGIE — SIGNALEMENTS
+   ===================================================== */
+
+.admin-reports-section {
+  margin-top: 58px;
+}
+
+.admin-report-total {
+  padding: 7px 10px;
+  color: var(--deep-red);
+  background: rgba(184, 68, 68, 0.1);
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.admin-reports-list {
+  display: grid;
+  gap: 13px;
+}
+
+.admin-report-card {
+  padding: 20px 22px;
+  background: var(--cream);
+  border: 1px solid rgba(184, 68, 68, 0.32);
+  border-left: 3px solid var(--red);
+  border-radius: 13px;
+}
+
+.admin-report-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-report-status,
+.admin-report-reason {
+  display: inline-block;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-family: Arial, sans-serif;
+  font-size: 0.65rem;
+  font-weight: bold;
+}
+
+.admin-report-status {
+  color: var(--deep-red);
+  background: rgba(184, 68, 68, 0.12);
+}
+
+.admin-report-status-in_review {
+  color: #805914;
+  background: rgba(215, 167, 93, 0.18);
+}
+
+.admin-report-status-resolved {
+  color: #176239;
+  background: #e3f4e9;
+}
+
+.admin-report-status-dismissed {
+  color: var(--grey);
+  background: rgba(117, 111, 107, 0.1);
+}
+
+.admin-report-reason {
+  margin-left: 5px;
+  color: var(--grey);
+  background: rgba(117, 111, 107, 0.08);
+  font-weight: normal;
+}
+
+.admin-report-date {
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+}
+
+.admin-report-card h3 {
+  margin: 15px 0 5px;
+  color: var(--ink);
+  font-size: 1.22rem;
+}
+
+.admin-report-meta {
+  margin: 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.73rem;
+  line-height: 1.45;
+}
+
+.admin-report-meta a {
+  color: var(--red);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.admin-report-review-content {
+  margin: 14px 0 0;
+  padding: 10px 13px;
+  color: var(--ink);
+  background: rgba(244, 228, 223, 0.48);
+  border-left: 2px solid var(--gold);
+  font-size: 0.94rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.admin-report-details {
+  margin: 13px 0 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.admin-report-details strong {
+  color: var(--ink);
+}
+
+.admin-report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 17px;
+}
+
+.admin-report-actions .button-text {
+  padding: 0;
+  color: var(--deep-red);
+  font-size: 0.73rem;
+}
+
+.admin-report-actions .button-text:hover {
+  color: var(--red);
+}
+
+.admin-reports-empty {
+  padding: 22px 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 650px) {
+  .admin-report-card {
+    padding: 17px;
+  }
+
+  .admin-report-card-top {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .admin-report-reason {
+    display: inline-block;
+    margin: 6px 0 0;
+  }
+}
+
 
