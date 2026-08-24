@@ -1225,6 +1225,7 @@ function updateHomeFeedTabs() {
   });
 }
 
+
 function renderHomeLikeButtons() {
   document.querySelectorAll(".favorite").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -1243,17 +1244,133 @@ function renderHomeLikeButtons() {
 
       const reviewId = button.dataset.reviewId;
 
-      if (!reviewId) {
+      if (!reviewId || button.disabled) {
         return;
       }
 
+      const likeActions = button.closest(".review-like-actions");
+
+      const countButton = likeActions?.querySelector(
+        ".review-like-count"
+      );
+
+      const wasLiked = button.classList.contains("liked");
+
+      const currentCount = Number(
+        countButton?.textContent?.trim() || 0
+      );
+
+      /*
+        Retour visuel immédiat :
+        le cœur et le compteur changent sans recharger le fil.
+      */
       button.disabled = true;
 
+      button.classList.toggle("liked", !wasLiked);
+      button.textContent = wasLiked ? "♡" : "♥";
+
+      button.title = wasLiked
+        ? "J’aime cette microcritique"
+        : "Retirer mon like";
+
+      button.setAttribute(
+        "aria-label",
+        wasLiked
+          ? "J’aime cette microcritique"
+          : "Retirer mon like"
+      );
+
+      button.setAttribute(
+        "aria-pressed",
+        String(!wasLiked)
+      );
+
+      const nextCount = Math.max(
+        0,
+        currentCount + (wasLiked ? -1 : 1)
+      );
+
+      if (countButton) {
+        countButton.textContent = String(nextCount);
+      }
+
       try {
-        await toggleReviewLike(reviewId);
-        await refreshHomeReviews();
+        /*
+          toggleReviewLike retourne true si le like est désormais posé,
+          false s’il vient d’être retiré.
+        */
+        const isNowLiked = await toggleReviewLike(reviewId);
+
+        /*
+          On met aussi à jour les données déjà chargées en mémoire.
+          Ainsi, si tu changes ensuite d’onglet, le tri « Les plus aimées »
+          reste juste sans devoir recharger toute la page.
+        */
+        publicReviews = publicReviews.map((review) => {
+          if (String(review.id) !== String(reviewId)) {
+            return review;
+          }
+
+          return {
+            ...review,
+            liked_by_current_user: isNowLiked,
+            like_count: Math.max(
+              0,
+              Number(review.like_count || 0) +
+                (isNowLiked === wasLiked ? 0 : isNowLiked ? 1 : -1)
+            )
+          };
+        });
+
+        /*
+          Sécurisation finale selon la réponse réelle de Supabase.
+        */
+        button.classList.toggle("liked", isNowLiked);
+        button.textContent = isNowLiked ? "♥" : "♡";
+
+        button.title = isNowLiked
+          ? "Retirer mon like"
+          : "J’aime cette microcritique";
+
+        button.setAttribute(
+          "aria-label",
+          isNowLiked
+            ? "Retirer mon like"
+            : "J’aime cette microcritique"
+        );
+
+        button.setAttribute(
+          "aria-pressed",
+          String(isNowLiked)
+        );
       } catch (error) {
         console.error("Erreur de like :", error);
+
+        /*
+          Si Supabase répond avec une erreur, on restaure le rendu précédent.
+        */
+        button.classList.toggle("liked", wasLiked);
+        button.textContent = wasLiked ? "♥" : "♡";
+
+        button.title = wasLiked
+          ? "Retirer mon like"
+          : "J’aime cette microcritique";
+
+        button.setAttribute(
+          "aria-label",
+          wasLiked
+            ? "Retirer mon like"
+            : "J’aime cette microcritique"
+        );
+
+        button.setAttribute(
+          "aria-pressed",
+          String(wasLiked)
+        );
+
+        if (countButton) {
+          countButton.textContent = String(currentCount);
+        }
 
         alert(`Impossible de modifier ton like : ${error.message}`);
       } finally {
@@ -1262,6 +1379,7 @@ function renderHomeLikeButtons() {
     });
   });
 }
+
 
 function renderHomeReviews() {
   if (!grid || !movieCount) {
