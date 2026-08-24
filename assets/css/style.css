@@ -11984,3 +11984,431 @@ h2 {
     white-space: normal;
   }
 }
+
+/* =====================================================
+   ACCUEIL — ONGLETS ÉDITORIAUX ET CERCLE
+   À ajouter tout à la fin de style.css
+   ===================================================== */
+
+/* -----------------------------------------------------
+   Les trois fils : Dernières critiques / sorties / aimées
+   ----------------------------------------------------- */
+
+.home-feed-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  margin: 0 0 28px;
+  padding: 0 0 1px;
+  border-bottom: 1px solid var(--line);
+}
+
+.home-feed-tab {
+  position: relative;
+  padding: 0 0 12px;
+  color: var(--grey);
+  background: transparent;
+  border: 0;
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: color 0.18s ease;
+}
+
+.home-feed-tab::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  content: "";
+  background: transparent;
+  transition: background 0.18s ease;
+}
+
+.home-feed-tab:hover,
+.home-feed-tab:focus-visible {
+  color: var(--deep-red);
+  outline: none;
+}
+
+.home-feed-tab:focus-visible {
+  outline: 2px solid rgba(184, 68, 68, 0.26);
+  outline-offset: 4px;
+}
+
+.home-feed-tab.is-active,
+.home-feed-tab[aria-selected="true"] {
+  color: var(--deep-red);
+}
+
+.home-feed-tab.is-active::after,
+.home-feed-tab[aria-selected="true"]::after {
+  background: var(--deep-red);
+}
+
+/* Le compteur devient un petit repère éditorial, discret. */
+
+.home-movie-count {
+  min-height: 16px;
+}
+
+/* -----------------------------------------------------
+   Structure principale accueil
+   ----------------------------------------------------- */
+
+.home-content-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(255px, 300px);
+  gap: 42px;
+}
+
+.home-reviews-column {
+  min-width: 0;
+}
+
+.home-reviews-column .movies-grid {
+  grid-template-columns: 1fr;
+}
+
+/* -----------------------------------------------------
+   Sidebar : Dans mon cercle
+   ----------------------------------------------------- */
+
+.circle-activity-sidebar {
+  padding: 0 0 0 24px;
+  background: transparent;
+  border-left: 1px solid var(--line);
+}
+
+.circle-activity-heading {
+  display: block;
+  margin-bottom: 15px;
+}
+
+.circle-activity-heading .eyebrow {
+  margin-bottom: 7px;
+}
+
+.circle-activity-heading h2 {
+  max-width: 250px;
+  color: var(--ink);
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  line-height: 1.08;
+  letter-spacing: -0.8px;
+}
+
+.circle-activity-subtitle {
+  max-width: 260px;
+  margin: 8px 0 0;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  line-height: 1.48;
+}
+
+.circle-activity-see-all {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--deep-red);
+  font-family: Arial, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.circle-activity-see-all:hover {
+  color: var(--red);
+}
+
+.circle-activity-see-all[hidden] {
+  display: none !important;
+}
+
+/* Activités : effet “marge de carnet”, calme et régulier. */
+
+.circle-activity-feed {
+  display: grid;
+  gap: 0;
+  padding: 0 13px;
+  background: rgba(255, 250, 244, 0.72);
+  border: 1px solid rgba(184, 68, 68, 0.27);
+}
+
+.circle-activity-item,
+.circle-activity-card {
+  padding: 13px 0;
+}
+
+.circle-activity-item:first-child,
+.circle-activity-card:first-child {
+  border-top: 0;
+}
+
+.circle-activity-item:last-child,
+.circle-activity-card:last-child {
+  border-bottom: 0;
+}
+
+.circle-activity-avatar-link {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+}
+
+.circle-activity-avatar,
+.circle-activity-avatar img {
+  width: 42px !important;
+  height: 42px !important;
+}
+
+.circle-activity-main,
+.circle-activity-meta {
+  font-size: 0.7rem;
+  line-height: 1.42;
+}
+
+.circle-activity-review {
+  display: -webkit-box;
+  margin-top: 5px;
+  overflow: hidden;
+  color: var(--deep-red);
+  font-size: 0.79rem;
+  line-height: 1.42;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.circle-activity-date {
+  margin-top: 5px;
+  font-size: 0.6rem;
+}
+
+/* État hors connexion / vide : doux, sans grande carte lourde. */
+
+.circle-activity-empty-state,
+.circle-activity-empty,
+.circle-activity-loading {
+  padding: 17px 2px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.circle-activity-empty-state strong {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.92rem;
+}
+
+/* -----------------------------------------------------
+   Pagination du feed
+   ----------------------------------------------------- */
+
+.home-pagination {
+  margin-top: 30px;
+}
+
+.home-show-more-button {
+  font-size: 0.75rem;
+}
+
+/* -----------------------------------------------------
+   Variante horizontale “Dans mon cercle”
+   Prévue si friends.js injecte .circle-activity-preview
+   au-dessus de #moviesGrid.
+   ----------------------------------------------------- */
+
+.circle-activity-preview {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  margin: 0 0 22px;
+  padding: 13px 15px;
+  background: rgba(255, 250, 244, 0.78);
+  border-top: 1px solid rgba(184, 68, 68, 0.3);
+  border-bottom: 1px solid rgba(184, 68, 68, 0.3);
+}
+
+.circle-activity-preview-heading {
+  min-width: 126px;
+}
+
+.circle-activity-preview-heading span {
+  display: block;
+  color: var(--red);
+  font-family: Arial, sans-serif;
+  font-size: 0.61rem;
+  font-weight: bold;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.circle-activity-preview-heading strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink);
+  font-size: 0.94rem;
+  line-height: 1.1;
+}
+
+.circle-activity-preview-list {
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.circle-activity-preview-item {
+  display: grid;
+  grid-template-columns: 31px minmax(150px, 1fr);
+  gap: 8px;
+  align-items: start;
+  min-width: 210px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.circle-activity-preview-item:hover strong {
+  color: var(--red);
+}
+
+.circle-activity-preview-avatar {
+  display: block;
+  width: 31px;
+  height: 31px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--deep-red);
+  object-fit: cover;
+}
+
+.circle-activity-preview-copy {
+  min-width: 0;
+}
+
+.circle-activity-preview-copy strong,
+.circle-activity-preview-copy span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.circle-activity-preview-copy strong {
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+}
+
+.circle-activity-preview-copy span {
+  margin-top: 3px;
+  color: var(--grey);
+  font-family: Arial, sans-serif;
+  font-size: 0.64rem;
+}
+
+/* -----------------------------------------------------
+   Responsive
+   ----------------------------------------------------- */
+
+@media (max-width: 950px) {
+  .home-content-layout {
+    grid-template-columns: minmax(0, 1fr) 235px;
+    gap: 28px;
+  }
+
+  .circle-activity-sidebar {
+    padding-left: 18px;
+  }
+
+  .circle-activity-feed {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+}
+
+@media (max-width: 750px) {
+  .home-feed-tabs {
+    gap: 18px;
+    margin-bottom: 22px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .home-feed-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-feed-tab {
+    padding-bottom: 10px;
+    font-size: 0.73rem;
+  }
+
+  .home-content-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 38px;
+  }
+
+  .circle-activity-sidebar {
+    width: 100%;
+    padding: 24px 0 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .circle-activity-heading h2,
+  .circle-activity-subtitle {
+    max-width: none;
+  }
+
+  .circle-activity-feed {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 18px;
+    padding: 0 12px;
+  }
+
+  .circle-activity-item:nth-last-child(-n + 2),
+  .circle-activity-card:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+
+  .circle-activity-preview {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .circle-activity-preview-heading {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 550px) {
+  .home-feed-tabs {
+    gap: 15px;
+  }
+
+  .circle-activity-feed {
+    grid-template-columns: 1fr;
+  }
+
+  .circle-activity-item,
+  .circle-activity-card {
+    border-bottom: 1px solid var(--line) !important;
+  }
+
+  .circle-activity-item:last-child,
+  .circle-activity-card:last-child {
+    border-bottom: 0 !important;
+  }
+}
+
