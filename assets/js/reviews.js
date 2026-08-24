@@ -815,6 +815,217 @@ function setupReviewCommentInteractions() {
 
 
 /* =====================================================
+   SIGNALEMENTS DE MICROCRITIQUES
+   ===================================================== */
+
+let reviewReportInteractionsReady = false;
+
+function closeReviewReportModal() {
+  const modal = document.getElementById("reviewReportModal");
+
+  modal?.classList.remove("visible");
+  modal?.setAttribute("aria-hidden", "true");
+
+  document.body.classList.remove("modal-open");
+}
+
+function openReviewReportModal(reviewId, movieTitle) {
+  if (!currentUser) {
+    setAuthMode("login");
+    openAuthModal();
+
+    showAuthMessage(
+      "Connecte-toi ou crée un compte pour signaler une microcritique.",
+      "error"
+    );
+
+    return;
+  }
+
+  const modal = document.getElementById("reviewReportModal");
+  const reviewIdInput = document.getElementById(
+    "reviewReportReviewId"
+  );
+  const movieLabel = document.getElementById("reviewReportMovie");
+  const form = document.getElementById("reviewReportForm");
+  const message = document.getElementById("reviewReportMessage");
+  const counter = document.getElementById(
+    "reviewReportCharacterCounter"
+  );
+
+  if (!modal || !reviewIdInput) {
+    return;
+  }
+
+  form?.reset();
+
+  reviewIdInput.value = reviewId;
+
+  if (movieLabel) {
+    movieLabel.textContent = movieTitle
+      ? `Critique concernée : ${movieTitle}`
+      : "Critique concernée";
+  }
+
+  if (message) {
+    message.textContent = "";
+    message.className = "status-message";
+  }
+
+  if (counter) {
+    counter.textContent = "0 / 500";
+    counter.classList.remove("limit-reached");
+  }
+
+  modal.hidden = false;
+  modal.classList.add("visible");
+  modal.setAttribute("aria-hidden", "false");
+
+  document.body.classList.add("modal-open");
+
+  document.getElementById("reviewReportReason")?.focus();
+}
+
+async function submitReviewReport(reviewId, reason, details) {
+  const { error } = await supabaseClient.rpc(
+    "create_review_report",
+    {
+      p_review_id: reviewId,
+      p_reason: reason,
+      p_details: details || null
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+}
+
+function setupReviewReportInteractions() {
+  if (reviewReportInteractionsReady) {
+    return;
+  }
+
+  reviewReportInteractionsReady = true;
+
+  document.addEventListener("click", (event) => {
+    const reportButton = event.target.closest(".report-review");
+
+    if (reportButton) {
+      event.preventDefault();
+
+      openReviewReportModal(
+        reportButton.dataset.reviewId,
+        reportButton.dataset.movieTitle || ""
+      );
+
+      return;
+    }
+
+    if (
+      event.target.id === "closeReviewReportModal" ||
+      event.target.id === "reviewReportModal"
+    ) {
+      closeReviewReportModal();
+    }
+  });
+
+  document.addEventListener("input", (event) => {
+    if (event.target.id !== "reviewReportDetails") {
+      return;
+    }
+
+    const counter = document.getElementById(
+      "reviewReportCharacterCounter"
+    );
+
+    if (!counter) {
+      return;
+    }
+
+    const length = event.target.value.length;
+
+    counter.textContent = `${length} / 500`;
+
+    counter.classList.toggle(
+      "limit-reached",
+      length >= 500
+    );
+  });
+
+  document.addEventListener("submit", async (event) => {
+    if (event.target.id !== "reviewReportForm") {
+      return;
+    }
+
+    event.preventDefault();
+
+    const reviewId = document.getElementById(
+      "reviewReportReviewId"
+    )?.value;
+
+    const reason = document.getElementById(
+      "reviewReportReason"
+    )?.value;
+
+    const details = document.getElementById(
+      "reviewReportDetails"
+    )?.value.trim();
+
+    const submitButton = document.getElementById(
+      "reviewReportSubmitButton"
+    );
+
+    const message = document.getElementById(
+      "reviewReportMessage"
+    );
+
+    if (!reviewId || !reason || !submitButton) {
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = "Envoi…";
+
+    try {
+      await submitReviewReport(reviewId, reason, details);
+
+      if (message) {
+        message.className = "status-message success";
+        message.textContent =
+          "Merci. Ton signalement a bien été transmis à La régie.";
+      }
+
+      window.setTimeout(closeReviewReportModal, 1300);
+    } catch (error) {
+      console.error("Erreur de signalement :", error);
+
+      const alreadyReported =
+        error.code === "23505" ||
+        String(error.message || "").includes(
+          "review_reports_one_report_per_user"
+        );
+
+      if (message) {
+        message.className = "status-message error";
+        message.textContent = alreadyReported
+          ? "Tu as déjà signalé cette critique."
+          : `Impossible d’envoyer le signalement : ${error.message}`;
+      }
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = "Envoyer le signalement";
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeReviewReportModal();
+    }
+  });
+}
+
+/* =====================================================
    CARTES DE MICROCRITIQUES
    ===================================================== */
 
@@ -1007,6 +1218,25 @@ const addContentButton =
     : "";
 
 
+  const reportButton =
+    currentUser &&
+    String(currentUser.id) !== String(review.user_id) &&
+    reviewContent
+      ? `
+        <button
+          class="report-review"
+          type="button"
+          data-review-id="${review.id}"
+          data-movie-title="${escapeHTML(
+            movie.title || "Film sans titre"
+          )}"
+          title="Signaler cette microcritique"
+        >
+          Signaler
+        </button>
+      `
+      : "";
+
   const movieUrl = movie.id
     ? `film.html?id=${encodeURIComponent(movie.id)}`
     : "";
@@ -1186,6 +1416,7 @@ ${tagsMarkup}
 
             <div class="card-actions">
               ${commentButton}
+              ${reportButton}
               ${actionButton}
             </div>
           </div>
@@ -1264,6 +1495,7 @@ ${tagsMarkup}
 
 ${editButton}
 ${addContentButton}
+${reportButton}
 ${actionButton}
 
           </div>
@@ -1860,3 +2092,5 @@ async function deleteReview(reviewId) {
 
 setupReviewCommentInteractions();
 setupReviewLikesModalInteractions();
+setupReviewReportInteractions();
+
