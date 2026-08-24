@@ -12412,3 +12412,245 @@ h2 {
   }
 }
 
+/* =====================================================
+   ACCUEIL — NAVIGATION SOMBRE + HERO CINÉMATOGRAPHIQUE
+   À ajouter tout à la fin de style.css
+   ===================================================== */
+
+/* -----------------------------------------------------
+   Navigation : fine, sombre, façon générique de film
+   ----------------------------------------------------- */
+
+#siteHeader,
+.site-header {
+  border-bottom: 1px solid rgba(243, 216, 170, 0.16) !important;
+  background:
+    linear-gradient(
+      100deg,
+      rgba(29, 19, 19, 0.98),
+      rgba(84, 22, 26, 0.98),
+      rgba(53, 15, 17, 0.98)
+    ) !important;
+  box-shadow: 0 4px 16px rgba(25, 15, 15, 0.2);
+}
+
+.site-navigation {
+  min-height: 53px;
+  width: min(1080px, calc(100% - 48px));
+}
+
+.site-logo {
+  color: #f3d8aa;
+  font-size: 1.05rem;
+  letter-spacing: -0.04em;
+}
+
+.site-logo:hover {
+  color: #fff4df;
+}
+
+.site-navigation-actions {
+  gap: 10px;
+}
+
+/* Recherche centrale, douce et discrète */
+
+.site-search-button {
+  min-height: 28px;
+  padding: 5px 13px;
+  color: rgba(255, 250, 244, 0.9);
+  background: rgba(255, 250, 244, 0.15);
+  border: 1px solid rgba(255, 250, 244, 0.22);
+  box-shadow: none;
+  font-size: 0.62rem;
+  font-weight: normal;
+}
+
+.site-search-button:hover,
+.site-search-button:focus-visible {
+  color: white;
+  background: rgba(255, 250, 244, 0.23);
+  border-color: rgba(243, 216, 170, 0.65);
+  box-shadow: none;
+  transform: none;
+}
+
+.site-search-button-icon {
+  color: #f3d8aa;
+  font-size: 0.88rem;
+}
+
+/* Menu connecté */
+
+.site-user-menu {
+  gap: 9px;
+}
+
+.site-user-menu #userGreeting,
+.site-user-menu a {
+  color: rgba(255, 250, 244, 0.9);
+  font-size: 0.64rem;
+}
+
+.site-user-menu a:hover {
+  color: #f3d8aa;
+}
+
+.site-user-menu .site-nav-current {
+  color: #f3d8aa;
+  text-decoration-color: #f3d8aa;
+}
+
+.site-user-menu .nav-avatar {
+  width: 27px;
+  height: 27px;
+  border-color: rgba(243, 216, 170, 0.65);
+}
+
+.site-logout-button {
+  padding: 6px 10px !important;
+  color: rgba(255, 250, 244, 0.88) !important;
+  background: transparent !important;
+  border-color: rgba(255, 250, 244, 0.3) !important;
+  font-size: 0.6rem !important;
+}
+
+.site-logout-button:hover {
+  color: #f3d8aa !important;
+  border-color: rgba(243, 216, 170, 0.72) !important;
+}
+
+/* -----------------------------------------------------
+   Hero : grand plan de cinéma, texte à gauche
+   ----------------------------------------------------- */
+
+.hero {
+  display: flex;
+  align-items: flex-end;
+  min-height: 220px;
+  padding: 40px max(7%, calc((100% - 1080px) / 2)) 34px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(18, 22, 23, 0.9) 0%,
+      rgba(18, 22, 23, 0.6) 33%,
+      rgba(18, 22, 23, 0.12) 65%,
+      rgba(18, 22, 23, 0.18) 100%
+    ),
+    url("https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1800&q=85")
+    center 46% / cover;
+}
+
+.hero::after {
+  display: none;
+}
+
+.hero-content {
+  max-width: 470px;
+}
+
+.hero .eyebrow {
+  margin-bottom: 10px;
+  color: #f3d8aa;
+  font-size: 0.59rem;
+  letter-spacing: 1.25px;
+}
+
+.hero h1 {
+  max-width: 500px;
+  color: #fffaf4;
+  font-size: clamp(2.15rem, 4vw, 3.45rem);
+  line-height: 0.94;
+  letter-spacing: -2px;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
+}
+
+.hero em {
+  color: #f3d8aa;
+  font-weight: normal;
+}
+
+/*
+  Dans cette version, le hero devient une image éditoriale :
+  la phrase principale suffit. Le contenu arrive juste dessous.
+*/
+.hero p,
+.hero .button-primary {
+  display: none;
+}
+
+/* -----------------------------------------------------
+   L'accueil respire moins entre le hero et le fil
+   ----------------------------------------------------- */
+
+main {
+  padding-top: 34px;
+}
+
+.home-section-title {
+  margin-bottom: 14px;
+}
+
+.home-section-title .eyebrow {
+  margin-bottom: 8px;
+}
+
+.home-section-title h2 {
+  font-size: 1.45rem;
+}
+
+.home-section-summary p {
+  max-width: 310px;
+  font-size: 0.7rem;
+  line-height: 1.42;
+}
+
+.home-movie-count {
+  margin-top: 5px;
+  font-size: 0.6rem;
+}
+
+/* -----------------------------------------------------
+   Mobile
+   ----------------------------------------------------- */
+
+@media (max-width: 700px) {
+  .site-navigation {
+    width: min(100% - 30px, 1080px);
+    min-height: auto;
+    padding: 11px 0;
+  }
+
+  .site-navigation-actions {
+    gap: 8px;
+  }
+
+  .site-search-button {
+    width: 29px;
+    min-height: 29px;
+    padding: 0;
+    border-color: rgba(255, 250, 244, 0.28);
+  }
+
+  .site-user-menu .nav-avatar {
+    width: 25px;
+    height: 25px;
+  }
+
+  .hero {
+    min-height: 230px;
+    padding: 36px 7% 28px;
+    background-position: center;
+  }
+
+  .hero h1 {
+    max-width: 330px;
+    font-size: clamp(2rem, 10vw, 2.8rem);
+  }
+
+  main {
+    padding-top: 28px;
+  }
+}
+
+
