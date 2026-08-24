@@ -212,6 +212,26 @@ function renderFriendshipAction(memberId, friendship) {
   `;
 }
 
+function renderMessageAction(memberId, friendship) {
+  const isAcceptedFriend =
+    currentUser &&
+    friendship?.status === "accepted" &&
+    String(currentUser.id) !== String(memberId);
+
+  if (!isAcceptedFriend) {
+    return "";
+  }
+
+  return `
+    <a
+      class="friendship-message-button"
+      href="messages.html?with=${encodeURIComponent(memberId)}"
+    >
+      Échanger autour du cinéma
+    </a>
+  `;
+}
+
 async function sendFriendshipRequest(memberId) {
   if (!currentUser) {
     throw new Error("AUTH_REQUIRED");
@@ -1438,8 +1458,12 @@ function renderMemberPage(
         </div>
       </div>
 
-      <div class="member-hero-aside">
-        ${renderFriendshipAction(profile.id, friendship)}
+
+<div class="member-hero-aside">
+  ${renderFriendshipAction(profile.id, friendship)}
+
+  ${renderMessageAction(profile.id, friendship)}
+
 
         <div class="member-statistics member-statistics-detailed">
           <div class="member-stat">
