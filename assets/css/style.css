@@ -15095,3 +15095,70 @@ main {
     right: -210px;
   }
 }
+
+/* =====================================================
+   ACCUEIL NUIT — MODALES CLAIRES ET LISIBLE
+   Les interfaces d'écriture restent en papier ivoire.
+   ===================================================== */
+
+.home-page-body .modal,
+.home-page-body .modal-overlay {
+  color: var(--ink);
+}
+
+/* Ne pas laisser les règles du thème nuit colorer les titres
+   et textes à l'intérieur des fenêtres claires. */
+
+.home-page-body .modal h1,
+.home-page-body .modal h2,
+.home-page-body .modal h3,
+.home-page-body .modal strong,
+.home-page-body .modal-overlay h1,
+.home-page-body .modal-overlay h2,
+.home-page-body .modal-overlay h3,
+.home-page-body .modal-overlay strong {
+  color: var(--ink);
+}
+
+.home-page-body .modal .eyebrow,
+.home-page-body .modal .red-eyebrow,
+.home-page-body .modal-overlay .eyebrow,
+.home-page-body .modal-overlay .red-eyebrow {
+  color: var(--red);
+}
+
+.home-page-body .modal p,
+.home-page-body .modal label,
+.home-page-body .modal .form-note,
+.home-page-body .modal .global-movie-search-note,
+.home-page-body .modal-overlay p,
+.home-page-body .modal-overlay label {
+  color: var(--grey);
+}
+
+.home-page-body .modal .modal-head h3,
+.home-page-body .modal .global-movie-search-box h3,
+.home-page-body .modal-overlay .modal-content h2 {
+  color: var(--ink);
+}
+
+.home-page-body .modal input,
+.home-page-body .modal select,
+.home-page-body .modal textarea,
+.home-page-body .modal-overlay input,
+.home-page-body .modal-overlay select,
+.home-page-body .modal-overlay textarea {
+  color: var(--ink);
+  background: #ffffff;
+  border-color: var(--line);
+}
+
+.home-page-body .modal .close-button,
+.home-page-body .modal-overlay .modal-close {
+  color: var(--grey);
+}
+
+.home-page-body .modal .close-button:hover,
+.home-page-body .modal-overlay .modal-close:hover {
+  color: var(--red);
+}
