@@ -864,13 +864,7 @@ function renderMyCinemaSection() {
         `
     }
 
-    <a
-      class="cinema-talents-link"
-      href="talents-carnet.html"
-    >
-      Voir les talents de mon carnet
-      <span aria-hidden="true">→</span>
-    </a>
+
   `;
 
   profileHero.insertAdjacentElement("afterend", section);
