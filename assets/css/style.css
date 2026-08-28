@@ -13716,3 +13716,610 @@ main {
   background: rgba(184, 68, 68, 0.055);
   color: var(--deep-red);
 }
+
+/* =====================================================
+   PROFIL — CINÉ MOJITO « APRÈS LA SÉANCE »
+   Thème nuit isolé à profil.html uniquement.
+   ===================================================== */
+
+.profile-page-body {
+  min-height: 100vh;
+  color: #f7eddb;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(4, 15, 28, 0.96) 0%,
+      rgba(5, 19, 35, 0.98) 48%,
+      rgba(3, 13, 25, 1) 100%
+    ),
+    url("https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1800&q=80")
+    center / cover fixed;
+}
+
+/* Une fine ambiance de pellicule, volontairement discrète. */
+
+.profile-page-body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  opacity: 0.32;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0 7%,
+      rgba(185, 148, 90, 0.05) 7.15% 7.35%,
+      transparent 7.5% 15%,
+      rgba(185, 148, 90, 0.04) 15.15% 15.35%,
+      transparent 15.5% 100%
+    );
+  background-size: 185px 100%;
+}
+
+/* =====================================================
+   NAVIGATION DU PROFIL
+   ===================================================== */
+
+.profile-page-body #siteHeader,
+.profile-page-body .site-header {
+  background: rgba(4, 15, 28, 0.94) !important;
+  border-bottom-color: rgba(185, 148, 90, 0.28) !important;
+  box-shadow: 0 5px 22px rgba(0, 0, 0, 0.22);
+}
+
+.profile-page-body .site-logo {
+  color: #f3d8aa;
+}
+
+.profile-page-body .site-logo:hover {
+  color: #fff4df;
+}
+
+.profile-page-body .site-search-button {
+  color: rgba(247, 237, 219, 0.92);
+  background: rgba(247, 237, 219, 0.08);
+  border-color: rgba(185, 148, 90, 0.36);
+}
+
+.profile-page-body .site-search-button:hover,
+.profile-page-body .site-search-button:focus-visible {
+  color: #fffaf4;
+  background: rgba(185, 148, 90, 0.15);
+  border-color: rgba(243, 216, 170, 0.66);
+}
+
+.profile-page-body .site-search-button-icon {
+  color: #f3d8aa;
+}
+
+.profile-page-body .site-user-menu #userGreeting,
+.profile-page-body .site-user-menu a {
+  color: rgba(247, 237, 219, 0.9);
+}
+
+.profile-page-body .site-user-menu a:hover,
+.profile-page-body .site-user-menu .site-nav-current {
+  color: #f3d8aa;
+}
+
+.profile-page-body .site-user-menu .site-nav-current {
+  text-decoration-color: #b9945a;
+}
+
+.profile-page-body .site-logout-button {
+  color: rgba(247, 237, 219, 0.84) !important;
+  border-color: rgba(247, 237, 219, 0.28) !important;
+}
+
+.profile-page-body .site-logout-button:hover {
+  color: #f3d8aa !important;
+  border-color: rgba(243, 216, 170, 0.72) !important;
+}
+
+/* =====================================================
+   CONTENEUR PRINCIPAL
+   ===================================================== */
+
+.profile-page-body .profile-page {
+  position: relative;
+}
+
+.profile-page-body .profile-page::before {
+  position: absolute;
+  top: 94px;
+  right: -110px;
+  width: 310px;
+  height: 310px;
+  pointer-events: none;
+  content: "";
+  border: 1px solid rgba(185, 148, 90, 0.1);
+  border-radius: 50%;
+}
+
+.profile-page-body .profile-page h1,
+.profile-page-body .profile-page h2,
+.profile-page-body .profile-page h3,
+.profile-page-body .profile-page strong {
+  color: #f7eddb;
+}
+
+.profile-page-body .profile-page .eyebrow,
+.profile-page-body .profile-page .red-eyebrow {
+  color: #d85a52;
+}
+
+.profile-page-body .profile-page .button-primary {
+  color: #fffaf4 !important;
+  background: #9d3939;
+}
+
+.profile-page-body .profile-page .button-primary:hover {
+  background: #c25048;
+}
+
+.profile-page-body .profile-page .button-text {
+  color: #cdbd9f;
+}
+
+.profile-page-body .profile-page .button-text:hover {
+  color: #f3d8aa;
+}
+
+/* =====================================================
+   HERO — AFFICHAGE PERSONNEL
+   ===================================================== */
+
+.profile-page-body .profile-hero-card {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 22px;
+  color: #f7eddb;
+  background:
+    linear-gradient(
+      100deg,
+      rgba(3, 14, 27, 0.92) 0%,
+      rgba(8, 22, 39, 0.8) 48%,
+      rgba(35, 14, 20, 0.58) 100%
+    ),
+    url("https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1800&q=85")
+    center / cover;
+  border: 1px solid rgba(185, 148, 90, 0.58);
+  border-radius: 18px;
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 250, 244, 0.04);
+}
+
+.profile-page-body .profile-hero-card::before {
+  position: absolute;
+  top: 0;
+  right: 12%;
+  bottom: 0;
+  width: 2px;
+  pointer-events: none;
+  content: "";
+  opacity: 0.35;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(243, 216, 170, 0.5) 0 9px,
+    transparent 9px 17px
+  );
+}
+
+.profile-page-body .profile-hero-card .red-eyebrow {
+  color: #f3d8aa;
+}
+
+.profile-page-body .profile-hero-card h1 {
+  color: #fffaf4;
+  text-shadow: 0 3px 16px rgba(0, 0, 0, 0.26);
+}
+
+.profile-page-body .profile-hero-card #profileSubtitle {
+  color: rgba(247, 237, 219, 0.88);
+}
+
+.profile-page-body .profile-avatar-large,
+.profile-page-body .profile-avatar-placeholder {
+  border-color: #f3d8aa;
+  box-shadow:
+    0 0 0 5px rgba(185, 148, 90, 0.12),
+    0 9px 22px rgba(0, 0, 0, 0.35);
+}
+
+.profile-page-body .profile-avatar-placeholder {
+  color: #f7eddb;
+  background: rgba(185, 148, 90, 0.32);
+}
+
+.profile-page-body .profile-avatar-upload-label,
+.profile-page-body .profile-preferences-open-button {
+  color: #f7eddb;
+  background: rgba(6, 19, 35, 0.32);
+  border-color: rgba(243, 216, 170, 0.6);
+}
+
+.profile-page-body .profile-avatar-upload-label:hover,
+.profile-page-body .profile-preferences-open-button:hover {
+  color: #061323;
+  background: #f3d8aa;
+  border-color: #f3d8aa;
+}
+
+/* Compteurs raffinés : doré et ivoire, sans style jeu vidéo. */
+
+.profile-page-body .profile-stat {
+  color: #f7eddb;
+  background: rgba(6, 19, 35, 0.68);
+  border: 1px solid rgba(185, 148, 90, 0.45);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.profile-page-body .profile-stat strong,
+.profile-page-body .profile-stat-notes strong {
+  color: #e5b75f;
+}
+
+.profile-page-body .profile-stat small {
+  color: rgba(247, 237, 219, 0.68);
+}
+
+/* =====================================================
+   NAVIGATION DU CARNET
+   ===================================================== */
+
+.profile-page-body .profile-carnet-navigation {
+  margin-top: 28px;
+  padding: 20px 0 21px;
+  border-top-color: rgba(185, 148, 90, 0.3);
+  border-bottom-color: rgba(185, 148, 90, 0.3);
+}
+
+.profile-page-body .profile-carnet-navigation-group-label {
+  color: #d85a52;
+}
+
+.profile-page-body .profile-carnet-navigation-link {
+  color: #f7eddb;
+  background: rgba(8, 24, 43, 0.7);
+  border-color: rgba(185, 148, 90, 0.36);
+}
+
+.profile-page-body .profile-carnet-navigation-link small {
+  color: rgba(247, 237, 219, 0.62);
+}
+
+.profile-page-body .profile-carnet-navigation-link:hover,
+.profile-page-body .profile-carnet-navigation-link:focus-visible {
+  color: #fffaf4;
+  background: rgba(185, 148, 90, 0.16);
+  border-color: #b9945a;
+}
+
+.profile-page-body .profile-carnet-navigation-link:hover small,
+.profile-page-body .profile-carnet-navigation-link:focus-visible small {
+  color: #f3d8aa;
+}
+
+/* =====================================================
+   MON CINÉMA
+   ===================================================== */
+
+.profile-page-body .profile-cinema-compact-section {
+  border-bottom-color: rgba(185, 148, 90, 0.28);
+}
+
+.profile-page-body .profile-cinema-discreet-quote {
+  color: rgba(247, 237, 219, 0.7);
+}
+
+.profile-page-body .profile-cinema-discreet-quote span {
+  color: #e5b75f;
+}
+
+.profile-page-body .profile-cinema-compact-section .profile-cinema-edit-button {
+  color: rgba(247, 237, 219, 0.64);
+}
+
+.profile-page-body .profile-cinema-compact-section .profile-cinema-edit-button:hover {
+  color: #f3d8aa;
+}
+
+.profile-page-body .profile-cinema-movie,
+.profile-page-body .profile-cinema-talent {
+  color: #f7eddb;
+  background: rgba(8, 24, 43, 0.84);
+  border-color: rgba(185, 148, 90, 0.42);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+}
+
+.profile-page-body .profile-cinema-movie:hover,
+.profile-page-body .profile-cinema-talent:hover {
+  border-color: #c9a466;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+}
+
+.profile-page-body .profile-cinema-movie-copy span,
+.profile-page-body .profile-cinema-talent-copy span {
+  color: #d85a52;
+}
+
+.profile-page-body .profile-cinema-movie-copy strong,
+.profile-page-body .profile-cinema-talent-copy strong {
+  color: #f7eddb;
+}
+
+.profile-page-body .profile-cinema-movie-copy small {
+  color: rgba(247, 237, 219, 0.62);
+}
+
+.profile-page-body .profile-cinema-tag-group > span {
+  color: rgba(247, 237, 219, 0.62);
+}
+
+.profile-page-body .profile-cinema-tag-group em {
+  color: #f3d8aa;
+  background: rgba(185, 148, 90, 0.13);
+  border: 1px solid rgba(185, 148, 90, 0.24);
+}
+
+/* =====================================================
+   CERCLE, JOURNAL ET SIDEBAR
+   ===================================================== */
+
+.profile-page-body .profile-sidebar {
+  border-left-color: rgba(185, 148, 90, 0.26);
+}
+
+.profile-page-body .profile-circle-header,
+.profile-page-body .profile-sidebar-heading,
+.profile-page-body .profile-reviews-heading {
+  border-bottom-color: rgba(185, 148, 90, 0.28);
+}
+
+.profile-page-body .profile-circle-count,
+.profile-page-body .activity-unread-count,
+.profile-page-body .profile-recommendations-count {
+  color: #fffaf4;
+  background: #b84444;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Cartes amis. */
+
+.profile-page-body .circle-friend-card,
+.profile-page-body .friend-request-card {
+  color: #f7eddb;
+  background: rgba(8, 24, 43, 0.84);
+  border-color: rgba(185, 148, 90, 0.38);
+}
+
+.profile-page-body .circle-friend-card:hover {
+  border-color: #c9a466;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.22);
+}
+
+.profile-page-body .circle-friend-content h3,
+.profile-page-body .circle-friend-content h3 a {
+  color: #f7eddb;
+}
+
+.profile-page-body .circle-friend-content h3 a:hover,
+.profile-page-body .circle-friend-link {
+  color: #f3d8aa;
+}
+
+.profile-page-body .circle-friend-bio,
+.profile-page-body .friend-request-content small {
+  color: rgba(247, 237, 219, 0.62);
+}
+
+/* Invitations d’amis. */
+
+.profile-page-body .circle-pending-section {
+  background: rgba(184, 68, 68, 0.08);
+  border-top-color: rgba(216, 90, 82, 0.36);
+  border-bottom-color: rgba(216, 90, 82, 0.36);
+}
+
+.profile-page-body .circle-pending-heading p {
+  color: rgba(247, 237, 219, 0.64);
+}
+
+.profile-page-body .friend-request-username,
+.profile-page-body .circle-pending-kicker {
+  color: #f3d8aa;
+}
+
+/* Activité et notifications. */
+
+.profile-page-body .activity-item {
+  border-color: rgba(185, 148, 90, 0.22);
+}
+
+.profile-page-body .activity-item.is-unread {
+  background: rgba(185, 148, 90, 0.09);
+}
+
+.profile-page-body .activity-content-link,
+.profile-page-body .activity-content-link strong {
+  color: #f7eddb;
+}
+
+.profile-page-body .activity-detail,
+.profile-page-body .activity-date {
+  color: rgba(247, 237, 219, 0.58);
+}
+
+.profile-page-body .activity-mark-all-read {
+  color: rgba(247, 237, 219, 0.62);
+}
+
+.profile-page-body .activity-mark-all-read:hover {
+  color: #f3d8aa;
+}
+
+/* =====================================================
+   WISHLIST ET COLLECTIONS
+   ===================================================== */
+
+.profile-page-body .wishlist-poster-link,
+.profile-page-body .movie-list-card {
+  background: rgba(8, 24, 43, 0.82);
+  border-color: rgba(185, 148, 90, 0.38);
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.14);
+}
+
+.profile-page-body .wishlist-movie-content h3,
+.profile-page-body .wishlist-movie-content h3 a,
+.profile-page-body .movie-list-card h3,
+.profile-page-body .movie-list-link {
+  color: #f7eddb;
+}
+
+.profile-page-body .wishlist-movie-content h3 a:hover,
+.profile-page-body .movie-list-link:hover {
+  color: #f3d8aa;
+}
+
+.profile-page-body .wishlist-movie-content p,
+.profile-page-body .wishlist-movie-added-date,
+.profile-page-body .movie-list-card p,
+.profile-page-body .movie-list-card-bottom {
+  color: rgba(247, 237, 219, 0.58);
+}
+
+.profile-page-body .movie-list-card-bottom {
+  border-top-color: rgba(185, 148, 90, 0.22);
+}
+
+.profile-page-body .list-visibility.public {
+  color: #d9f1df;
+  background: rgba(44, 120, 81, 0.3);
+}
+
+.profile-page-body .list-visibility.private {
+  color: #f3d8aa;
+  background: rgba(185, 148, 90, 0.15);
+}
+
+.profile-page-body .delete-list-button,
+.profile-page-body .wishlist-remove-button,
+.profile-page-body .profile-lists-toggle,
+.profile-page-body .wishlist-see-all-link {
+  color: #f3d8aa;
+}
+
+.profile-page-body .delete-list-button:hover,
+.profile-page-body .wishlist-remove-button:hover,
+.profile-page-body .profile-lists-toggle:hover,
+.profile-page-body .wishlist-see-all-link:hover {
+  color: #d85a52;
+}
+
+.profile-page-body .list-form {
+  background: rgba(8, 24, 43, 0.84);
+  border-color: rgba(185, 148, 90, 0.38);
+  box-shadow: none;
+}
+
+.profile-page-body .list-form label {
+  color: #f7eddb;
+}
+
+.profile-page-body .list-form input,
+.profile-page-body .list-form textarea,
+.profile-page-body .list-form select {
+  color: #f7eddb;
+  background: rgba(3, 13, 25, 0.72);
+  border-color: rgba(185, 148, 90, 0.38);
+}
+
+/* =====================================================
+   CARTES DU JOURNAL
+   ===================================================== */
+
+.profile-page-body .profile-reviews-grid .movie-card {
+  background: rgba(8, 24, 43, 0.88) !important;
+  border-color: rgba(185, 148, 90, 0.45) !important;
+  box-shadow:
+    0 2px 0 rgba(185, 148, 90, 0.08),
+    0 11px 25px rgba(0, 0, 0, 0.2);
+}
+
+.profile-page-body .profile-reviews-grid .movie-card::before {
+  background: #b9945a;
+}
+
+.profile-page-body .profile-reviews-grid .movie-card:hover {
+  border-color: #d0ad70 !important;
+  box-shadow:
+    0 3px 0 rgba(185, 148, 90, 0.12),
+    0 17px 31px rgba(0, 0, 0, 0.3);
+}
+
+.profile-page-body .profile-reviews-grid .movie-card-title,
+.profile-page-body .profile-reviews-grid .movie-card-title a,
+.profile-page-body .profile-reviews-grid .review,
+.profile-page-body .profile-reviews-grid .author {
+  color: #f7eddb;
+}
+
+.profile-page-body .profile-reviews-grid .movie-card-director,
+.profile-page-body .profile-reviews-grid .review-date,
+.profile-page-body .profile-reviews-grid .movie-card-note-meta {
+  color: rgba(247, 237, 219, 0.58);
+}
+
+.profile-page-body .profile-reviews-grid .card-bottom {
+  border-top-color: rgba(185, 148, 90, 0.22);
+}
+
+.profile-page-body .profile-reviews-grid .tag {
+  color: #f3d8aa;
+  background: rgba(185, 148, 90, 0.13);
+}
+
+.profile-page-body .profile-reviews-grid .movie-card-note-only {
+  background: rgba(8, 24, 43, 0.76) !important;
+}
+
+/* =====================================================
+   ÉTATS VIDES ET FOOTER
+   ===================================================== */
+
+.profile-page-body .empty-state,
+.profile-page-body .activity-empty-state,
+.profile-page-body .recommendations-empty-state {
+  color: rgba(247, 237, 219, 0.65);
+  background: rgba(8, 24, 43, 0.5);
+  border-color: rgba(185, 148, 90, 0.32);
+}
+
+.profile-page-body .empty-state strong,
+.profile-page-body .activity-empty-state strong {
+  color: #f7eddb;
+}
+
+.profile-page-body .site-footer {
+  color: rgba(247, 237, 219, 0.58);
+  background: rgba(3, 13, 25, 0.76);
+  border-top: 1px solid rgba(185, 148, 90, 0.22);
+}
+
+/* =====================================================
+   RESPONSIVE — PROFIL NUIT
+   ===================================================== */
+
+@media (max-width: 750px) {
+  .profile-page-body .profile-sidebar {
+    border-top-color: rgba(185, 148, 90, 0.28);
+    border-left: 0;
+  }
+
+  .profile-page-body .profile-hero-card::before {
+    right: 8%;
+  }
+}
