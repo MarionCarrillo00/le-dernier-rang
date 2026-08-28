@@ -13553,3 +13553,8 @@ main {
 .nav-messages-badge[hidden] {
   display: none !important;
 }
+
+/* Affichage explicite de la pastille lorsqu'elle contient des non-lus */
+#unreadMessagesBadge:not([hidden]) {
+  display: block !important;
+}
