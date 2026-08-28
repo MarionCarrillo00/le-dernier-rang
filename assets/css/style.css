@@ -13558,3 +13558,140 @@ main {
 #unreadMessagesBadge:not([hidden]) {
   display: block !important;
 }
+
+/* =====================================================
+   PROFIL — EXPLORER MON CARNET
+   ===================================================== */
+
+.profile-carnet-navigation {
+  margin: 28px 0 0;
+  padding: 25px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.profile-carnet-navigation-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 21px;
+}
+
+.profile-carnet-navigation-heading h2 {
+  margin: 5px 0 0;
+  color: var(--ink);
+  font-size: 1.55rem;
+  line-height: 1.08;
+}
+
+.profile-carnet-navigation-heading p {
+  max-width: 320px;
+  margin: 0;
+  color: var(--grey);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.profile-carnet-navigation-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 44px;
+}
+
+.profile-carnet-navigation-group {
+  min-width: 0;
+}
+
+.profile-carnet-navigation-group-label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--deep-red);
+  font-family: Arial, sans-serif;
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.profile-carnet-navigation-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profile-carnet-navigation-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 244, 0.5);
+  color: var(--ink);
+  font-family: Arial, sans-serif;
+  font-size: 0.77rem;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.profile-carnet-navigation-link span {
+  font-weight: 700;
+}
+
+.profile-carnet-navigation-link small {
+  color: var(--grey);
+  font-size: 0.69rem;
+}
+
+.profile-carnet-navigation-link:hover,
+.profile-carnet-navigation-link:focus-visible {
+  border-color: var(--red);
+  background: rgba(184, 68, 68, 0.08);
+  color: var(--deep-red);
+}
+
+.profile-carnet-navigation-link:hover small,
+.profile-carnet-navigation-link:focus-visible small {
+  color: var(--deep-red);
+}
+
+.profile-carnet-navigation-link:focus-visible {
+  outline: 1px solid var(--deep-red);
+  outline-offset: 2px;
+}
+
+.profile-carnet-navigation-link-arrow small {
+  color: var(--red);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 750px) {
+  .profile-carnet-navigation {
+    margin-top: 22px;
+    padding: 22px 0;
+  }
+
+  .profile-carnet-navigation-heading {
+    display: block;
+    margin-bottom: 18px;
+  }
+
+  .profile-carnet-navigation-heading h2 {
+    font-size: 1.38rem;
+  }
+
+  .profile-carnet-navigation-heading p {
+    margin-top: 9px;
+    text-align: left;
+  }
+
+  .profile-carnet-navigation-groups {
+    grid-template-columns: 1fr;
+    gap: 21px;
+  }
+}
