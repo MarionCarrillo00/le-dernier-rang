@@ -156,19 +156,7 @@ function renderProfileCarnetNavigation(data) {
   section.className = "profile-carnet-navigation";
 
   section.innerHTML = `
-    <div class="profile-carnet-navigation-heading">
-      <div>
-        <div class="eyebrow red-eyebrow">
-          Explorer mon carnet
-        </div>
 
-        <h2>Mes chemins de cinéma</h2>
-      </div>
-
-      <p>
-        Retrouver une séance, une note, un visage ou une envie de film.
-      </p>
-    </div>
 
     <div class="profile-carnet-navigation-groups">
       <section class="profile-carnet-navigation-group">
