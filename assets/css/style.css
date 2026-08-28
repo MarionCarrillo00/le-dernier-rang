@@ -13485,11 +13485,12 @@ main {
 
 
 
+
 /* =====================================================
-   NAVIGATION — ICÔNE MESSAGES ET COMPTEUR NON LUS
+   CINÉ MOJITO — ICÔNE « MES ÉCHANGES »
    ===================================================== */
 
-.nav-messages-link {
+.site-user-menu .site-messages-link.nav-messages-link {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -13497,12 +13498,13 @@ main {
   width: 34px;
   height: 34px;
   margin: 0 2px;
+  padding: 0;
   color: var(--cream);
   text-decoration: none;
-  vertical-align: middle;
 }
 
 .nav-messages-icon {
+  display: block;
   width: 19px;
   height: 19px;
   fill: none;
@@ -13510,19 +13512,20 @@ main {
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
-  transition: color 0.18s ease, transform 0.18s ease;
+  transition: transform 0.18s ease;
 }
 
-.nav-messages-link:hover,
-.nav-messages-link:focus-visible {
+.site-user-menu .site-messages-link.nav-messages-link:hover,
+.site-user-menu .site-messages-link.nav-messages-link:focus-visible {
   color: #f3d59e;
 }
 
-.nav-messages-link:hover .nav-messages-icon {
+.site-user-menu .site-messages-link.nav-messages-link:hover
+.nav-messages-icon {
   transform: translateY(-1px);
 }
 
-.nav-messages-link:focus-visible {
+.site-user-menu .site-messages-link.nav-messages-link:focus-visible {
   outline: 1px solid #f3d59e;
   outline-offset: 3px;
 }
@@ -13530,8 +13533,8 @@ main {
 .nav-messages-badge {
   position: absolute;
   top: 1px;
-  right: -1px;
-  z-index: 1;
+  right: -2px;
+  z-index: 2;
   min-width: 15px;
   height: 15px;
   padding: 0 3px;
@@ -13547,7 +13550,6 @@ main {
   text-align: center;
 }
 
-/* La pastille n'existe visuellement que s'il y a des messages non lus. */
 .nav-messages-badge[hidden] {
   display: none !important;
 }
