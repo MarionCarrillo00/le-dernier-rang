@@ -13695,3 +13695,24 @@ main {
     gap: 21px;
   }
 }
+
+/* =====================================================
+   PROFIL — NAVIGATION CARNET PLUS DISCRÈTE
+   ===================================================== */
+
+.profile-carnet-navigation-link {
+  border-color: rgba(222, 213, 202, 0.82);
+  background: rgba(255, 250, 244, 0.28);
+  color: var(--ink);
+}
+
+.profile-carnet-navigation-link small {
+  color: rgba(117, 111, 107, 0.82);
+}
+
+.profile-carnet-navigation-link:hover,
+.profile-carnet-navigation-link:focus-visible {
+  border-color: rgba(184, 68, 68, 0.62);
+  background: rgba(184, 68, 68, 0.055);
+  color: var(--deep-red);
+}
