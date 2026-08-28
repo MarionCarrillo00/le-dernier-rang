@@ -14337,3 +14337,382 @@ main {
     url("https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1800&q=80")
     center / cover fixed;
 }
+
+/* =====================================================
+   ACCUEIL — CINÉ MOJITO « APRÈS LA SÉANCE »
+   Thème nuit isolé à index.html uniquement.
+   ===================================================== */
+
+.home-page-body {
+  min-height: 100vh;
+  color: #f7eddb;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(4, 15, 28, 0.975) 0%,
+      rgba(5, 19, 35, 0.99) 48%,
+      rgba(3, 13, 25, 1) 100%
+    ),
+    url("https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1800&q=80")
+    center / cover fixed;
+}
+
+/* Texture très discrète : le fond reste une ambiance,
+   jamais une image qui concurrence les critiques. */
+
+.home-page-body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  opacity: 0.22;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0 7%,
+      rgba(185, 148, 90, 0.045) 7.15% 7.35%,
+      transparent 7.5% 15%,
+      rgba(185, 148, 90, 0.035) 15.15% 15.35%,
+      transparent 15.5% 100%
+    );
+  background-size: 185px 100%;
+}
+
+/* =====================================================
+   NAVIGATION
+   ===================================================== */
+
+.home-page-body #siteHeader,
+.home-page-body .site-header {
+  background: rgba(4, 15, 28, 0.94) !important;
+  border-bottom-color: rgba(185, 148, 90, 0.28) !important;
+}
+
+.home-page-body .site-logo {
+  color: #f3d8aa;
+}
+
+.home-page-body .site-logo:hover {
+  color: #fff4df;
+}
+
+.home-page-body .site-search-button {
+  color: rgba(247, 237, 219, 0.92);
+  background: rgba(247, 237, 219, 0.08);
+  border-color: rgba(185, 148, 90, 0.36);
+}
+
+.home-page-body .site-search-button:hover,
+.home-page-body .site-search-button:focus-visible {
+  color: #fffaf4;
+  background: rgba(185, 148, 90, 0.15);
+  border-color: rgba(243, 216, 170, 0.66);
+}
+
+.home-page-body .site-search-button-icon {
+  color: #f3d8aa;
+}
+
+.home-page-body .site-user-menu #userGreeting,
+.home-page-body .site-user-menu a {
+  color: rgba(247, 237, 219, 0.9);
+}
+
+.home-page-body .site-user-menu a:hover,
+.home-page-body .site-user-menu .site-nav-current {
+  color: #f3d8aa;
+}
+
+.home-page-body .site-user-menu .site-nav-current {
+  text-decoration-color: #b9945a;
+}
+
+.home-page-body .site-logout-button {
+  color: rgba(247, 237, 219, 0.84) !important;
+  border-color: rgba(247, 237, 219, 0.28) !important;
+}
+
+.home-page-body .site-logout-button:hover {
+  color: #f3d8aa !important;
+  border-color: rgba(243, 216, 170, 0.72) !important;
+}
+
+/* =====================================================
+   HERO
+   ===================================================== */
+
+.home-page-body .hero {
+  border-bottom: 1px solid rgba(185, 148, 90, 0.22);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
+}
+
+.home-page-body .hero h1 {
+  color: #fffaf4;
+}
+
+.home-page-body .hero em,
+.home-page-body .hero .eyebrow {
+  color: #f3d8aa;
+}
+
+/* =====================================================
+   TITRES, ONGLETS ET COMPTEURS
+   ===================================================== */
+
+.home-page-body main {
+  position: relative;
+}
+
+.home-page-body main::before {
+  position: absolute;
+  top: 52px;
+  right: -120px;
+  width: 320px;
+  height: 320px;
+  pointer-events: none;
+  content: "";
+  border: 1px solid rgba(185, 148, 90, 0.1);
+  border-radius: 50%;
+}
+
+.home-page-body h1,
+.home-page-body h2,
+.home-page-body h3,
+.home-page-body strong {
+  color: #f7eddb;
+}
+
+.home-page-body .red-eyebrow {
+  color: #d85a52;
+}
+
+.home-page-body .home-section-summary p,
+.home-page-body .home-movie-count {
+  color: rgba(247, 237, 219, 0.64);
+}
+
+.home-page-body .home-movie-count {
+  color: #f3d8aa;
+}
+
+.home-page-body .home-feed-tabs {
+  border-bottom-color: rgba(185, 148, 90, 0.28);
+}
+
+.home-page-body .home-feed-tab {
+  color: rgba(247, 237, 219, 0.62);
+}
+
+.home-page-body .home-feed-tab:hover,
+.home-page-body .home-feed-tab:focus-visible,
+.home-page-body .home-feed-tab.is-active,
+.home-page-body .home-feed-tab[aria-selected="true"] {
+  color: #f3d8aa;
+}
+
+.home-page-body .home-feed-tab.is-active::after,
+.home-page-body .home-feed-tab[aria-selected="true"]::after {
+  background: #b9945a;
+}
+
+/* =====================================================
+   CARTES DES MICROCRITIQUES
+   ===================================================== */
+
+.home-page-body .home-reviews-column .movie-card {
+  background: rgba(8, 24, 43, 0.9) !important;
+  border-color: rgba(185, 148, 90, 0.44) !important;
+  box-shadow:
+    0 2px 0 rgba(185, 148, 90, 0.08),
+    0 11px 25px rgba(0, 0, 0, 0.2);
+}
+
+.home-page-body .home-reviews-column .movie-card::before {
+  background: #b9945a;
+}
+
+.home-page-body .home-reviews-column .movie-card:hover {
+  border-color: #d0ad70 !important;
+  box-shadow:
+    0 3px 0 rgba(185, 148, 90, 0.12),
+    0 17px 31px rgba(0, 0, 0, 0.3);
+}
+
+.home-page-body .home-reviews-column .movie-card-title,
+.home-page-body .home-reviews-column .movie-card-title a,
+.home-page-body .home-reviews-column .review,
+.home-page-body .home-reviews-column .author {
+  color: #f7eddb;
+}
+
+.home-page-body .home-reviews-column .movie-card-director,
+.home-page-body .home-reviews-column .review-date,
+.home-page-body .home-reviews-column .movie-card-note-meta {
+  color: rgba(247, 237, 219, 0.58);
+}
+
+.home-page-body .home-reviews-column .card-bottom {
+  border-top-color: rgba(185, 148, 90, 0.22);
+}
+
+.home-page-body .home-reviews-column .tag {
+  color: #f3d8aa;
+  background: rgba(185, 148, 90, 0.13);
+}
+
+.home-page-body .home-reviews-column .movie-card-note-only {
+  background: rgba(8, 24, 43, 0.78) !important;
+}
+
+/* Actions, réponses et likes. */
+
+.home-page-body .home-reviews-column .film-link,
+.home-page-body .home-reviews-column .review-discussion-link,
+.home-page-body .home-reviews-column .add-review-content,
+.home-page-body .home-reviews-column .edit-review {
+  color: #f3d8aa;
+}
+
+.home-page-body .home-reviews-column .film-link:hover,
+.home-page-body .home-reviews-column .review-discussion-link:hover,
+.home-page-body .home-reviews-column .add-review-content:hover,
+.home-page-body .home-reviews-column .edit-review:hover {
+  color: #d85a52;
+}
+
+.home-page-body .home-reviews-column .review-discussion-link span {
+  color: #f3d8aa;
+  background: rgba(185, 148, 90, 0.16);
+}
+
+.home-page-body .home-reviews-column .favorite {
+  color: rgba(247, 237, 219, 0.58);
+}
+
+.home-page-body .home-reviews-column .favorite:hover,
+.home-page-body .home-reviews-column .favorite.liked {
+  color: #d85a52;
+}
+
+/* =====================================================
+   SIDEBAR — ACTIVITÉ DU CERCLE
+   ===================================================== */
+
+.home-page-body .circle-activity-sidebar {
+  border-left-color: rgba(185, 148, 90, 0.26);
+}
+
+.home-page-body .circle-activity-heading h2 {
+  color: #f7eddb;
+}
+
+.home-page-body .circle-activity-subtitle {
+  color: rgba(247, 237, 219, 0.6);
+}
+
+.home-page-body .circle-activity-see-all {
+  color: #f3d8aa;
+}
+
+.home-page-body .circle-activity-see-all:hover {
+  color: #d85a52;
+}
+
+.home-page-body .circle-activity-feed {
+  background: rgba(8, 24, 43, 0.62);
+  border-color: rgba(185, 148, 90, 0.3);
+}
+
+.home-page-body .circle-activity-item,
+.home-page-body .circle-activity-card {
+  border-color: rgba(185, 148, 90, 0.22);
+}
+
+.home-page-body .circle-activity-main,
+.home-page-body .circle-activity-meta,
+.home-page-body .circle-activity-date {
+  color: rgba(247, 237, 219, 0.58);
+}
+
+.home-page-body .circle-activity-main a,
+.home-page-body .circle-activity-content h3,
+.home-page-body .circle-activity-content h3 a {
+  color: #f7eddb;
+}
+
+.home-page-body .circle-activity-main a:hover,
+.home-page-body .circle-activity-content h3 a:hover,
+.home-page-body .circle-activity-review:hover {
+  color: #f3d8aa;
+}
+
+.home-page-body .circle-activity-review {
+  color: #f3d8aa;
+}
+
+.home-page-body .circle-activity-empty-state,
+.home-page-body .circle-activity-empty,
+.home-page-body .circle-activity-loading {
+  color: rgba(247, 237, 219, 0.62);
+}
+
+.home-page-body .circle-activity-empty-state strong {
+  color: #f7eddb;
+}
+
+/* =====================================================
+   PAGINATION ET À PROPOS
+   ===================================================== */
+
+.home-page-body .home-pagination::before,
+.home-page-body .home-pagination::after {
+  background: rgba(185, 148, 90, 0.26);
+}
+
+.home-page-body .home-show-more-button {
+  color: #f3d8aa;
+  background: rgba(8, 24, 43, 0.74);
+  border-color: rgba(185, 148, 90, 0.44);
+}
+
+.home-page-body .home-show-more-button:hover {
+  color: #061323;
+  background: #f3d8aa;
+  border-color: #f3d8aa;
+}
+
+.home-page-body .about-section {
+  border-top: 1px solid rgba(185, 148, 90, 0.22);
+  padding-top: 64px;
+}
+
+.home-page-body .about-content p {
+  color: rgba(247, 237, 219, 0.64);
+}
+
+/* =====================================================
+   FOOTER
+   ===================================================== */
+
+.home-page-body footer {
+  color: rgba(247, 237, 219, 0.58);
+  background: rgba(3, 13, 25, 0.78);
+  border-top: 1px solid rgba(185, 148, 90, 0.22);
+}
+
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+
+@media (max-width: 750px) {
+  .home-page-body .circle-activity-sidebar {
+    padding-top: 24px;
+    border-top-color: rgba(185, 148, 90, 0.26);
+    border-left: 0;
+  }
+
+  .home-page-body main::before {
+    right: -210px;
+  }
+}
