@@ -463,6 +463,87 @@ function renderReviewReportModal() {
 }
 
 /* =====================================================
+   NAVIGATION — COMPTEUR MESSAGES NON LUS
+   ===================================================== */
+
+function updateUnreadMessagesBadge(unreadCount) {
+  const badge = document.getElementById("unreadMessagesBadge");
+  const messagesLink = document.getElementById("navMessagesLink");
+
+  if (!badge || !messagesLink) {
+    return;
+  }
+
+  const safeUnreadCount = Math.max(0, Number(unreadCount) || 0);
+
+  if (safeUnreadCount > 0) {
+    badge.hidden = false;
+    badge.textContent =
+      safeUnreadCount > 9 ? "9+" : String(safeUnreadCount);
+
+    const label = `Mes échanges — ${safeUnreadCount} message${
+      safeUnreadCount > 1 ? "s" : ""
+    } non lu${safeUnreadCount > 1 ? "s" : ""}`;
+
+    badge.setAttribute("aria-label", label);
+    messagesLink.setAttribute("aria-label", label);
+
+    return;
+  }
+
+  badge.hidden = true;
+  badge.textContent = "0";
+  badge.setAttribute("aria-label", "Messages non lus");
+  messagesLink.setAttribute("aria-label", "Mes échanges");
+}
+
+async function refreshNavigationUnreadMessagesBadge() {
+  const isUserConnected =
+    typeof currentUser !== "undefined" && currentUser;
+
+  const canUseSupabase =
+    typeof supabaseClient !== "undefined" &&
+    supabaseClient &&
+    typeof supabaseClient.rpc === "function";
+
+  if (!isUserConnected || !canUseSupabase) {
+    updateUnreadMessagesBadge(0);
+    return;
+  }
+
+  try {
+    const { data: conversations, error } = await supabaseClient.rpc(
+      "get_my_direct_conversations"
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    const unreadCount = (conversations || []).reduce(
+      (total, conversation) => {
+        const conversationUnreadCount = Math.max(
+          0,
+          Number(conversation.unread_count) || 0
+        );
+
+        return total + conversationUnreadCount;
+      },
+      0
+    );
+
+    updateUnreadMessagesBadge(unreadCount);
+  } catch (error) {
+    console.error(
+      "Impossible de mettre à jour la pastille des messages non lus :",
+      error
+    );
+
+    updateUnreadMessagesBadge(0);
+  }
+}
+
+/* =====================================================
    NAVIGATION
    ===================================================== */
 
@@ -588,6 +669,46 @@ function renderNavigation() {
   renderGlobalMovieSearchModal();
   renderGlobalCarnetModal();
   renderReviewReportModal();
+
+  /*
+    L'authentification peut encore être en cours lors du rendu initial.
+    Ce petit délai permet à auth.js de terminer le chargement de session.
+  */
+  window.setTimeout(() => {
+    refreshNavigationUnreadMessagesBadge();
+  }, 250);
 }
+
+/* =====================================================
+   ÉVÉNEMENTS GLOBAUX
+   ===================================================== */
+
+/*
+  Après connexion ou déconnexion, auth.js déclenche déjà cet événement.
+  La pastille est donc immédiatement recalculée.
+*/
+document.addEventListener("authChanged", () => {
+  refreshNavigationUnreadMessagesBadge();
+});
+
+/*
+  Optionnel mais utile si messages.js transmet le total immédiatement
+  après qu'une conversation ait été lue.
+*/
+document.addEventListener("messagesUnreadCountChanged", (event) => {
+  updateUnreadMessagesBadge(
+    Number(event.detail?.unreadCount || 0)
+  );
+});
+
+/*
+  Vérifie les nouveaux messages toutes les 25 secondes,
+  sans lancer de requête lorsque l'onglet est en arrière-plan.
+*/
+window.setInterval(() => {
+  if (!document.hidden) {
+    refreshNavigationUnreadMessagesBadge();
+  }
+}, 25000);
 
 renderNavigation();
