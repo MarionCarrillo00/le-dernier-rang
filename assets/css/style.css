@@ -15162,3 +15162,512 @@ main {
 .home-page-body .modal-overlay .modal-close:hover {
   color: var(--red);
 }
+
+/* =====================================================
+   ACCUEIL — CINÉ MOJITO « SALLE OBSCURE »
+   Thème nuit raffiné isolé à index.html uniquement.
+   Fond cinéma flou → voile nuit → panneaux lisibles.
+   ===================================================== */
+
+.home-page-body {
+  min-height: 100vh;
+  color: #f7eddb;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(3, 13, 25, 0.94) 0%,
+      rgba(5, 19, 35, 0.97) 45%,
+      rgba(3, 13, 25, 0.99) 100%
+    ),
+    url("https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=2200&q=85")
+    center / cover fixed;
+}
+
+/*
+  Ce voile rend l'image lointaine et laisse les textes respirer.
+  Si tu crées plus tard ton propre collage d'affiches floutées,
+  tu pourras remplacer uniquement l'URL ci-dessus.
+*/
+
+.home-page-body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  opacity: 0.32;
+  background:
+    radial-gradient(
+      circle at 12% 78%,
+      rgba(185, 148, 90, 0.16),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 88% 34%,
+      rgba(184, 68, 68, 0.1),
+      transparent 26%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0 9%,
+      rgba(185, 148, 90, 0.035) 9.1% 9.3%,
+      transparent 9.4% 20%,
+      rgba(185, 148, 90, 0.03) 20.1% 20.25%,
+      transparent 20.4% 100%
+    );
+  background-size: auto, auto, 185px 100%;
+}
+
+/* =====================================================
+   NAVIGATION
+   ===================================================== */
+
+.home-page-body #siteHeader,
+.home-page-body .site-header {
+  background: rgba(3, 13, 25, 0.94) !important;
+  border-bottom-color: rgba(185, 148, 90, 0.3) !important;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.28);
+}
+
+.home-page-body .site-logo {
+  color: #f3d8aa;
+}
+
+.home-page-body .site-logo:hover {
+  color: #fffaf4;
+}
+
+.home-page-body .site-search-button {
+  color: rgba(247, 237, 219, 0.9);
+  background: rgba(8, 24, 43, 0.84);
+  border-color: rgba(185, 148, 90, 0.42);
+}
+
+.home-page-body .site-search-button-icon {
+  color: #f3d8aa;
+}
+
+.home-page-body .site-search-button:hover,
+.home-page-body .site-search-button:focus-visible {
+  color: #fffaf4;
+  background: rgba(185, 148, 90, 0.16);
+  border-color: #c9a466;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.home-page-body .site-user-menu #userGreeting,
+.home-page-body .site-user-menu a {
+  color: rgba(247, 237, 219, 0.88);
+}
+
+.home-page-body .site-user-menu a:hover,
+.home-page-body .site-user-menu .site-nav-current {
+  color: #f3d8aa;
+}
+
+.home-page-body .site-user-menu .site-nav-current {
+  text-decoration-color: #b9945a;
+}
+
+.home-page-body .site-logout-button {
+  color: rgba(247, 237, 219, 0.82) !important;
+  border-color: rgba(247, 237, 219, 0.26) !important;
+}
+
+.home-page-body .site-logout-button:hover {
+  color: #f3d8aa !important;
+  border-color: rgba(243, 216, 170, 0.72) !important;
+}
+
+/* =====================================================
+   HERO — GRAND PLAN D'OUVERTURE
+   ===================================================== */
+
+.home-page-body .hero {
+  position: relative;
+  min-height: 295px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(185, 148, 90, 0.28);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(3, 13, 25, 0.94) 0%,
+      rgba(3, 13, 25, 0.72) 43%,
+      rgba(3, 13, 25, 0.22) 78%,
+      rgba(3, 13, 25, 0.38) 100%
+    ),
+    url("https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=2200&q=85")
+    center 48% / cover;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+}
+
+.home-page-body .hero::after {
+  position: absolute;
+  right: 9%;
+  bottom: -112px;
+  display: block;
+  width: 290px;
+  height: 290px;
+  content: "";
+  border: 1px solid rgba(185, 148, 90, 0.24);
+  border-radius: 50%;
+}
+
+.home-page-body .hero-content {
+  max-width: 550px;
+}
+
+.home-page-body .hero .eyebrow {
+  color: #f3d8aa;
+}
+
+.home-page-body .hero h1 {
+  color: #fffaf4;
+  text-shadow: 0 3px 18px rgba(0, 0, 0, 0.36);
+}
+
+.home-page-body .hero em {
+  color: #e5bf78;
+}
+
+/* =====================================================
+   CONTENU ET TITRES
+   ===================================================== */
+
+.home-page-body main {
+  position: relative;
+}
+
+.home-page-body .home-section-title {
+  padding-top: 3px;
+}
+
+.home-page-body .home-section-title h2,
+.home-page-body .about-content h2 {
+  color: #f7eddb;
+}
+
+.home-page-body .red-eyebrow {
+  color: #d85a52;
+}
+
+.home-page-body .home-section-summary p {
+  color: rgba(247, 237, 219, 0.67);
+}
+
+.home-page-body .home-movie-count {
+  color: #e5bf78;
+}
+
+.home-page-body .home-feed-tabs {
+  border-bottom-color: rgba(185, 148, 90, 0.32);
+}
+
+.home-page-body .home-feed-tab {
+  color: rgba(247, 237, 219, 0.62);
+}
+
+.home-page-body .home-feed-tab:hover,
+.home-page-body .home-feed-tab:focus-visible,
+.home-page-body .home-feed-tab.is-active,
+.home-page-body .home-feed-tab[aria-selected="true"] {
+  color: #f3d8aa;
+}
+
+.home-page-body .home-feed-tab.is-active::after,
+.home-page-body .home-feed-tab[aria-selected="true"]::after {
+  background: #b9945a;
+}
+
+/* =====================================================
+   FIL DE MICROCRITIQUES
+   ===================================================== */
+
+.home-page-body .home-reviews-column .movie-card {
+  background: rgba(7, 22, 40, 0.94) !important;
+  border: 1px solid rgba(185, 148, 90, 0.46) !important;
+  box-shadow:
+    0 2px 0 rgba(185, 148, 90, 0.08),
+    0 14px 28px rgba(0, 0, 0, 0.22);
+}
+
+.home-page-body .home-reviews-column .movie-card::before {
+  background: linear-gradient(
+    to bottom,
+    #e5bf78,
+    #b9945a
+  );
+}
+
+.home-page-body .home-reviews-column .movie-card:hover {
+  border-color: #d0ad70 !important;
+  box-shadow:
+    0 3px 0 rgba(185, 148, 90, 0.12),
+    0 20px 34px rgba(0, 0, 0, 0.34);
+}
+
+.home-page-body .home-reviews-column .movie-card-title,
+.home-page-body .home-reviews-column .movie-card-title a,
+.home-page-body .home-reviews-column .review,
+.home-page-body .home-reviews-column .author {
+  color: #f7eddb;
+}
+
+.home-page-body .home-reviews-column .movie-card-title a:hover {
+  color: #f3d8aa;
+}
+
+.home-page-body .home-reviews-column .movie-card-director,
+.home-page-body .home-reviews-column .review-date,
+.home-page-body .home-reviews-column .movie-card-note-meta {
+  color: rgba(247, 237, 219, 0.58);
+}
+
+.home-page-body .home-reviews-column .card-bottom {
+  border-top-color: rgba(185, 148, 90, 0.22);
+}
+
+.home-page-body .home-reviews-column .tag {
+  color: #f3d8aa;
+  background: rgba(185, 148, 90, 0.13);
+  border: 1px solid rgba(185, 148, 90, 0.16);
+}
+
+.home-page-body .home-reviews-column .rating,
+.home-page-body .home-reviews-column .stars,
+.home-page-body .home-reviews-column .star-full,
+.home-page-body .home-reviews-column .star-half {
+  color: #e5bf78;
+}
+
+.home-page-body .home-reviews-column .movie-card-note-only {
+  background: rgba(7, 22, 40, 0.84) !important;
+}
+
+/* Les actions restent fines, couleur or, jamais dominantes. */
+
+.home-page-body .home-reviews-column .film-link,
+.home-page-body .home-reviews-column .review-discussion-link,
+.home-page-body .home-reviews-column .add-review-content,
+.home-page-body .home-reviews-column .edit-review {
+  color: #f3d8aa;
+}
+
+.home-page-body .home-reviews-column .film-link:hover,
+.home-page-body .home-reviews-column .review-discussion-link:hover,
+.home-page-body .home-reviews-column .add-review-content:hover,
+.home-page-body .home-reviews-column .edit-review:hover {
+  color: #d85a52;
+}
+
+.home-page-body .home-reviews-column .review-discussion-link span {
+  color: #f3d8aa;
+  background: rgba(185, 148, 90, 0.16);
+}
+
+.home-page-body .home-reviews-column .favorite {
+  color: rgba(247, 237, 219, 0.56);
+}
+
+.home-page-body .home-reviews-column .favorite:hover,
+.home-page-body .home-reviews-column .favorite.liked {
+  color: #d85a52;
+}
+
+/* =====================================================
+   SIDEBAR — DANS MON CERCLE
+   ===================================================== */
+
+.home-page-body .circle-activity-sidebar {
+  padding: 18px 0 0 25px;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 24, 43, 0.52),
+    rgba(8, 24, 43, 0.08)
+  );
+  border-left-color: rgba(185, 148, 90, 0.3);
+}
+
+.home-page-body .circle-activity-heading h2 {
+  color: #f7eddb;
+}
+
+.home-page-body .circle-activity-subtitle {
+  color: rgba(247, 237, 219, 0.6);
+}
+
+.home-page-body .circle-activity-see-all {
+  color: #f3d8aa;
+}
+
+.home-page-body .circle-activity-see-all:hover {
+  color: #d85a52;
+}
+
+.home-page-body .circle-activity-feed {
+  background: rgba(7, 22, 40, 0.82);
+  border: 1px solid rgba(185, 148, 90, 0.34);
+}
+
+.home-page-body .circle-activity-item,
+.home-page-body .circle-activity-card {
+  border-color: rgba(185, 148, 90, 0.22);
+}
+
+.home-page-body .circle-activity-main,
+.home-page-body .circle-activity-meta,
+.home-page-body .circle-activity-date {
+  color: rgba(247, 237, 219, 0.58);
+}
+
+.home-page-body .circle-activity-main a,
+.home-page-body .circle-activity-content h3,
+.home-page-body .circle-activity-content h3 a {
+  color: #f7eddb;
+}
+
+.home-page-body .circle-activity-main a:hover,
+.home-page-body .circle-activity-content h3 a:hover,
+.home-page-body .circle-activity-review:hover {
+  color: #f3d8aa;
+}
+
+.home-page-body .circle-activity-review {
+  color: #e5bf78;
+}
+
+.home-page-body .circle-activity-empty-state,
+.home-page-body .circle-activity-empty,
+.home-page-body .circle-activity-loading {
+  color: rgba(247, 237, 219, 0.64);
+}
+
+.home-page-body .circle-activity-empty-state strong {
+  color: #f7eddb;
+}
+
+/* =====================================================
+   PAGINATION ET À PROPOS
+   ===================================================== */
+
+.home-page-body .home-pagination::before,
+.home-page-body .home-pagination::after {
+  background: rgba(185, 148, 90, 0.28);
+}
+
+.home-page-body .home-show-more-button {
+  color: #f3d8aa;
+  background: rgba(7, 22, 40, 0.88);
+  border-color: rgba(185, 148, 90, 0.48);
+}
+
+.home-page-body .home-show-more-button:hover {
+  color: #061323;
+  background: #f3d8aa;
+  border-color: #f3d8aa;
+}
+
+.home-page-body .about-section {
+  margin-top: 88px;
+  padding-top: 60px;
+  border-top: 1px solid rgba(185, 148, 90, 0.28);
+}
+
+.home-page-body .about-content p {
+  color: rgba(247, 237, 219, 0.66);
+}
+
+/* =====================================================
+   FOOTER
+   ===================================================== */
+
+.home-page-body footer {
+  color: rgba(247, 237, 219, 0.58);
+  background: rgba(3, 13, 25, 0.84);
+  border-top: 1px solid rgba(185, 148, 90, 0.26);
+}
+
+/* =====================================================
+   MODALES — ZONES IVOIRE, TOUJOURS
+   ===================================================== */
+
+.home-page-body .modal,
+.home-page-body .modal-overlay {
+  color: var(--ink);
+}
+
+.home-page-body .modal h1,
+.home-page-body .modal h2,
+.home-page-body .modal h3,
+.home-page-body .modal strong,
+.home-page-body .modal-overlay h1,
+.home-page-body .modal-overlay h2,
+.home-page-body .modal-overlay h3,
+.home-page-body .modal-overlay strong {
+  color: var(--ink);
+}
+
+.home-page-body .modal .eyebrow,
+.home-page-body .modal .red-eyebrow,
+.home-page-body .modal-overlay .eyebrow,
+.home-page-body .modal-overlay .red-eyebrow {
+  color: var(--red);
+}
+
+.home-page-body .modal p,
+.home-page-body .modal label,
+.home-page-body .modal .form-note,
+.home-page-body .modal .global-movie-search-note,
+.home-page-body .modal-overlay p,
+.home-page-body .modal-overlay label {
+  color: var(--grey);
+}
+
+.home-page-body .modal input,
+.home-page-body .modal select,
+.home-page-body .modal textarea,
+.home-page-body .modal-overlay input,
+.home-page-body .modal-overlay select,
+.home-page-body .modal-overlay textarea {
+  color: var(--ink);
+  background: #ffffff;
+  border-color: var(--line);
+}
+
+.home-page-body .modal .close-button,
+.home-page-body .modal-overlay .modal-close {
+  color: var(--grey);
+}
+
+.home-page-body .modal .close-button:hover,
+.home-page-body .modal-overlay .modal-close:hover {
+  color: var(--red);
+}
+
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+
+@media (max-width: 950px) {
+  .home-page-body .circle-activity-sidebar {
+    padding-left: 18px;
+  }
+}
+
+@media (max-width: 750px) {
+  .home-page-body .hero {
+    min-height: 260px;
+    background-position: center;
+  }
+
+  .home-page-body .circle-activity-sidebar {
+    padding: 24px 0 0;
+    background: transparent;
+    border-top: 1px solid rgba(185, 148, 90, 0.28);
+    border-left: 0;
+  }
+
+  .home-page-body .circle-activity-feed {
+    background: rgba(7, 22, 40, 0.76);
+  }
+}
