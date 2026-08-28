@@ -15671,3 +15671,235 @@ main {
     background: rgba(7, 22, 40, 0.76);
   }
 }
+
+/* =====================================================
+   CINÉ MOJITO — MODALES « APRÈS LA SÉANCE »
+   Écrins nuit, or doux et écriture ivoire.
+   ===================================================== */
+
+/* Le fond derrière la modale devient plus cinématographique. */
+
+.modal,
+.modal-overlay {
+  background: rgba(2, 10, 19, 0.78) !important;
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+}
+
+/* Boîtes de dialogue : panneau bleu nuit, liseré or. */
+
+.modal-box,
+.modal-content {
+  color: #f7eddb;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(13, 35, 58, 0.99),
+      rgba(5, 18, 33, 0.99)
+    ) !important;
+  border: 1px solid rgba(185, 148, 90, 0.68);
+  box-shadow:
+    0 22px 56px rgba(0, 0, 0, 0.56),
+    inset 0 0 0 1px rgba(255, 250, 244, 0.035);
+}
+
+/* Titres et texte. */
+
+.modal-box h1,
+.modal-box h2,
+.modal-box h3,
+.modal-box strong,
+.modal-content h1,
+.modal-content h2,
+.modal-content h3,
+.modal-content strong {
+  color: #fffaf4;
+}
+
+.modal-box .eyebrow,
+.modal-box .red-eyebrow,
+.modal-content .eyebrow,
+.modal-content .red-eyebrow {
+  color: #d85a52;
+}
+
+.modal-box p,
+.modal-box label,
+.modal-box .form-note,
+.modal-content p,
+.modal-content label,
+.modal-content .form-note {
+  color: rgba(247, 237, 219, 0.7);
+}
+
+.modal-box label,
+.modal-content label {
+  color: #f3d8aa;
+}
+
+/* Fermeture. */
+
+.modal-box .close-button,
+.modal-content .modal-close {
+  color: rgba(247, 237, 219, 0.66);
+}
+
+.modal-box .close-button:hover,
+.modal-content .modal-close:hover {
+  color: #f3d8aa;
+}
+
+/* Champs : bleu un peu plus clair pour rester très lisibles. */
+
+.modal-box input,
+.modal-box select,
+.modal-box textarea,
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
+  color: #fffaf4;
+  background: rgba(2, 13, 25, 0.72);
+  border-color: rgba(185, 148, 90, 0.42);
+}
+
+.modal-box input::placeholder,
+.modal-box textarea::placeholder,
+.modal-content input::placeholder,
+.modal-content textarea::placeholder {
+  color: rgba(247, 237, 219, 0.45);
+}
+
+.modal-box input:focus,
+.modal-box select:focus,
+.modal-box textarea:focus,
+.modal-content input:focus,
+.modal-content select:focus,
+.modal-content textarea:focus {
+  border-color: #d0ad70;
+  box-shadow: 0 0 0 3px rgba(185, 148, 90, 0.12);
+}
+
+/* Les listes déroulantes doivent conserver une couleur lisible. */
+
+.modal-box select option,
+.modal-content select option {
+  color: #fffaf4;
+  background: #081827;
+}
+
+/* Boutons secondaires et liens doux. */
+
+.modal-box .button-secondary,
+.modal-content .button-secondary {
+  color: #f3d8aa;
+  background: transparent;
+  border-color: rgba(185, 148, 90, 0.62);
+}
+
+.modal-box .button-secondary:hover,
+.modal-content .button-secondary:hover {
+  color: #061323;
+  background: #f3d8aa;
+  border-color: #f3d8aa;
+}
+
+.modal-box .button-text,
+.modal-content .button-text,
+.modal-box .forgot-password-button,
+.modal-content .forgot-password-button {
+  color: rgba(247, 237, 219, 0.66);
+}
+
+.modal-box .button-text:hover,
+.modal-content .button-text:hover,
+.modal-box .forgot-password-button:hover,
+.modal-content .forgot-password-button:hover {
+  color: #f3d8aa;
+}
+
+/* Onglets connexion / inscription. */
+
+.modal-box .auth-tab {
+  color: rgba(247, 237, 219, 0.58);
+}
+
+.modal-box .auth-tab.active {
+  color: #f3d8aa;
+  border-bottom-color: #b9945a;
+}
+
+/* Résultats TMDB et film sélectionné. */
+
+.modal-box .tmdb-result,
+.modal-box .selected-movie-card,
+.modal-box .global-movie-result,
+.modal-box .global-talent-result,
+.modal-box .global-carnet-movie,
+.modal-content .watchlist-review-profile-film,
+.modal-content .profile-favorite-card {
+  color: #f7eddb;
+  background: rgba(2, 13, 25, 0.52);
+  border-color: rgba(185, 148, 90, 0.32);
+}
+
+.modal-box .tmdb-result:hover,
+.modal-box .global-movie-result:hover,
+.modal-box .global-talent-result:hover {
+  background: rgba(185, 148, 90, 0.12);
+  border-color: #c9a466;
+}
+
+.modal-box .tmdb-result strong,
+.modal-box .selected-movie-card strong,
+.modal-box .global-movie-result strong,
+.modal-box .global-talent-result strong,
+.modal-content .profile-favorite-card strong {
+  color: #fffaf4;
+}
+
+.modal-box .tmdb-result span,
+.modal-box .selected-movie-card p,
+.modal-box .global-movie-result span,
+.modal-box .global-talent-result small,
+.modal-content .profile-favorite-card small,
+.modal-content .profile-favorite-card span {
+  color: rgba(247, 237, 219, 0.58);
+}
+
+/* Encarts sensibles : explication, note, signalement. */
+
+.modal-box .edit-review-note-explanation,
+.modal-box .review-report-intro,
+.modal-box .review-report-movie,
+.modal-content .edit-review-note-explanation,
+.modal-content .profile-preferences-intro {
+  color: rgba(247, 237, 219, 0.72);
+  background: rgba(185, 148, 90, 0.09);
+  border-left-color: #b9945a;
+}
+
+/* Messages système. */
+
+.modal-box .status-message.success,
+.modal-content .status-message.success {
+  color: #d9f1df;
+  background: rgba(44, 120, 81, 0.28);
+}
+
+.modal-box .status-message.error,
+.modal-content .status-message.error {
+  color: #ffd9d4;
+  background: rgba(184, 68, 68, 0.28);
+}
+
+/* Compteurs de caractères. */
+
+.modal-box .character-counter,
+.modal-content .character-counter {
+  color: rgba(247, 237, 219, 0.52);
+}
+
+.modal-box .character-counter.limit-reached,
+.modal-content .character-counter.limit-reached {
+  color: #e87870;
+}
