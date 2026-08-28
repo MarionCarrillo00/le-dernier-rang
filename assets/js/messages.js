@@ -14,6 +14,32 @@ let activeFriendId = null;
 let activeMessages = [];
 
 /* =====================================================
+   NAVIGATION — PASTILLE DES MESSAGES NON LUS
+   ===================================================== */
+
+function getUnreadMessagesCount() {
+  return directConversations.reduce(
+    (total, conversation) => {
+      return (
+        total +
+        Math.max(0, Number(conversation.unread_count) || 0)
+      );
+    },
+    0
+  );
+}
+
+function notifyUnreadMessagesCount() {
+  document.dispatchEvent(
+    new CustomEvent("messagesUnreadCountChanged", {
+      detail: {
+        unreadCount: getUnreadMessagesCount()
+      }
+    })
+  );
+}
+
+/* =====================================================
    UTILITAIRES
    ===================================================== */
 
@@ -124,6 +150,8 @@ function renderMessagesError(message) {
 }
 
 function renderMessagesLoginState() {
+  notifyUnreadMessagesCount();
+
   if (!messagesPageContent) {
     return;
   }
@@ -632,6 +660,7 @@ function renderMessagesPage() {
 async function loadActiveConversationMessages() {
   if (!activeConversationId) {
     activeMessages = [];
+    notifyUnreadMessagesCount();
     return;
   }
 
@@ -640,6 +669,28 @@ async function loadActiveConversationMessages() {
   );
 
   await markConversationAsRead(activeConversationId);
+
+  /*
+    Dès que la conversation est ouverte, ses messages deviennent lus.
+    On met donc son compteur local à zéro tout de suite.
+  */
+  directConversations = directConversations.map(
+    (conversation) => {
+      if (
+        String(conversation.conversation_id) ===
+        String(activeConversationId)
+      ) {
+        return {
+          ...conversation,
+          unread_count: 0
+        };
+      }
+
+      return conversation;
+    }
+  );
+
+  notifyUnreadMessagesCount();
 }
 
 async function openConversation(conversationId, friendId) {
@@ -672,6 +723,7 @@ async function openConversationFromFriendId(friendId) {
   const conversationId = await getOrCreateConversation(friendId);
 
   directConversations = await getMyDirectConversations();
+  notifyUnreadMessagesCount();
 
   activeConversationId = conversationId;
   activeFriendId = friendId;
@@ -682,7 +734,14 @@ async function openConversationFromFriendId(friendId) {
 
 async function refreshMessagesPage({ preserveScroll = false } = {}) {
   if (!currentUser) {
+    directConversations = [];
+    activeConversationId = null;
+    activeFriendId = null;
+    activeMessages = [];
+
+    notifyUnreadMessagesCount();
     renderMessagesLoginState();
+
     return;
   }
 
@@ -690,6 +749,12 @@ async function refreshMessagesPage({ preserveScroll = false } = {}) {
     document.getElementById("messagesThreadList")?.scrollTop || 0;
 
   directConversations = await getMyDirectConversations();
+
+  /*
+    Met à jour immédiatement la pastille de l'enveloppe
+    selon les unread_count reçus depuis ta RPC.
+  */
+  notifyUnreadMessagesCount();
 
   if (activeConversationId) {
     const stillExists = directConversations.some(
@@ -877,7 +942,14 @@ function startMessagesAutoRefresh() {
 
 async function initialiseMessagesPage() {
   if (!currentUser) {
+    directConversations = [];
+    activeConversationId = null;
+    activeFriendId = null;
+    activeMessages = [];
+
+    notifyUnreadMessagesCount();
     renderMessagesLoginState();
+
     return;
   }
 
