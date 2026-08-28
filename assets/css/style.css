@@ -14323,3 +14323,17 @@ main {
     right: 8%;
   }
 }
+
+/* Le fond reste cinématographique, mais plus discret
+   derrière les contenus à lire. */
+.profile-page-body {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(4, 15, 28, 0.975) 0%,
+      rgba(5, 19, 35, 0.985) 48%,
+      rgba(3, 13, 25, 0.99) 100%
+    ),
+    url("https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1800&q=80")
+    center / cover fixed;
+}
