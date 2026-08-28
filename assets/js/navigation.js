@@ -534,16 +534,27 @@ function renderNavigation() {
 
           <a
             href="messages.html"
-            class="site-messages-link ${
+            id="navMessagesLink"
+            class="site-messages-link nav-messages-link ${
               isMessagesPage ? "site-nav-current" : ""
             }"
+            aria-label="Mes échanges"
+            title="Mes échanges"
             ${isMessagesPage ? 'aria-current="page"' : ""}
           >
-            <span>Mes échanges</span>
+            <svg
+              class="nav-messages-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M3 5.5h18v13H3z"></path>
+              <path d="m3 6 9 7 9-7"></path>
+            </svg>
 
             <span
               id="unreadMessagesBadge"
-              class="unread-messages-badge"
+              class="unread-messages-badge nav-messages-badge"
               aria-label="Messages non lus"
               hidden
             >
