@@ -4,22 +4,17 @@
    Navigation personnelle du profil
    ===================================================== */
 
-let profileCarnetNavigationInitialised = false;
-let profileCarnetNavigationObserver = null;
+let profileCarnetNavigationRefreshTimeout = null;
 
 /* =====================================================
    OUTILS
    ===================================================== */
 
-function getProfileCarnetCountLabel(
-  count,
-  singular,
-  plural
-) {
+function getProfileCarnetCountLabel(count, singular, plural) {
   return Number(count) > 1 ? plural : singular;
 }
 
-function getProfileCarnetEmptyData() {
+function getEmptyProfileCarnetNavigationData() {
   return {
     watchedCount: 0,
     notesCount: 0,
@@ -37,46 +32,13 @@ function removeProfileCarnetNavigation() {
     ?.remove();
 }
 
-function placeProfileCarnetNavigation() {
-  const navigation = document.querySelector(
-    "#profileCarnetNavigation"
-  );
-
-  const profileHero = document.querySelector(
-    ".profile-hero-card"
-  );
-
-  if (!navigation || !profileHero) {
-    return;
-  }
-
-  const cinemaSection = document.querySelector(
-    "#myCinemaSection"
-  );
-
-  /*
-    Si « Mon cinéma » est présent, la navigation doit rester
-    entre le hero et cette section.
-  */
-  if (cinemaSection) {
-    cinemaSection.insertAdjacentElement(
-      "beforebegin",
-      navigation
-    );
-
-    return;
-  }
-
-  profileHero.insertAdjacentElement("afterend", navigation);
-}
-
 /* =====================================================
-   LECTURE DES COMPTEURS
+   DONNÉES
    ===================================================== */
 
 async function getProfileCarnetNavigationData() {
   if (!currentUser) {
-    return getProfileCarnetEmptyData();
+    return getEmptyProfileCarnetNavigationData();
   }
 
   const results = await Promise.allSettled([
@@ -165,9 +127,7 @@ async function getProfileCarnetNavigationData() {
    ===================================================== */
 
 function renderProfileCarnetNavigation(data) {
-  const profileHero = document.querySelector(
-    ".profile-hero-card"
-  );
+  const profileHero = document.querySelector(".profile-hero-card");
 
   if (!profileHero || !currentUser) {
     removeProfileCarnetNavigation();
@@ -225,6 +185,7 @@ function renderProfileCarnetNavigation(data) {
             href="carnet.html"
           >
             <span>Films vus</span>
+
             <small>
               ${watchedCount}
               ${getProfileCarnetCountLabel(
@@ -240,6 +201,7 @@ function renderProfileCarnetNavigation(data) {
             href="carnet.html?view=notes"
           >
             <span>Notes</span>
+
             <small>
               ${notesCount}
               ${getProfileCarnetCountLabel(
@@ -255,6 +217,7 @@ function renderProfileCarnetNavigation(data) {
             href="carnet.html?view=critiques"
           >
             <span>Critiques</span>
+
             <small>
               ${reviewsCount}
               ${getProfileCarnetCountLabel(
@@ -289,6 +252,7 @@ function renderProfileCarnetNavigation(data) {
             href="${wishlistUrl}"
           >
             <span>À voir</span>
+
             <small>
               ${wishlistCount}
               ${getProfileCarnetCountLabel(
@@ -304,6 +268,7 @@ function renderProfileCarnetNavigation(data) {
             href="#myListsSection"
           >
             <span>Mes listes</span>
+
             <small>
               ${listsCount}
               ${getProfileCarnetCountLabel(
@@ -319,6 +284,7 @@ function renderProfileCarnetNavigation(data) {
             href="#myCircleSection"
           >
             <span>Amis</span>
+
             <small>
               ${friendsCount}
               ${getProfileCarnetCountLabel(
@@ -333,18 +299,22 @@ function renderProfileCarnetNavigation(data) {
     </div>
   `;
 
+  /*
+    On ajoute d'abord le bloc après le hero.
+    S'il y a déjà « Mon cinéma », on le replace juste après
+    cette navigation. Aucune boucle, aucun observateur.
+  */
   profileHero.insertAdjacentElement("afterend", section);
 
-  /*
-    profile-preferences.js injecte « Mon cinéma » parfois
-    quelques millisecondes après. On replace la navigation
-    immédiatement si nécessaire.
-  */
-  window.setTimeout(placeProfileCarnetNavigation, 60);
+  const cinemaSection = document.querySelector("#myCinemaSection");
+
+  if (cinemaSection) {
+    section.insertAdjacentElement("afterend", cinemaSection);
+  }
 }
 
 /* =====================================================
-   ACTUALISATION
+   RAFRAÎCHISSEMENT
    ===================================================== */
 
 async function refreshProfileCarnetNavigation() {
@@ -355,7 +325,6 @@ async function refreshProfileCarnetNavigation() {
 
   try {
     const data = await getProfileCarnetNavigationData();
-
     renderProfileCarnetNavigation(data);
   } catch (error) {
     console.error(
@@ -364,53 +333,36 @@ async function refreshProfileCarnetNavigation() {
     );
 
     renderProfileCarnetNavigation(
-      getProfileCarnetEmptyData()
+      getEmptyProfileCarnetNavigationData()
     );
   }
 }
 
-function watchProfileCarnetNavigationPosition() {
-  if (profileCarnetNavigationObserver) {
-    return;
-  }
+function scheduleProfileCarnetNavigationRefresh() {
+  window.clearTimeout(profileCarnetNavigationRefreshTimeout);
 
-  profileCarnetNavigationObserver = new MutationObserver(() => {
-    placeProfileCarnetNavigation();
-  });
-
-  profileCarnetNavigationObserver.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
+  /*
+    profile-preferences.js charge « Mon cinéma » de façon asynchrone.
+    Le léger délai garantit l'ordre : Hero → Navigation → Mon cinéma.
+  */
+  profileCarnetNavigationRefreshTimeout = window.setTimeout(() => {
+    refreshProfileCarnetNavigation();
+  }, 450);
 }
 
 /* =====================================================
    INITIALISATION
    ===================================================== */
 
-function initialiseProfileCarnetNavigation() {
-  if (profileCarnetNavigationInitialised) {
-    refreshProfileCarnetNavigation();
-    return;
-  }
-
-  profileCarnetNavigationInitialised = true;
-
-  watchProfileCarnetNavigationPosition();
-  refreshProfileCarnetNavigation();
-}
-
 document.addEventListener("authChanged", () => {
-  window.setTimeout(() => {
-    initialiseProfileCarnetNavigation();
-  }, 120);
+  scheduleProfileCarnetNavigationRefresh();
 });
 
 document.addEventListener(
   "profileCarnetNavigationRefresh",
   () => {
-    refreshProfileCarnetNavigation();
+    scheduleProfileCarnetNavigationRefresh();
   }
 );
 
-initialiseProfileCarnetNavigation();
+scheduleProfileCarnetNavigationRefresh();
