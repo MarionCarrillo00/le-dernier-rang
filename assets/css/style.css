@@ -13484,3 +13484,70 @@ main {
 }
 
 
+
+/* =====================================================
+   NAVIGATION — ICÔNE MESSAGES ET COMPTEUR NON LUS
+   ===================================================== */
+
+.nav-messages-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin: 0 2px;
+  color: var(--cream);
+  text-decoration: none;
+  vertical-align: middle;
+}
+
+.nav-messages-icon {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.nav-messages-link:hover,
+.nav-messages-link:focus-visible {
+  color: #f3d59e;
+}
+
+.nav-messages-link:hover .nav-messages-icon {
+  transform: translateY(-1px);
+}
+
+.nav-messages-link:focus-visible {
+  outline: 1px solid #f3d59e;
+  outline-offset: 3px;
+}
+
+.nav-messages-badge {
+  position: absolute;
+  top: 1px;
+  right: -1px;
+  z-index: 1;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  box-sizing: border-box;
+  border: 1px solid var(--deep-red);
+  border-radius: 999px;
+  background: var(--red);
+  color: #fffaf4;
+  font-family: Arial, sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 13px;
+  text-align: center;
+}
+
+/* La pastille n'existe visuellement que s'il y a des messages non lus. */
+.nav-messages-badge[hidden] {
+  display: none !important;
+}
